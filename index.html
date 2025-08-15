@@ -180,8 +180,8 @@
             // Atualiza a mensagem de sessão criada se estiver visível
             if (!sessionInfo.classList.contains('hidden')) {
                 const currentSessionId = sessionInfo.getAttribute('data-session-id');
-                // Certifica-se de que pageTranslations está definido antes de tentar acessar suas propriedades
-                if (pageTranslations.session_created_message && pageTranslations.session_id_prompt) {
+                // Certifica-se de que pageTranslations está definido e que as chaves da mensagem existem
+                if (pageTranslations && pageTranslations.session_created_message && pageTranslations.session_id_prompt) {
                     sessionInfo.innerHTML = `${pageTranslations.session_created_message} <span class="font-bold text-teal-700">${currentSessionId}</span>.<br>${pageTranslations.session_id_prompt}`;
                 } else {
                     // Fallback se as traduções para a mensagem de sessão ainda não estiverem disponíveis
@@ -229,7 +229,10 @@
                 btn.classList.remove('selected');
             });
             const buttonId = `lang${lang.replace('-', '').charAt(0).toUpperCase() + lang.replace('-', '').slice(1)}Button`;
-            document.getElementById(buttonId).classList.add('selected');
+            const selectedButton = document.getElementById(buttonId);
+            if (selectedButton) {
+                selectedButton.classList.add('selected');
+            }
             
             await loadTranslations(currentLanguage); // Carrega as novas traduções
         }
