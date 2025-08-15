@@ -11,6 +11,12 @@ body {
     color: #333;
     background-image: linear-gradient(to top, #cfd9ed 0%, #e2e8f0 100%); /* Gradiente sutil */
 }
+/* Estilos para o contêiner principal na index.html para evitar o FOUC */
+#main-content-container {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+}
 /* Estilos para os botões com um efeito visual agradável */
 .game-button {
     transition: all 0.2s ease-in-out;
