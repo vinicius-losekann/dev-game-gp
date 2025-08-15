@@ -239,14 +239,22 @@
             document.querySelectorAll('.language-button').forEach(btn => {
                 btn.classList.remove('selected');
             });
-            const buttonId = `lang${lang.replace('-', '').charAt(0).toUpperCase() + lang.replace('-', '').slice(1)}Button`;
-            const selectedButton = document.getElementById(buttonId);
+
+            // Geração corrigida do ID do botão de idioma
+            const parts = lang.split('-'); 
+            let formattedId = 'lang';
+            parts.forEach(part => {
+                formattedId += part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+            });
+            formattedId += 'Button';
+            
+            const selectedButton = document.getElementById(formattedId); // Usando o ID formatado corretamente
             
             if (selectedButton) {
                 selectedButton.classList.add('selected');
-                console.log('Botão selecionado:', buttonId); // Debug
+                console.log('Botão selecionado:', formattedId); // Debug
             } else {
-                console.error(`Elemento com ID '${buttonId}' não encontrado. Não foi possível adicionar a classe 'selected'.`);
+                console.error(`Elemento com ID '${formattedId}' não encontrado. Não foi possível adicionar a classe 'selected'.`);
             }
             
             // Desabilita os botões de ação enquanto as traduções são carregadas
@@ -258,15 +266,18 @@
 
         // Ao carregar a página: define o idioma padrão e carrega as traduções
         document.addEventListener('DOMContentLoaded', () => {
+            // Atribui as variáveis dos botões de idioma AQUI, após o DOM estar carregado
             langPtBrButton = document.getElementById('langPtBrButton');
             langEnUsButton = document.getElementById('langEnUsButton');
             langEsEsButton = document.getElementById('langEsEsButton');
 
+            // Anexar event listeners para os botões de idioma
             if (langPtBrButton) langPtBrButton.addEventListener('click', () => setLanguage('pt-BR'));
             if (langEnUsButton) langEnUsButton.addEventListener('click', () => setLanguage('en-US'));
             if (langEsEsButton) langEsEsButton.addEventListener('click', () => setLanguage('es-ES'));
 
             // Pequeno atraso para garantir que todos os elementos estejam no DOM antes da primeira chamada de setLanguage
+            // Isso evita a corrida de condição que poderia resultar em 'null' para os botões
             setTimeout(() => {
                 setLanguage('pt-BR'); // Define o idioma padrão ao carregar
             }, 100); 
