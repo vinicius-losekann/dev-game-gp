@@ -13,6 +13,9 @@ const sessionInfo = document.getElementById('sessionInfo'); // Novo elemento
 // Adicionado: Referência ao contêiner principal para controlar a visibilidade
 const mainContentContainer = document.getElementById('main-content-container');
 
+// Log para verificar se o elemento foi encontrado
+console.log('mainContentContainer encontrado:', mainContentContainer);
+
 // Estas variáveis serão atribuídas dentro de DOMContentLoaded
 let langPtBrButton;
 let langEnUsButton;
@@ -57,9 +60,10 @@ async function loadTranslations(lang) {
         accessGameButton.disabled = !success;
         console.log('Botões de Ação re-habilitados após loadTranslations (Sucesso:', success, ')');
         
-        // MOSTRA o contêiner principal removendo a classe 'hidden' do Tailwind
+        // MOSTRA o contêiner principal definindo display: block;
         if (mainContentContainer) {
-            mainContentContainer.classList.remove('hidden');
+            mainContentContainer.style.display = 'block';
+            console.log('mainContentContainer definido para display: block;'); // Log de confirmação
         }
     }
 }
