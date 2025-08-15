@@ -1,5 +1,6 @@
 [
     {
+        "area_id": "integration",
         "area": "Gestión de la Integración del Proyecto",
         "question": "¿En la gestión de la integración del proyecto, qué proceso es responsable de autorizar formalmente al equipo del proyecto para iniciar la siguiente fase, de acuerdo con el plan de gestión del proyecto?",
         "options": {
@@ -13,6 +14,7 @@
         "explanation": "El proceso de desarrollar el plan para la dirección del proyecto es donde se define el enfoque del proyecto. Es durante este proceso donde se define y formaliza la autorización para iniciar las fases subsiguientes, aunque 'Dirigir y Gestionar el Trabajo del Proyecto' es donde ocurre la ejecución real."
     },
     {
+        "area_id": "scope",
         "area": "Gestión del Alcance del Proyecto",
         "question": "¿Cuál es la salida principal del proceso 'Recopilar Requisitos' en el área de Gestión del Alcance del Proyecto?",
         "options": {
@@ -26,6 +28,7 @@
         "explanation": "La salida principal del proceso 'Recopilar Requisitos' son los Documentos de Requisitos, que describen cómo se gestionará el alcance del proyecto. La EDT y la Declaración del Alcance son salidas de procesos subsiguientes."
     },
     {
+        "area_id": "schedule",
         "area": "Gestión del Cronograma del Proyecto",
         "question": "En la Gestión del Cronograma del Proyecto, ¿qué herramienta o técnica se utiliza para determinar la secuencia de actividades en la que un retraso en una de ellas afecta la fecha de finalización del proyecto, incluso con la existencia de holgura en las actividades?",
         "options": {
@@ -39,6 +42,7 @@
         "explanation": "El Método de la Ruta Crítica (CPM) es la técnica utilizada para identificar la secuencia de actividades que representa el camino más largo, determinando la duración mínima del proyecto. El análisis de la red del cronograma es un término más amplio."
     },
     {
+        "area_id": "cost",
         "area": "Gestión de los Costos del Proyecto",
         "question": "La Gestión de los Costos del Proyecto incluye un proceso que monitorea el estado del proyecto para actualizar los costos y gestionar los cambios en la línea base de los costos. ¿Cuál es el nombre de este proceso?",
         "options": {
@@ -52,6 +56,7 @@
         "explanation": "El proceso 'Controlar los Costos' es responsable de monitorear el estado del proyecto, gestionar los cambios en la línea base de los costos y asegurar que el proyecto no exceda el presupuesto aprobado."
     },
     {
+        "area_id": "quality",
         "area": "Gestión de la Calidad del Proyecto",
         "question": "¿Qué documento se crea en la Gestión de la Calidad del Proyecto para identificar los estándares de calidad relevantes y cómo alcanzarlos?",
         "options": {
@@ -65,6 +70,7 @@
         "explanation": "El Plan de Gestión de la Calidad es el documento que describe cómo el equipo del proyecto implementará la política de calidad de la organización y cómo se alcanzarán los estándares de calidad."
     },
     {
+        "area_id": "resources",
         "area": "Gestión de los Recursos del Proyecto",
         "question": "En la Gestión de los Recursos del Proyecto, ¿cuál es el proceso que asegura que los recursos físicos y el equipo del proyecto asignados estén disponibles y se utilicen en el momento y lugar correctos?",
         "options": {
@@ -78,6 +84,7 @@
         "explanation": "El proceso 'Adquirir Recursos' es el que obtiene el equipo, el equipo, los materiales y otros recursos físicos necesarios para completar el trabajo del proyecto."
     },
     {
+        "area_id": "communications",
         "area": "Gestión de las Comunicaciones del Proyecto",
         "question": "La Gestión de las Comunicaciones del Proyecto tiene un proceso que asegura que la información sea recopilada, almacenada y distribuida de manera apropiada y oportuna. ¿Cuál es el nombre de este proceso?",
         "options": {
@@ -91,6 +98,7 @@
         "explanation": "El proceso 'Gestionar las Comunicaciones' es el que ejecuta el plan de comunicación, realizando la creación, recopilación, distribución, almacenamiento y recuperación de la información del proyecto."
     },
     {
+        "area_id": "risks",
         "area": "Gestión de los Riesgos del Proyecto",
         "question": "¿Cuál es la salida principal del proceso 'Identificar los Riesgos' en el área de Gestión de los Riesgos del Proyecto?",
         "options": {
@@ -104,6 +112,7 @@
         "explanation": "El Registro de Riesgos es la salida principal del proceso de identificación de riesgos. Documenta todos los riesgos identificados, sus características, causas potenciales e impactos."
     },
     {
+        "area_id": "acquisitions",
         "area": "Gestión de las Adquisiciones del Proyecto",
         "question": "¿En qué proceso de la Gestión de las Adquisiciones del Proyecto evalúa el director del proyecto las propuestas de los proveedores para seleccionar el más adecuado?",
         "options": {
@@ -117,6 +126,7 @@
         "explanation": "El proceso 'Efectuar las Adquisiciones' es donde se reciben y evalúan las propuestas, ofertas o cotizaciones de los proveedores, y donde se selecciona un vendedor para el contrato."
     },
     {
+        "area_id": "stakeholders",
         "area": "Gestión de los Interesados del Proyecto",
         "question": "La Gestión de los Interesados del Proyecto incluye un proceso que busca aumentar el apoyo de los interesados y asegurar su participación efectiva. ¿Cuál es este proceso?",
         "options": {
@@ -130,4 +140,3 @@
         "explanation": "El proceso 'Gestionar la Participación de los Interesados' se centra en la comunicación y el trabajo directo con los interesados para satisfacer sus expectativas y mantenerlos activos y apoyando el proyecto."
     }
 ]
-
