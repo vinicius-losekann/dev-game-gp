@@ -8,6 +8,7 @@ let selectedOption = null;
 let currentLanguage = AppConfig.defaultLanguage; 
 
 // Objeto para armazenar as traduções de textos estáticos da UI em game.html
+// ESTE OBJETO SERÁ MOVIDO PARA UM ARQUIVO JSON EM UM PRÓXIMO PASSO!
 const translations = {
     "pt-BR": {
         game_page_base_title: "Jogo de Gerenciamento de Projetos - Sessão",
@@ -131,20 +132,19 @@ function updateUITexts() {
 // Função para carregar as perguntas do arquivo JSON com base no idioma
 async function loadQuestions(lang) {
     let filename;
-    // Mapeamento explícito de códigos BCP 47 para nomes de arquivo JSON de perguntas
     switch (lang) {
         case 'pt-BR':
-            filename = 'questions_pt-BR.json';
+            filename = 'data/questions/questions_pt-BR.json'; // Caminho atualizado
             break;
         case 'en-US':
-            filename = 'questions_en-US.json'; 
+            filename = 'data/questions/questions_en-US.json'; // Caminho atualizado
             break;
         case 'es-ES':
-            filename = 'questions_es-ES.json';
+            filename = 'data/questions/questions_es-ES.json'; // Caminho atualizado
             break;
         default:
             console.warn(`Idioma '${lang}' não reconhecido para carregar perguntas. Carregando questions_pt-BR.json como fallback.`);
-            filename = 'questions_pt-BR.json'; // Fallback para português do Brasil
+            filename = 'data/questions/questions_pt-BR.json'; // Caminho atualizado para fallback
     }
 
     try {
@@ -155,15 +155,12 @@ async function loadQuestions(lang) {
         allQuestions = await response.json();
         console.log(`Perguntas em ${lang} carregadas com sucesso de ${filename}:`, allQuestions);
 
-        // Habilita os botões de seleção de área após carregar as perguntas
         areaSelectButtons.forEach(button => button.disabled = false);
         randomAreaButtonSelector.disabled = false;
 
     } catch (error) {
         console.error('Falha ao carregar as perguntas:', error);
-        // Exibir uma mensagem de erro na UI
         areaSelector.innerHTML = `<p class="text-red-600">${error.message}</p>`;
-        // Desabilita os botões para evitar que o usuário tente jogar sem perguntas
         areaSelectButtons.forEach(button => button.disabled = true);
         randomAreaButtonSelector.disabled = true;
     }
@@ -174,7 +171,7 @@ function getQueryParams() {
     const urlParams = new URLSearchParams(window.location.search);
     return {
         session: urlParams.get('session'),
-        lang: urlParams.get('lang') || AppConfig.defaultLanguage // Padrão do config.js
+        lang: urlParams.get('lang') || AppConfig.defaultLanguage
     };
 }
 
@@ -186,16 +183,13 @@ function displayQuestion(question, hideAreaSelector = true) {
     submitAnswerButton.classList.add('opacity-50', 'cursor-not-allowed');
     nextCardButton.classList.add('hidden');
 
-    // Acessando as propriedades diretamente, pois o arquivo JSON já é específico do idioma
     questionArea.textContent = question.area;
     questionText.textContent = question.question;
-    
     optionsContainer.innerHTML = '';
     feedbackContainer.innerHTML = '';
 
-    const options = question.options; // As opções também são diretas agora
+    const options = question.options;
 
-    // Cria os botões de opção
     for (const key in options) {
         const optionButton = document.createElement('button');
         optionButton.className = 'option-button bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-3 px-5 rounded-lg text-left w-full shadow';
@@ -236,7 +230,6 @@ submitAnswerButton.addEventListener('click', () => {
         feedbackDiv.className = 'feedback incorrect';
         feedbackDiv.textContent = translations[currentLanguage].feedback_incorrect_prefix + `${currentQuestion.correct}).`;
     }
-    // Acessando a explicação diretamente, pois o arquivo JSON já é específico do idioma
     explanationDiv.textContent = translations[currentLanguage].explanation_prefix + currentQuestion.explanation;
 
     feedbackContainer.appendChild(feedbackDiv);
@@ -254,9 +247,7 @@ submitAnswerButton.addEventListener('click', () => {
 // Event listeners para os botões de seleção de área (do seletor inicial)
 areaSelectButtons.forEach(button => {
     button.addEventListener('click', () => {
-        const areaId = button.getAttribute('data-area'); // Pega o ID da área (ex: "integration")
-        
-        // Filtra as perguntas com base no area_id
+        const areaId = button.getAttribute('data-area');
         const questionsInArea = allQuestions.filter(q => q.area_id === areaId);
 
         if (questionsInArea.length > 0) {
@@ -287,6 +278,7 @@ nextCardButton.addEventListener('click', () => {
 
 // Event listener para o botão de voltar para a home
 backToHomeButton.addEventListener('click', () => {
+    console.log('Botão "Voltar para o Início" clicado!');
     window.location.href = 'index.html';
 });
 
