@@ -144,7 +144,7 @@
 
                 pageTranslations = allTranslations[lang];
                 console.log('Traduções carregadas para', lang, ':', pageTranslations);
-                updateUITexts();
+                updateUITexts(); // Atualiza a UI após carregar as traduções
                 success = true; // Marca como sucesso
             } catch (error) {
                 console.error('Falha ao carregar ou processar as traduções:', error);
@@ -174,6 +174,9 @@
             // Garante que pageTranslations está carregado antes de tentar acessar suas propriedades
             const isTranslationsLoaded = Object.keys(pageTranslations).length > 0 && pageTranslations.main_title;
 
+            console.log('updateUITexts chamado. Estado de pageTranslations:', pageTranslations); // Debug
+            console.log('isTranslationsLoaded:', isTranslationsLoaded); // Debug
+
             document.getElementById('mainTitle').textContent = isTranslationsLoaded ? pageTranslations.main_title : "Jogo de Gerenciamento de Projetos";
             document.getElementById('descriptionText').innerHTML = isTranslationsLoaded ? pageTranslations.description_text : "Domine as habilidades essenciais de gerenciamento de projetos neste jogo interativo! Aprenda sobre **planejamento**, **execução**, **monitoramento de progresso** e **resolução de desafios** em cenários simulados para se tornar um gestor de projetos de sucesso. Cada decisão importa!";
             document.querySelector('#newGameButton [data-lang-key="button_new_game"]').textContent = isTranslationsLoaded ? pageTranslations.button_new_game : "Iniciar Novo Jogo";
@@ -186,14 +189,20 @@
                 errorMessage.textContent = isTranslationsLoaded ? pageTranslations.error_invalid_session_id : "Por favor, digite um ID de sessão válido (4 dígitos numéricos).";
             }
             
+            // Lógica para sessionInfo
             if (!sessionInfo.classList.contains('hidden')) {
                 const currentSessionId = sessionInfo.getAttribute('data-session-id');
+                console.log('sessionInfo está visível. currentSessionId:', currentSessionId); // Debug
+
                 if (isTranslationsLoaded && pageTranslations.session_created_message && pageTranslations.session_id_prompt) {
+                    console.log('Usando traduções para sessionInfo.'); // Debug
                     sessionInfo.innerHTML = `${pageTranslations.session_created_message} <span class="font-bold text-teal-700">${currentSessionId}</span>.<br>${pageTranslations.session_id_prompt}`;
                 } else {
-                    // Fallback para a mensagem de sessão se as traduções não estiverem prontas
+                    console.log('Usando fallback para sessionInfo.'); // Debug
                     sessionInfo.innerHTML = `Sessão criada! Seu ID é: <span class="font-bold text-teal-700">${currentSessionId}</span>.<br>Insira este ID para acessar seu jogo.`;
                 }
+            } else {
+                console.log('sessionInfo está oculto. Não será atualizado.'); // Debug
             }
         }
 
@@ -208,13 +217,10 @@
             sessionIdInput.value = sessionId;
             sessionInfo.setAttribute('data-session-id', sessionId);
             
-            // Garante que a mensagem seja exibida imediatamente com um fallback
-            sessionInfo.innerHTML = `Sessão criada! Seu ID é: <span class="font-bold text-teal-700">${sessionId}</span>.<br>Insira este ID para acessar seu jogo.`;
             sessionInfo.classList.remove('hidden'); // Certifica que o elemento está visível
             errorMessage.classList.add('hidden'); // Esconde qualquer mensagem de erro
-
-            // Em seguida, atualiza com as traduções se já estiverem carregadas
-            updateUITexts(); 
+            
+            updateUITexts(); // Garante que a mensagem seja atualizada com as traduções corretas
             console.log('Botão "Iniciar Novo Jogo" clicado. ID da sessão:', sessionId); // Debug
         });
 
@@ -240,7 +246,7 @@
                 btn.classList.remove('selected');
             });
 
-            // Encontra o botão correto usando as referências diretas
+            // Encontra o botão correto usando as referências diretas (já atribuídas em DOMContentLoaded)
             let selectedButtonElement = null;
             if (lang === 'pt-BR') selectedButtonElement = langPtBrButton;
             else if (lang === 'en-US') selectedButtonElement = langEnUsButton;
@@ -250,6 +256,7 @@
                 selectedButtonElement.classList.add('selected');
                 console.log('Botão de idioma selecionado:', selectedButtonElement.id); // Debug
             } else {
+                // Isso só deve acontecer se getElementById falhou em DOMContentLoaded ou se o ID está errado no HTML
                 console.error(`Elemento para idioma '${lang}' não encontrado. Não foi possível adicionar a classe 'selected'.`);
             }
             
