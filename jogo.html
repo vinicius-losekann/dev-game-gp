@@ -20,32 +20,68 @@
             color: #333;
             background-image: linear-gradient(to top, #cfd9ed 0%, #e2e8f0 100%);
         }
+        .game-area-selector {
+            background-color: #ffffff;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            padding: 2.5rem;
+            max-width: 3xl;
+            width: 100%;
+            margin-top: 1.5rem;
+            text-align: center;
+        }
         .card {
             background-color: #ffffff;
-            border-radius: 1rem; /* rounded-2xl */
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-2xl */
-            padding: 2.5rem; /* p-10 */
-            max-width: 3xl; /* max-w-3xl */
+            border-radius: 1.5rem; /* Mais arredondado */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* Sombra mais pronunciada */
+            padding: 2rem; /* p-8 */
+            max-width: 2xl; /* Ligeiramente mais estreito para parecer mais com uma carta */
             width: 100%;
-            margin-top: 1.5rem; /* mt-6 */
+            margin-top: 1.5rem;
             text-align: center;
+            border: 4px solid #14b8a6; /* Borda teal para destacar */
+            position: relative;
+            overflow: hidden; /* Para o pseudo-elemento */
+        }
+        /* Pseudo-elemento para um efeito visual de jogo na carta */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            left: -50px;
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, rgba(20,184,166,0.3) 0%, rgba(20,184,166,0) 70%);
+            transform: rotate(45deg);
+            z-index: 0;
+            opacity: 0.7;
+        }
+        .card-content {
+            position: relative;
+            z-index: 1; /* Garante que o conteúdo fique acima do pseudo-elemento */
         }
         .option-button {
             transition: all 0.2s ease-in-out;
+            background-color: #f0f4f8; /* Um cinza claro sutil */
+            border: 1px solid #cbd5e0;
+            border-radius: 0.75rem; /* rounded-lg */
         }
         .option-button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: #e2e8f0;
         }
         .option-button.selected {
             border: 2px solid #10b981; /* green-500 */
             background-color: #ecfdf5; /* green-50 */
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3); /* Anel de foco verde */
         }
         .feedback {
             padding: 1rem;
             border-radius: 0.5rem;
             margin-top: 1rem;
-            font-weight: 500;
+            font-weight: 600; /* Mais negrito */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
         .feedback.correct {
             background-color: #d1fae5; /* green-100 */
@@ -58,16 +94,25 @@
             border: 1px solid #f87171; /* red-300 */
         }
         .explanation {
-            margin-top: 0.75rem;
+            margin-top: 1rem; /* Mais espaço */
             font-style: italic;
             color: #4a5568; /* gray-700 */
-            line-height: 1.5;
+            line-height: 1.6; /* Melhor legibilidade */
+            text-align: left; /* Alinhar à esquerda para explicação */
         }
         .area-select-button {
-            transition: background-color 0.2s ease;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+            border-radius: 0.5rem;
         }
         .area-select-button:hover {
-            background-color: #10b981; /* green-500 */
+            background-color: #0e9f80; /* Um verde um pouco mais escuro ao passar o mouse */
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .area-select-button:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
     </style>
 </head>
@@ -81,33 +126,42 @@
         </button>
     </div>
 
-    <div class="card">
-        <h2 id="questionArea" class="text-2xl font-bold text-gray-800 mb-4"></h2>
-        <p id="questionText" class="text-xl text-gray-700 mb-6 leading-relaxed"></p>
-        <div id="optionsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <!-- As opções de resposta serão carregadas aqui -->
-        </div>
-        <button id="submitAnswerButton" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-lg opacity-50 cursor-not-allowed" disabled>
-            Verificar Resposta
-        </button>
-        <div id="feedbackContainer" class="mt-6">
-            <!-- Feedback e explicação serão exibidos aqui -->
+    <!-- Seletor de Área (Visível no início da sessão) -->
+    <div id="areaSelector" class="game-area-selector">
+        <h2 class="text-3xl font-bold text-gray-800 mb-6">Escolha a Área da Próxima Carta:</h2>
+        <div class="mt-8 flex flex-wrap justify-center gap-3">
+            <button data-area="Gerenciamento da Integração do Projeto" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md">Integração</button>
+            <button data-area="Gerenciamento do Escopo do Projeto" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md">Escopo</button>
+            <button data-area="Gerenciamento do Cronograma do Projeto" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md">Cronograma</button>
+            <button data-area="Gerenciamento de Custos do Projeto" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md">Custos</button>
+            <button data-area="Gerenciamento da Qualidade do Projeto" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md">Qualidade</button>
+            <button data-area="Gerenciamento de Recursos do Projeto" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md">Recursos</button>
+            <button data-area="Gerenciamento das Comunicações do Projeto" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md">Comunicações</button>
+            <button data-area="Gerenciamento de Riscos do Projeto" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md">Riscos</button>
+            <button data-area="Gerenciamento de Aquisições do Projeto" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md">Aquisições</button>
+            <button data-area="Gerenciamento das Partes Interessadas do Projeto" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md">Partes Interessadas</button>
+            <button id="randomAreaButtonSelector" class="area-select-button bg-gray-600 hover:bg-gray-700 text-white py-3 px-6 text-base shadow-md">Carta Aleatória</button>
         </div>
     </div>
 
-    <div class="mt-8 flex flex-wrap justify-center gap-3">
-        <h3 class="text-xl font-semibold text-gray-700 w-full mb-3">Escolha a Área da Próxima Carta:</h3>
-        <button data-area="Gerenciamento da Integração do Projeto" class="area-select-button bg-teal-500 text-white py-2 px-4 rounded-lg text-sm shadow-md">Integração</button>
-        <button data-area="Gerenciamento do Escopo do Projeto" class="area-select-button bg-teal-500 text-white py-2 px-4 rounded-lg text-sm shadow-md">Escopo</button>
-        <button data-area="Gerenciamento do Cronograma do Projeto" class="area-select-button bg-teal-500 text-white py-2 px-4 rounded-lg text-sm shadow-md">Cronograma</button>
-        <button data-area="Gerenciamento de Custos do Projeto" class="area-select-button bg-teal-500 text-white py-2 px-4 rounded-lg text-sm shadow-md">Custos</button>
-        <button data-area="Gerenciamento da Qualidade do Projeto" class="area-select-button bg-teal-500 text-white py-2 px-4 rounded-lg text-sm shadow-md">Qualidade</button>
-        <button data-area="Gerenciamento de Recursos do Projeto" class="area-select-button bg-teal-500 text-white py-2 px-4 rounded-lg text-sm shadow-md">Recursos</button>
-        <button data-area="Gerenciamento das Comunicações do Projeto" class="area-select-button bg-teal-500 text-white py-2 px-4 rounded-lg text-sm shadow-md">Comunicações</button>
-        <button data-area="Gerenciamento de Riscos do Projeto" class="area-select-button bg-teal-500 text-white py-2 px-4 rounded-lg text-sm shadow-md">Riscos</button>
-        <button data-area="Gerenciamento de Aquisições do Projeto" class="area-select-button bg-teal-500 text-white py-2 px-4 rounded-lg text-sm shadow-md">Aquisições</button>
-        <button data-area="Gerenciamento das Partes Interessadas do Projeto" class="area-select-button bg-teal-500 text-white py-2 px-4 rounded-lg text-sm shadow-md">Partes Interessadas</button>
-        <button id="randomAreaButton" class="area-select-button bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg text-sm shadow-md">Carta Aleatória</button>
+    <!-- Carta do Jogo (Inicialmente oculta) -->
+    <div id="gameCard" class="card hidden">
+        <div class="card-content">
+            <h2 id="questionArea" class="text-3xl font-extrabold text-teal-700 mb-4"></h2>
+            <p id="questionText" class="text-xl text-gray-800 mb-6 leading-relaxed"></p>
+            <div id="optionsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <!-- As opções de resposta serão carregadas aqui -->
+            </div>
+            <button id="submitAnswerButton" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-lg opacity-50 cursor-not-allowed" disabled>
+                Verificar Resposta
+            </button>
+            <div id="feedbackContainer" class="mt-6">
+                <!-- Feedback e explicação serão exibidos aqui -->
+            </div>
+            <button id="nextCardButton" class="hidden mt-4 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg text-lg">
+                Próxima Carta
+            </button>
+        </div>
     </div>
 
     <script>
@@ -250,14 +304,22 @@
 
         // Elementos do DOM
         const sessionIdDisplay = document.getElementById('sessionIdDisplay');
+        const backToHomeButton = document.getElementById('backToHomeButton');
+
+        // Elementos do Seletor de Área
+        const areaSelector = document.getElementById('areaSelector');
+        const areaSelectButtons = document.querySelectorAll('#areaSelector .area-select-button');
+        const randomAreaButtonSelector = document.getElementById('randomAreaButtonSelector'); // Botão aleatório do seletor
+
+        // Elementos da Carta do Jogo
+        const gameCard = document.getElementById('gameCard');
         const questionArea = document.getElementById('questionArea');
         const questionText = document.getElementById('questionText');
         const optionsContainer = document.getElementById('optionsContainer');
         const submitAnswerButton = document.getElementById('submitAnswerButton');
         const feedbackContainer = document.getElementById('feedbackContainer');
-        const areaSelectButtons = document.querySelectorAll('.area-select-button');
-        const randomAreaButton = document.getElementById('randomAreaButton');
-        const backToHomeButton = document.getElementById('backToHomeButton');
+        const nextCardButton = document.getElementById('nextCardButton');
+
 
         // Função para obter o ID da sessão da URL
         function getSessionIdFromUrl() {
@@ -271,6 +333,7 @@
             selectedOption = null; // Reseta a opção selecionada
             submitAnswerButton.disabled = true; // Desabilita o botão de verificar
             submitAnswerButton.classList.add('opacity-50', 'cursor-not-allowed'); // Estilo desabilitado
+            nextCardButton.classList.add('hidden'); // Esconde o botão de próxima carta
 
             questionArea.textContent = question.area;
             questionText.textContent = question.question;
@@ -297,6 +360,10 @@
                 });
                 optionsContainer.appendChild(optionButton);
             }
+
+            // Esconde o seletor de área e mostra a carta do jogo
+            areaSelector.classList.add('hidden');
+            gameCard.classList.remove('hidden');
         }
 
         // Função para verificar a resposta
@@ -320,31 +387,43 @@
             feedbackContainer.appendChild(feedbackDiv);
             feedbackContainer.appendChild(explanationDiv);
 
-            // Após responder, desabilita as opções e o botão de verificar até uma nova carta ser carregada
+            // Após responder, desabilita as opções e o botão de verificar
             document.querySelectorAll('.option-button').forEach(btn => {
                 btn.disabled = true;
             });
             submitAnswerButton.disabled = true;
             submitAnswerButton.classList.add('opacity-50', 'cursor-not-allowed');
+
+            // Mostra o botão para ir para a próxima carta
+            nextCardButton.classList.remove('hidden');
         });
 
-        // Event listeners para os botões de seleção de área
+        // Event listeners para os botões de seleção de área (do seletor inicial)
         areaSelectButtons.forEach(button => {
             button.addEventListener('click', () => {
                 const area = button.getAttribute('data-area');
                 const questionsInArea = questions.filter(q => q.area === area);
                 if (questionsInArea.length > 0) {
-                    // Para este exemplo, pegaremos a primeira pergunta da área.
-                    // Em um jogo real, você poderia ter várias perguntas por área e embaralhar/selecionar.
+                    // Por enquanto, pegaremos a primeira pergunta da área.
+                    // Para um jogo completo, você precisaria de lógica para embaralhar ou controlar perguntas já vistas.
                     displayQuestion(questionsInArea[0]);
                 }
             });
         });
 
-        // Event listener para o botão de carta aleatória
-        randomAreaButton.addEventListener('click', () => {
+        // Event listener para o botão de carta aleatória no seletor inicial
+        randomAreaButtonSelector.addEventListener('click', () => {
             const randomIndex = Math.floor(Math.random() * questions.length);
             displayQuestion(questions[randomIndex]);
+        });
+
+        // Event listener para o botão "Próxima Carta" (após responder)
+        nextCardButton.addEventListener('click', () => {
+            // Esconde a carta atual e mostra o seletor de área novamente
+            gameCard.classList.add('hidden');
+            areaSelector.classList.remove('hidden');
+            feedbackContainer.innerHTML = ''; // Limpa feedback anterior
+            nextCardButton.classList.add('hidden'); // Esconde o botão de próxima carta
         });
 
         // Event listener para o botão de voltar para a home
@@ -357,12 +436,12 @@
             const sessionId = getSessionIdFromUrl();
             if (sessionId) {
                 sessionIdDisplay.textContent = sessionId;
-                // Inicia o jogo exibindo uma carta aleatória ao carregar a sessão
-                randomAreaButton.click(); // Simula um clique para carregar a primeira carta
+                // Exibe o seletor de área primeiro, pois o jogador deve escolher
+                areaSelector.classList.remove('hidden');
+                gameCard.classList.add('hidden'); // Garante que a carta está oculta inicialmente
             } else {
                 sessionIdDisplay.textContent = 'N/A (Erro na sessão)';
                 // Redireciona de volta se não houver ID de sessão
-                // Em um ambiente de produção, seria melhor uma mensagem na tela e um botão para voltar
                 window.location.href = 'index.html';
             }
         });
