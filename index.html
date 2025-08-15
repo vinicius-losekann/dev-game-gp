@@ -106,15 +106,15 @@
                 Idioma
             </h2>
             <div class="flex justify-center gap-2">
-                <button id="langPtButton" class="language-button py-2 px-4 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800 selected">Português</button>
-                <button id="langEnButton" class="language-button py-2 px-4 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800">English</button>
-                <button id="langEsButton" class="language-button py-2 px-4 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800">Español</button>
+                <button id="langPtBrButton" class="language-button py-2 px-4 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800 selected" onclick="setLanguage('pt-BR')">Português</button>
+                <button id="langEnUsButton" class="language-button py-2 px-4 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800" onclick="setLanguage('en-US')">English</button>
+                <button id="langEsEsButton" class="language-button py-2 px-4 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800" onclick="setLanguage('es-ES')">Español</button>
             </div>
         </div>
     </div>
 
     <script>
-        let currentLanguage = 'pt'; // Idioma padrão
+        let currentLanguage = 'pt-BR'; // Idioma padrão: Português do Brasil
         let pageTranslations = {}; // Objeto para armazenar as traduções carregadas
 
         const newGameButton = document.getElementById('newGameButton');
@@ -123,9 +123,9 @@
         const errorMessage = document.getElementById('errorMessage');
         const sessionInfo = document.getElementById('sessionInfo'); // Novo elemento
 
-        const langPtButton = document.getElementById('langPtButton');
-        const langEnButton = document.getElementById('langEnButton');
-        const langEsButton = document.getElementById('langEsButton');
+        const langPtBrButton = document.getElementById('langPtBrButton');
+        const langEnUsButton = document.getElementById('langEnUsButton');
+        const langEsEsButton = document.getElementById('langEsEsButton');
 
         // Função para carregar as traduções do arquivo JSON
         async function loadTranslations(lang) {
@@ -209,9 +209,9 @@
         });
 
         // Event listeners para os botões de seleção de idioma
-        langPtButton.addEventListener('click', () => setLanguage('pt'));
-        langEnButton.addEventListener('click', () => setLanguage('en'));
-        langEsButton.addEventListener('click', () => setLanguage('es'));
+        langPtBrButton.addEventListener('click', () => setLanguage('pt-BR'));
+        langEnUsButton.addEventListener('click', () => setLanguage('en-US'));
+        langEsEsButton.addEventListener('click', () => setLanguage('es-ES'));
 
         // Função para definir o idioma
         async function setLanguage(lang) {
@@ -220,7 +220,7 @@
             document.querySelectorAll('.language-button').forEach(btn => {
                 btn.classList.remove('selected');
             });
-            const buttonId = `lang${lang.charAt(0).toUpperCase() + lang.slice(1)}Button`;
+            const buttonId = `lang${lang.replace('-', '').charAt(0).toUpperCase() + lang.replace('-', '').slice(1)}Button`;
             document.getElementById(buttonId).classList.add('selected');
             
             await loadTranslations(currentLanguage); // Carrega as novas traduções
@@ -228,7 +228,7 @@
 
         // Ao carregar a página: define o idioma padrão e carrega as traduções
         document.addEventListener('DOMContentLoaded', () => {
-            setLanguage('pt'); // Define o idioma padrão ao carregar
+            setLanguage('pt-BR'); // Define o idioma padrão ao carregar
         });
     </script>
 </body>
