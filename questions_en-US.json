@@ -1,5 +1,6 @@
 [
     {
+        "area_id": "integration",
         "area": "Project Integration Management",
         "question": "In project integration management, which process is responsible for formally authorizing the project team to start the next phase, according to the project management plan?",
         "options": {
@@ -13,6 +14,7 @@
         "explanation": "The Develop Project Management Plan process is where the project approach is defined. It is during this process that the authorization to initiate subsequent phases is defined and formalized, although 'Direct and Manage Project Work' is where the actual execution occurs."
     },
     {
+        "area_id": "scope",
         "area": "Project Scope Management",
         "question": "What is the primary output of the 'Collect Requirements' process in Project Scope Management?",
         "options": {
@@ -26,6 +28,7 @@
         "explanation": "The 'Collect Requirements' process's primary output is Requirements Documentation, which describes how the project scope will be managed. The WBS and Project Scope Statement are outputs of subsequent processes."
     },
     {
+        "area_id": "schedule",
         "area": "Project Schedule Management",
         "question": "In Project Schedule Management, which tool or technique is used to determine the sequence of activities in which a delay in one affects the project's completion date, even with float in the activities?",
         "options": {
@@ -39,6 +42,7 @@
         "explanation": "The Critical Path Method (CPM) is the technique used to identify the longest sequence of activities, determining the minimum project duration. Schedule network analysis is a broader term."
     },
     {
+        "area_id": "cost",
         "area": "Project Cost Management",
         "question": "Project Cost Management includes a process that monitors the project status to update costs and manage changes to the cost baseline. What is the name of this process?",
         "options": {
@@ -52,6 +56,7 @@
         "explanation": "The 'Control Costs' process is responsible for monitoring project status, managing changes to the cost baseline, and ensuring the project does not exceed the approved budget."
     },
     {
+        "area_id": "quality",
         "area": "Project Quality Management",
         "question": "Which document is created in Project Quality Management to identify relevant quality standards and how to achieve them?",
         "options": {
@@ -65,6 +70,7 @@
         "explanation": "The Quality Management Plan is the document that describes how the project team will implement the organization's quality policy and how quality standards will be achieved."
     },
     {
+        "area_id": "resources",
         "area": "Project Resource Management",
         "question": "In Project Resource Management, which process ensures that allocated physical resources and project team are available and utilized at the right time and place?",
         "options": {
@@ -78,6 +84,7 @@
         "explanation": "The 'Acquire Resources' process obtains the team, equipment, materials, and other physical resources necessary to complete project work."
     },
     {
+        "area_id": "communications",
         "area": "Project Communications Management",
         "question": "Project Communications Management has a process that ensures information is collected, stored, and distributed appropriately and timely. What is the name of this process?",
         "options": {
@@ -91,6 +98,7 @@
         "explanation": "The 'Manage Communications' process executes the communication plan, performing the creation, collection, distribution, storage, and retrieval of project information."
     },
     {
+        "area_id": "risks",
         "area": "Project Risk Management",
         "question": "What is the primary output of the 'Identify Risks' process in Project Risk Management?",
         "options": {
@@ -104,6 +112,7 @@
         "explanation": "The Risk Register is the primary output of the risk identification process. It documents all identified risks, their characteristics, potential causes, and impacts."
     },
     {
+        "area_id": "acquisitions",
         "area": "Project Procurement Management",
         "question": "In which Project Procurement Management process does the project manager evaluate vendor proposals to select the most suitable one?",
         "options": {
@@ -117,6 +126,7 @@
         "explanation": "The 'Conduct Procurements' process is where vendor proposals, bids, or quotations are received, evaluated, and a seller is selected for the contract."
     },
     {
+        "area_id": "stakeholders",
         "area": "Project Stakeholder Management",
         "question": "Project Stakeholder Management includes a process that aims to increase stakeholder support and ensure their effective engagement. What is this process?",
         "options": {
@@ -130,4 +140,3 @@
         "explanation": "The 'Manage Stakeholder Engagement' process focuses on communication and direct work with stakeholders to meet their expectations and keep them active and supporting the project."
     }
 ]
-
