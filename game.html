@@ -27,16 +27,17 @@
         <!-- O max-width e mx-auto agora estão no .game-area-selector no CSS -->
         <div class="mt-8 flex flex-col items-center gap-3">
             <!-- Cada botão: w-full para largura total, e max-w-sm para limitar a largura individual -->
-            <button data-area="Gerenciamento da Integração do Projeto" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_integration">Integração</span></button>
-            <button data-area="Gerenciamento do Escopo do Projeto" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_scope">Escopo</span></button>
-            <button data-area="Gerenciamento do Cronograma do Projeto" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_schedule">Cronograma</span></button>
-            <button data-area="Gerenciamento de Custos do Projeto" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_cost">Custos</span></button>
-            <button data-area="Gerenciamento da Qualidade do Projeto" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_quality">Qualidade</span></button>
-            <button data-area="Gerenciamento de Recursos do Projeto" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_resources">Recursos</span></button>
-            <button data-area="Gerenciamento das Comunicações do Projeto" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_communications">Comunicações</span></button>
-            <button data-area="Gerenciamento de Riscos do Projeto" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_risks">Riscos</span></button>
-            <button data-area="Gerenciamento de Aquisições do Projeto" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_acquisitions">Aquisições</span></button>
-            <button data-area="Gerenciamento das Partes Interessadas do Projeto" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_stakeholders">Partes Interessadas</span></button>
+            <!-- data-area agora usa IDs agnósticos de idioma -->
+            <button data-area="integration" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_integration">Integração</span></button>
+            <button data-area="scope" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_scope">Escopo</span></button>
+            <button data-area="schedule" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_schedule">Cronograma</span></button>
+            <button data-area="cost" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_cost">Custos</span></button>
+            <button data-area="quality" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_quality">Qualidade</span></button>
+            <button data-area="resources" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_resources">Recursos</span></button>
+            <button data-area="communications" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_communications">Comunicações</span></button>
+            <button data-area="risks" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_risks">Riscos</span></button>
+            <button data-area="acquisitions" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_acquisitions">Aquisições</span></button>
+            <button data-area="stakeholders" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_stakeholders">Partes Interessadas</span></button>
             <button id="randomAreaButtonSelector" class="area-select-button bg-gray-600 hover:bg-gray-700 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="button_random_card">Carta Aleatória</span></button>
         </div>
     </div>
