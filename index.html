@@ -57,6 +57,15 @@
             box-shadow: 0 0 0 2px rgba(56, 178, 172, 0.4);
             background-color: #e6fffa; /* light teal */
         }
+        .session-info {
+            background-color: #f0fdf4; /* green-50 */
+            border: 1px solid #a7f3d0; /* green-200 */
+            color: #065f46; /* green-800 */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body class="p-4">
@@ -72,6 +81,9 @@
             <button id="newGameButton" class="game-button bg-gradient-to-r from-teal-500 to-green-500 hover:from-teal-600 hover:to-green-600 text-white font-bold py-4 px-8 rounded-full text-xl focus:outline-none focus:ring-4 focus:ring-teal-300 focus:ring-opacity-75">
                 <span data-lang-key="button_new_game">Iniciar Novo Jogo</span>
             </button>
+            <div id="sessionInfo" class="session-info hidden mt-4">
+                <!-- Mensagem da sessão criada será exibida aqui -->
+            </div>
         </div>
 
         <div class="mt-8 pt-6 border-t border-gray-200">
@@ -103,62 +115,66 @@
 
     <script>
         let currentLanguage = 'pt'; // Idioma padrão
-
-        const translations = {
-            pt: {
-                main_title: "Jogo de Gerenciamento de Projetos",
-                description_text: "Domine as habilidades essenciais de gerenciamento de projetos neste jogo interativo! Aprenda sobre **planejamento**, **execução**, **monitoramento de progresso** e **resolução de desafios** em cenários simulados para se tornar um gestor de projetos de sucesso. Cada decisão importa!",
-                button_new_game: "Iniciar Novo Jogo",
-                access_game_title: "Acessar Jogo Existente",
-                input_session_placeholder: "Digite o ID da Sessão",
-                button_access_game: "Acessar Jogo",
-                error_invalid_session_id: "Por favor, digite um ID de sessão válido (4 dígitos numéricos).",
-                language_select_title: "Idioma"
-            },
-            en: {
-                main_title: "Project Management Game",
-                description_text: "Master essential project management skills in this interactive game! Learn about **planning**, **execution**, **progress monitoring**, and **challenge resolution** in simulated scenarios to become a successful project manager. Every decision matters!",
-                button_new_game: "Start New Game",
-                access_game_title: "Access Existing Game",
-                input_session_placeholder: "Enter Session ID",
-                button_access_game: "Access Game",
-                error_invalid_session_id: "Please enter a valid session ID (4 numeric digits).",
-                language_select_title: "Language"
-            },
-            es: {
-                main_title: "Juego de Gestión de Proyectos",
-                description_text: "¡Domina las habilidades esenciales de gestión de proyectos en este juego interactivo! Aprende sobre **planificación**, **ejecución**, **seguimiento del progreso** y **resolución de desafíos** en escenarios simulados para convertirte en un gestor de proyectos exitoso. ¡Cada decisión importa!",
-                button_new_game: "Iniciar Nuevo Juego",
-                access_game_title: "Acceder a Juego Existente",
-                input_session_placeholder: "Introduce el ID de Sesión",
-                button_access_game: "Acceder al Juego",
-                error_invalid_session_id: "Por favor, introduce un ID de sesión válido (4 dígitos numéricos).",
-                language_select_title: "Idioma"
-            }
-        };
+        let pageTranslations = {}; // Objeto para armazenar as traduções carregadas
 
         const newGameButton = document.getElementById('newGameButton');
         const accessGameButton = document.getElementById('accessGameButton');
         const sessionIdInput = document.getElementById('sessionIdInput');
         const errorMessage = document.getElementById('errorMessage');
+        const sessionInfo = document.getElementById('sessionInfo'); // Novo elemento
 
         const langPtButton = document.getElementById('langPtButton');
         const langEnButton = document.getElementById('langEnButton');
         const langEsButton = document.getElementById('langEsButton');
 
-        // Função para atualizar os textos da UI com base no idioma
+        // Função para carregar as traduções do arquivo JSON
+        async function loadTranslations(lang) {
+            try {
+                const response = await fetch('index_translations.json');
+                if (!response.ok) {
+                    throw new Error(`Erro ao carregar traduções: ${response.statusText}`);
+                }
+                const allTranslations = await response.json();
+                pageTranslations = allTranslations[lang]; // Pega apenas as traduções do idioma selecionado
+                console.log('Traduções carregadas para', lang, ':', pageTranslations);
+                updateUITexts(); // Atualiza a UI após carregar as traduções
+            } catch (error) {
+                console.error('Falha ao carregar as traduções:', error);
+                // Fallback para textos em português em caso de erro
+                pageTranslations = {
+                    main_title: "Jogo de Gerenciamento de Projetos (Erro de Carga)",
+                    description_text: "Ocorreu um erro ao carregar o conteúdo. Por favor, recarregue a página.",
+                    button_new_game: "Erro",
+                    access_game_title: "Erro",
+                    input_session_placeholder: "Erro",
+                    button_access_game: "Erro",
+                    error_invalid_session_id: "Erro: ID inválido.",
+                    language_select_title: "Idioma (Erro)",
+                    session_created_message: "Erro ao criar sessão: ",
+                    session_id_prompt: "Tente novamente."
+                };
+                updateUITexts(); // Tenta atualizar a UI mesmo com erro
+            }
+        }
+
+        // Função para atualizar os textos da UI com base no idioma carregado
         function updateUITexts() {
-            document.getElementById('mainTitle').textContent = translations[currentLanguage].main_title;
-            document.getElementById('descriptionText').innerHTML = translations[currentLanguage].description_text; // Use innerHTML para negrito
-            document.querySelector('#newGameButton [data-lang-key="button_new_game"]').textContent = translations[currentLanguage].button_new_game;
-            document.getElementById('accessGameTitle').textContent = translations[currentLanguage].access_game_title;
-            sessionIdInput.placeholder = translations[currentLanguage].input_session_placeholder;
-            document.querySelector('#accessGameButton [data-lang-key="button_access_game"]').textContent = translations[currentLanguage].button_access_game;
-            document.getElementById('languageSelectTitle').textContent = translations[currentLanguage].language_select_title;
+            document.getElementById('mainTitle').textContent = pageTranslations.main_title;
+            document.getElementById('descriptionText').innerHTML = pageTranslations.description_text;
+            document.querySelector('#newGameButton [data-lang-key="button_new_game"]').textContent = pageTranslations.button_new_game;
+            document.getElementById('accessGameTitle').textContent = pageTranslations.access_game_title;
+            sessionIdInput.placeholder = pageTranslations.input_session_placeholder;
+            document.querySelector('#accessGameButton [data-lang-key="button_access_game"]').textContent = pageTranslations.button_access_game;
+            document.getElementById('languageSelectTitle').textContent = pageTranslations.language_select_title;
             
-            // Esconder/exibir mensagem de erro se estiver visível
+            // Atualiza a mensagem de erro se estiver visível
             if (!errorMessage.classList.contains('hidden')) {
-                errorMessage.textContent = translations[currentLanguage].error_invalid_session_id;
+                errorMessage.textContent = pageTranslations.error_invalid_session_id;
+            }
+            // Atualiza a mensagem de sessão criada se estiver visível
+            if (!sessionInfo.classList.contains('hidden')) {
+                const currentSessionId = sessionInfo.getAttribute('data-session-id');
+                sessionInfo.innerHTML = `${pageTranslations.session_created_message} <span class="font-bold text-teal-700">${currentSessionId}</span>.<br>${pageTranslations.session_id_prompt}`;
             }
         }
 
@@ -170,7 +186,11 @@
         // Event listener para o botão "Iniciar Novo Jogo"
         newGameButton.addEventListener('click', () => {
             const sessionId = generateSessionId();
-            window.location.href = `game.html?session=${sessionId}&lang=${currentLanguage}`; // Passa o idioma
+            sessionIdInput.value = sessionId; // Preenche o input com o ID
+            sessionInfo.setAttribute('data-session-id', sessionId); // Armazena o ID para referência
+            sessionInfo.innerHTML = `${pageTranslations.session_created_message} <span class="font-bold text-teal-700">${sessionId}</span>.<br>${pageTranslations.session_id_prompt}`;
+            sessionInfo.classList.remove('hidden'); // Exibe a mensagem
+            errorMessage.classList.add('hidden'); // Esconde qualquer mensagem de erro
         });
 
         // Event listener para o botão "Acessar Jogo"
@@ -179,10 +199,12 @@
             // Validação simples: verifica se o ID é um número de 4 dígitos
             if (/^\d{4}$/.test(inputId)) {
                 errorMessage.classList.add('hidden'); // Esconde a mensagem de erro
-                window.location.href = `game.html?session=${inputId}&lang=${currentLanguage}`; // Passa o idioma
+                // Redireciona para game.html com o ID da sessão e o idioma
+                window.location.href = `game.html?session=${inputId}&lang=${currentLanguage}`;
             } else {
-                errorMessage.textContent = translations[currentLanguage].error_invalid_session_id;
+                errorMessage.textContent = pageTranslations.error_invalid_session_id;
                 errorMessage.classList.remove('hidden'); // Mostra a mensagem de erro
+                sessionInfo.classList.add('hidden'); // Esconde a mensagem de sessão criada
             }
         });
 
@@ -191,19 +213,20 @@
         langEnButton.addEventListener('click', () => setLanguage('en'));
         langEsButton.addEventListener('click', () => setLanguage('es'));
 
-        function setLanguage(lang) {
+        // Função para definir o idioma
+        async function setLanguage(lang) {
             currentLanguage = lang;
             // Atualiza o estado visual dos botões de idioma
             document.querySelectorAll('.language-button').forEach(btn => {
                 btn.classList.remove('selected');
             });
-            // Converte a primeira letra para maiúscula para corresponder ao ID do botão (e.g., 'pt' -> 'Pt')
             const buttonId = `lang${lang.charAt(0).toUpperCase() + lang.slice(1)}Button`;
             document.getElementById(buttonId).classList.add('selected');
-            updateUITexts(); // Atualiza todos os textos estáticos da UI
+            
+            await loadTranslations(currentLanguage); // Carrega as novas traduções
         }
 
-        // Ao carregar a página: define o idioma padrão e atualiza a UI
+        // Ao carregar a página: define o idioma padrão e carrega as traduções
         document.addEventListener('DOMContentLoaded', () => {
             setLanguage('pt'); // Define o idioma padrão ao carregar
         });
