@@ -23,8 +23,9 @@
     <!-- Seletor de Área (Visível no início da sessão) -->
     <div id="areaSelector" class="game-area-selector hidden">
         <h2 id="labelChooseArea" class="text-3xl font-bold text-gray-800 mb-6">Escolha a Área da Próxima Carta:</h2>
-        <!-- Alterado para flex-col e items-center para layout vertical, e adicionado max-w-sm para largura uniforme -->
+        <!-- Contêiner dos botões: flex-col para vertical, items-center para centralizar, gap-3 para espaçamento -->
         <div class="mt-8 flex flex-col items-center gap-3">
+            <!-- Cada botão: w-full para largura total, max-w-sm para limite de largura -->
             <button data-area="Gerenciamento da Integração do Projeto" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_integration">Integração</span></button>
             <button data-area="Gerenciamento do Escopo do Projeto" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_scope">Escopo</span></button>
             <button data-area="Gerenciamento do Cronograma do Projeto" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_schedule">Cronograma</span></button>
