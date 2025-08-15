@@ -179,11 +179,11 @@
         let allQuestions = [];
         let currentQuestion = null;
         let selectedOption = null;
-        let currentLanguage = 'pt'; // Idioma padrão, será sobrescrito pela URL
+        let currentLanguage = 'pt-BR'; // Idioma padrão, será sobrescrito pela URL
 
         // Objeto para armazenar as traduções de textos estáticos da UI em game.html
         const translations = {
-            pt: {
+            "pt-BR": {
                 label_session: "Sessão",
                 label_back_to_home: "Voltar para o Início",
                 label_choose_area: "Escolha a Área da Próxima Carta:",
@@ -206,7 +206,7 @@
                 error_no_session_id: "Nenhum ID de sessão encontrado. Redirecionando para a página inicial.",
                 error_loading_questions: "Erro ao carregar as perguntas. Por favor, recarregue a página."
             },
-            en: {
+            "en-US": {
                 label_session: "Session",
                 label_back_to_home: "Back to Home",
                 label_choose_area: "Choose the Area for the Next Card:",
@@ -229,7 +229,7 @@
                 error_no_session_id: "No session ID found. Redirecting to home page.",
                 error_loading_questions: "Error loading questions. Please reload the page."
             },
-            es: {
+            "es-ES": {
                 label_session: "Sesión",
                 label_back_to_home: "Volver al Inicio",
                 label_choose_area: "Elige el Área para la Siguiente Tarjeta:",
@@ -274,6 +274,18 @@
 
         // Função para atualizar os textos da UI com base no idioma
         function updateUITexts() {
+            // Verifica se o idioma atual existe nas traduções
+            const currentLangTranslations = translations[currentLanguage];
+            if (!currentLangTranslations) {
+                console.warn(`Traduções para o idioma '${currentLanguage}' não encontradas. Usando 'pt-BR' como fallback.`);
+                currentLanguage = 'pt-BR'; // Fallback para pt-BR
+                // Recarrega as traduções se o fallback for usado, para garantir que as strings existam
+                if (!translations[currentLanguage]) {
+                    console.error("Erro fatal: Fallback para 'pt-BR' também falhou. Certifique-se de que 'pt-BR' está definido.");
+                    return;
+                }
+            }
+
             document.getElementById('labelSession').textContent = translations[currentLanguage].label_session;
             document.getElementById('labelBackToHome').textContent = translations[currentLanguage].label_back_to_home;
             document.getElementById('labelChooseArea').textContent = translations[currentLanguage].label_choose_area;
@@ -294,11 +306,20 @@
         // Função para carregar as perguntas do arquivo JSON com base no idioma
         async function loadQuestions(lang) {
             let filename;
-            // Define o nome do arquivo JSON de perguntas com base no idioma
-            if (lang === 'pt') {
-                filename = 'questions_pt.json'; // Carrega o questions_pt.json
-            } else {
-                filename = `questions_${lang}.json`; // Para outros idiomas (ex: questions_en.json)
+            // Mapeamento explícito de códigos BCP 47 para nomes de arquivo JSON de perguntas
+            switch (lang) {
+                case 'pt-BR':
+                    filename = 'questions_pt-BR.json'; // Agora aponta para questions_pt-BR.json
+                    break;
+                case 'en-US':
+                    filename = 'questions_en.json';
+                    break;
+                case 'es-ES':
+                    filename = 'questions_es.json';
+                    break;
+                default:
+                    console.warn(`Idioma '${lang}' não reconhecido para carregar perguntas. Carregando questions_pt-BR.json como fallback.`);
+                    filename = 'questions_pt-BR.json'; // Fallback para português do Brasil
             }
 
             try {
@@ -328,7 +349,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             return {
                 session: urlParams.get('session'),
-                lang: urlParams.get('lang') || 'pt' // Padrão 'pt' se não especificado na URL
+                lang: urlParams.get('lang') || 'pt-BR' // Padrão 'pt-BR' se não especificado na URL
             };
         }
 
