@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo de Gerenciamento de Projetos - Sessão</title>
+    <!-- Incluindo Tailwind CSS para estilização moderna e responsiva -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilos personalizados que complementam o Tailwind */
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: #f0f9ff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #333;
+            background-image: linear-gradient(to top, #cfd9ed 0%, #e2e8f0 100%);
+        }
+        .card {
+            background-color: #ffffff;
+            border-radius: 1rem; /* rounded-2xl */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-2xl */
+            padding: 2.5rem; /* p-10 */
+            max-width: 3xl; /* max-w-3xl */
+            width: 100%;
+            margin-top: 1.5rem; /* mt-6 */
+            text-align: center;
+        }
+        .option-button {
+            transition: all 0.2s ease-in-out;
+        }
+        .option-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .option-button.selected {
+            border: 2px solid #10b981; /* green-500 */
+            background-color: #ecfdf5; /* green-50 */
+        }
+        .feedback {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            font-weight: 500;
+        }
+        .feedback.correct {
+            background-color: #d1fae5; /* green-100 */
+            color: #065f46; /* green-800 */
+            border: 1px solid #34d399; /* green-300 */
+        }
+        .feedback.incorrect {
+            background-color: #fee2e2; /* red-100 */
+            color: #991b1b; /* red-800 */
+            border: 1px solid #f87171; /* red-300 */
+        }
+        .explanation {
+            margin-top: 0.75rem;
+            font-style: italic;
+            color: #4a5568; /* gray-700 */
+            line-height: 1.5;
+        }
+        .area-select-button {
+            transition: background-color 0.2s ease;
+        }
+        .area-select-button:hover {
+            background-color: #10b981; /* green-500 */
+        }
+    </style>
+</head>
+<body class="p-4">
+    <div class="w-full max-w-5xl flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-extrabold text-teal-700">
+            Sessão: <span id="sessionIdDisplay" class="text-green-600"></span>
+        </h1>
+        <button id="backToHomeButton" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg shadow">
+            Voltar para o Início
+        </button>
+    </div>
+
+    <div class="card">
+        <h2 id="questionArea" class="text-2xl font-bold text-gray-800 mb-4"></h2>
+        <p id="questionText" class="text-xl text-gray-700 mb-6 leading-relaxed"></p>
+        <div id="optionsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <!-- As opções de resposta serão carregadas aqui -->
+        </div>
+        <button id="submitAnswerButton" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-lg opacity-50 cursor-not-allowed" disabled>
+            Verificar Resposta
+        </button>
+        <div id="feedbackContainer" class="mt-6">
+            <!-- Feedback e explicação serão exibidos aqui -->
+        </div>
+    </div>
+
+    <div class="mt-8 flex flex-wrap justify-center gap-3">
+        <h3 class="text-xl font-semibold text-gray-700 w-full mb-3">Escolha a Área da Próxima Carta:</h3>
+        <button data-area="Gerenciamento da Integração do Projeto" class="area-select-button bg-teal-500 text-white py-2 px-4 rounded-lg text-sm shadow-md">Integração</button>
+        <button data-area="Gerenciamento do Escopo do Projeto" class="area-select-button bg-teal-500 text-white py-2 px-4 rounded-lg text-sm shadow-md">Escopo</button>
+        <button data-area="Gerenciamento do Cronograma do Projeto" class="area-select-button bg-teal-500 text-white py-2 px-4 rounded-lg text-sm shadow-md">Cronograma</button>
+        <button data-area="Gerenciamento de Custos do Projeto" class="area-select-button bg-teal-500 text-white py-2 px-4 rounded-lg text-sm shadow-md">Custos</button>
+        <button data-area="Gerenciamento da Qualidade do Projeto" class="area-select-button bg-teal-500 text-white py-2 px-4 rounded-lg text-sm shadow-md">Qualidade</button>
+        <button data-area="Gerenciamento de Recursos do Projeto" class="area-select-button bg-teal-500 text-white py-2 px-4 rounded-lg text-sm shadow-md">Recursos</button>
+        <button data-area="Gerenciamento das Comunicações do Projeto" class="area-select-button bg-teal-500 text-white py-2 px-4 rounded-lg text-sm shadow-md">Comunicações</button>
+        <button data-area="Gerenciamento de Riscos do Projeto" class="area-select-button bg-teal-500 text-white py-2 px-4 rounded-lg text-sm shadow-md">Riscos</button>
+        <button data-area="Gerenciamento de Aquisições do Projeto" class="area-select-button bg-teal-500 text-white py-2 px-4 rounded-lg text-sm shadow-md">Aquisições</button>
+        <button data-area="Gerenciamento das Partes Interessadas do Projeto" class="area-select-button bg-teal-500 text-white py-2 px-4 rounded-lg text-sm shadow-md">Partes Interessadas</button>
+        <button id="randomAreaButton" class="area-select-button bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg text-sm shadow-md">Carta Aleatória</button>
+    </div>
+
+    <script>
+        // Dados das perguntas (as 10 questões do PMBOK)
+        const questions = [
+            {
+                area: "Gerenciamento da Integração do Projeto",
+                question: "No gerenciamento da integração do projeto, qual processo é responsável por autorizar formalmente a equipe do projeto a iniciar a próxima fase, de acordo com o plano de gerenciamento do projeto?",
+                options: {
+                    A: "Monitorar e Controlar o Trabalho do Projeto",
+                    B: "Realizar o Controle Integrado de Mudanças",
+                    C: "Dirigir e Gerenciar o Trabalho do Projeto",
+                    D: "Desenvolver o Termo de Abertura do Projeto",
+                    E: "Desenvolver o Plano de Gerenciamento do Projeto"
+                },
+                correct: "E",
+                explanation: "O processo de desenvolver o plano de gerenciamento do projeto é onde se define a abordagem do projeto. É durante este processo que a autorização para iniciar as fases seguintes é definida e formalizada, embora o 'Dirigir e Gerenciar o Trabalho do Projeto' seja onde a execução real ocorre."
+            },
+            {
+                area: "Gerenciamento do Escopo do Projeto",
+                question: "Qual é a principal saída do processo 'Coletar os Requisitos' da área de Gerenciamento do Escopo do Projeto?",
+                options: {
+                    A: "Declaração do Escopo do Projeto",
+                    B: "Estrutura Analítica do Projeto (EAP)",
+                    C: "Plano de Gerenciamento do Escopo",
+                    D: "Documentos dos Requisitos",
+                    E: "Linha de Base do Escopo"
+                },
+                correct: "D",
+                explanation: "O processo 'Coletar os Requisitos' tem como saída principal os Documentos dos Requisitos, que descrevem como o escopo do projeto será gerenciado. A EAP e a Declaração do Escopo são saídas de processos subsequentes."
+            },
+            {
+                area: "Gerenciamento do Cronograma do Projeto",
+                question: "No Gerenciamento do Cronograma do Projeto, qual ferramenta ou técnica é utilizada para determinar a sequência de atividades na qual o atraso de uma delas afeta a data de conclusão do projeto, mesmo com a existência de folga nas atividades?",
+                options: {
+                    A: "Diagrama de Precedência (PDM)",
+                    B: "Análise de Monte Carlo",
+                    C: "Método do Caminho Crítico (CPM)",
+                    D: "Compressão do Cronograma",
+                    E: "Análise de Rede do Cronograma"
+                },
+                correct: "C",
+                explanation: "O Método do Caminho Crítico (CPM) é a técnica utilizada para identificar a sequência de atividades que representam o caminho mais longo, determinando a duração mínima do projeto. A análise de rede do cronograma é um termo mais amplo."
+            },
+            {
+                area: "Gerenciamento de Custos do Projeto",
+                question: "O Gerenciamento de Custos do Projeto inclui um processo que monitora o status do projeto para atualizar os custos e gerenciar as mudanças na linha de base dos custos. Qual é o nome deste processo?",
+                options: {
+                    A: "Planejar o Gerenciamento dos Custos",
+                    B: "Estimar os Custos",
+                    C: "Determinar o Orçamento",
+                    D: "Controlar os Custos",
+                    E: "Realizar o Controle Integrado de Mudanças"
+                },
+                correct: "D",
+                explanation: "O processo 'Controlar os Custos' é responsável por monitorar o status do projeto, gerenciar as mudanças na linha de base dos custos e assegurar que o projeto não exceda o orçamento aprovado."
+            },
+            {
+                area: "Gerenciamento da Qualidade do Projeto",
+                question: "Qual documento é criado no Gerenciamento da Qualidade do Projeto para identificar os padrões de qualidade relevantes e como alcançá-los?",
+                options: {
+                    A: "Métricas da Qualidade",
+                    B: "Plano de Gerenciamento da Qualidade",
+                    C: "Listas de Verificação da Qualidade",
+                    D: "Relatórios de Qualidade",
+                    E: "Fluxograma de Processo"
+                },
+                correct: "B",
+                explanation: "O Plano de Gerenciamento da Qualidade é o documento que descreve como a equipe do projeto implementará a política de qualidade da organização e como os padrões de qualidade serão alcançados."
+            },
+            {
+                area: "Gerenciamento de Recursos do Projeto",
+                question: "No Gerenciamento de Recursos do Projeto, qual é o processo que assegura que os recursos físicos e a equipe do projeto alocados estejam disponíveis e sejam utilizados no momento e local certos?",
+                options: {
+                    A: "Planejar o Gerenciamento dos Recursos",
+                    B: "Estimar os Recursos da Atividade",
+                    C: "Controlar os Recursos",
+                    D: "Desenvolver a Equipe do Projeto",
+                    E: "Adquirir Recursos"
+                },
+                correct: "E",
+                explanation: "O processo 'Adquirir Recursos' é o que obtém a equipe, equipamentos, materiais e outros recursos físicos necessários para completar o trabalho do projeto."
+            },
+            {
+                area: "Gerenciamento das Comunicações do Projeto",
+                question: "O Gerenciamento das Comunicações do Projeto possui um processo que garante que a informação seja coletada, armazenada e distribuída de forma apropriada e oportuna. Qual o nome deste processo?",
+                options: {
+                    A: "Gerenciar as Comunicações",
+                    B: "Monitorar as Comunicações",
+                    C: "Planejar o Gerenciamento das Comunicações",
+                    D: "Gerenciar as Partes Interessadas",
+                    E: "Encerrar o Projeto ou Fase"
+                },
+                correct: "A",
+                explanation: "O processo 'Gerenciar as Comunicações' é o que executa o plano de comunicação, realizando a criação, coleta, distribuição, armazenamento e recuperação das informações do projeto."
+            },
+            {
+                area: "Gerenciamento de Riscos do Projeto",
+                question: "Qual é a principal saída do processo 'Identificar os Riscos' da área de Gerenciamento de Riscos do Projeto?",
+                options: {
+                    A: "Análise Quantitativa de Riscos",
+                    B: "Registro dos Riscos",
+                    C: "Plano de Respostas a Riscos",
+                    D: "Análise Qualitativa de Riscos",
+                    E: "Relatório de Desempenho do Projeto"
+                },
+                correct: "B",
+                explanation: "O Registro dos Riscos é a saída principal do processo de identificação de riscos. Ele documenta todos os riscos identificados, suas características, potenciais causas e impactos."
+            },
+            {
+                area: "Gerenciamento de Aquisições do Projeto",
+                question: "Em qual processo de Gerenciamento de Aquisições do Projeto o gerente de projeto avalia as propostas dos fornecedores para selecionar o mais adequado?",
+                options: {
+                    A: "Controlar as Aquisições",
+                    B: "Planejar o Gerenciamento das Aquisições",
+                    C: "Conduzir as Aquisições",
+                    D: "Encerrar o Projeto ou Fase",
+                    E: "Análise de Negociação"
+                },
+                correct: "C",
+                explanation: "O processo 'Conduzir as Aquisições' é onde as propostas, lances ou cotações dos fornecedores são recebidas, avaliadas e onde um vendedor é selecionado para o contrato."
+            },
+            {
+                area: "Gerenciamento das Partes Interessadas do Projeto",
+                question: "O Gerenciamento das Partes Interessadas do Projeto inclui um processo que visa aumentar o apoio das partes interessadas e garantir seu engajamento eficaz. Qual é este processo?",
+                options: {
+                    A: "Planejar o Engajamento das Partes Interessadas",
+                    B: "Identificar as Partes Interessadas",
+                    C: "Gerenciar o Engajamento das Partes Interessadas",
+                    D: "Monitorar o Engajamento das Partes Interessadas",
+                    E: "Gerenciar as Comunicações"
+                },
+                correct: "C",
+                explanation: "O processo 'Gerenciar o Engajamento das Partes Interessadas' foca na comunicação e no trabalho direto com as partes interessadas para atender às suas expectativas e mantê-las ativas e apoiando o projeto."
+            }
+        ];
+
+        let currentQuestion = null;
+        let selectedOption = null;
+
+        // Elementos do DOM
+        const sessionIdDisplay = document.getElementById('sessionIdDisplay');
+        const questionArea = document.getElementById('questionArea');
+        const questionText = document.getElementById('questionText');
+        const optionsContainer = document.getElementById('optionsContainer');
+        const submitAnswerButton = document.getElementById('submitAnswerButton');
+        const feedbackContainer = document.getElementById('feedbackContainer');
+        const areaSelectButtons = document.querySelectorAll('.area-select-button');
+        const randomAreaButton = document.getElementById('randomAreaButton');
+        const backToHomeButton = document.getElementById('backToHomeButton');
+
+        // Função para obter o ID da sessão da URL
+        function getSessionIdFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('session');
+        }
+
+        // Função para exibir uma nova carta/pergunta
+        function displayQuestion(question) {
+            currentQuestion = question;
+            selectedOption = null; // Reseta a opção selecionada
+            submitAnswerButton.disabled = true; // Desabilita o botão de verificar
+            submitAnswerButton.classList.add('opacity-50', 'cursor-not-allowed'); // Estilo desabilitado
+
+            questionArea.textContent = question.area;
+            questionText.textContent = question.question;
+            optionsContainer.innerHTML = ''; // Limpa as opções anteriores
+            feedbackContainer.innerHTML = ''; // Limpa feedback anterior
+
+            // Cria os botões de opção
+            for (const key in question.options) {
+                const optionButton = document.createElement('button');
+                optionButton.className = 'option-button bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-3 px-5 rounded-lg text-left w-full shadow';
+                optionButton.innerHTML = `<span class="font-bold mr-2">${key})</span> ${question.options[key]}`;
+                optionButton.setAttribute('data-option', key); // Atributo para identificar a opção
+
+                optionButton.addEventListener('click', () => {
+                    // Remove a seleção de outros botões
+                    document.querySelectorAll('.option-button').forEach(btn => {
+                        btn.classList.remove('selected');
+                    });
+                    // Adiciona seleção ao botão clicado
+                    optionButton.classList.add('selected');
+                    selectedOption = key; // Armazena a opção selecionada
+                    submitAnswerButton.disabled = false; // Habilita o botão de verificar
+                    submitAnswerButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                });
+                optionsContainer.appendChild(optionButton);
+            }
+        }
+
+        // Função para verificar a resposta
+        submitAnswerButton.addEventListener('click', () => {
+            if (!currentQuestion || !selectedOption) return;
+
+            feedbackContainer.innerHTML = ''; // Limpa feedback anterior
+            const feedbackDiv = document.createElement('div');
+            const explanationDiv = document.createElement('div');
+            explanationDiv.className = 'explanation text-left';
+
+            if (selectedOption === currentQuestion.correct) {
+                feedbackDiv.className = 'feedback correct';
+                feedbackDiv.textContent = 'Parabéns! Resposta Correta!';
+            } else {
+                feedbackDiv.className = 'feedback incorrect';
+                feedbackDiv.textContent = `Ops! Resposta Incorreta. A resposta correta é ${currentQuestion.correct}).`;
+            }
+            explanationDiv.textContent = `Explicação: ${currentQuestion.explanation}`;
+
+            feedbackContainer.appendChild(feedbackDiv);
+            feedbackContainer.appendChild(explanationDiv);
+
+            // Após responder, desabilita as opções e o botão de verificar até uma nova carta ser carregada
+            document.querySelectorAll('.option-button').forEach(btn => {
+                btn.disabled = true;
+            });
+            submitAnswerButton.disabled = true;
+            submitAnswerButton.classList.add('opacity-50', 'cursor-not-allowed');
+        });
+
+        // Event listeners para os botões de seleção de área
+        areaSelectButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const area = button.getAttribute('data-area');
+                const questionsInArea = questions.filter(q => q.area === area);
+                if (questionsInArea.length > 0) {
+                    // Para este exemplo, pegaremos a primeira pergunta da área.
+                    // Em um jogo real, você poderia ter várias perguntas por área e embaralhar/selecionar.
+                    displayQuestion(questionsInArea[0]);
+                }
+            });
+        });
+
+        // Event listener para o botão de carta aleatória
+        randomAreaButton.addEventListener('click', () => {
+            const randomIndex = Math.floor(Math.random() * questions.length);
+            displayQuestion(questions[randomIndex]);
+        });
+
+        // Event listener para o botão de voltar para a home
+        backToHomeButton.addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
+
+        // Ao carregar a página:
+        document.addEventListener('DOMContentLoaded', () => {
+            const sessionId = getSessionIdFromUrl();
+            if (sessionId) {
+                sessionIdDisplay.textContent = sessionId;
+                // Inicia o jogo exibindo uma carta aleatória ao carregar a sessão
+                randomAreaButton.click(); // Simula um clique para carregar a primeira carta
+            } else {
+                sessionIdDisplay.textContent = 'N/A (Erro na sessão)';
+                // Redireciona de volta se não houver ID de sessão
+                // Em um ambiente de produção, seria melhor uma mensagem na tela e um botão para voltar
+                window.location.href = 'index.html';
+            }
+        });
+    </script>
+</body>
+</html>
