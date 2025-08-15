@@ -1,6 +1,7 @@
 // js/index.js
 
-let currentLanguage = 'pt-BR'; // Idioma padrão: Português do Brasil
+// Idioma padrão lido do arquivo de configuração
+let currentLanguage = AppConfig.defaultLanguage; 
 let pageTranslations = {}; // Objeto para armazenar as traduções carregadas
 
 const newGameButton = document.getElementById('newGameButton');
@@ -16,7 +17,7 @@ let langEsEsButton;
 
 // Função para carregar as traduções do arquivo JSON
 async function loadTranslations(lang) {
-    let success = false; // Flag para indicar se o carregamento foi bem-sucedido
+    let success = false;
     try {
         const response = await fetch('index_translations.json');
         if (!response.ok) {
@@ -30,12 +31,13 @@ async function loadTranslations(lang) {
 
         pageTranslations = allTranslations[lang];
         console.log('Traduções carregadas para', lang, ':', pageTranslations);
-        updateUITexts(); // Atualiza a UI após carregar as traduções
-        success = true; // Marca como sucesso
+        updateUITexts();
+        success = true;
     } catch (error) {
         console.error('Falha ao carregar ou processar as traduções:', error);
         pageTranslations = {
             main_title: "Jogo de Gerenciamento de Projetos (Erro de Carga)",
+            main_page_title: "Jogo de Gerenciamento de Projetos (Erro de Carga)", // Fallback para o título da página
             description_text: "Ocorreu um erro ao carregar o conteúdo. Por favor, recarregue a página.",
             button_new_game: "Erro",
             access_game_title: "Erro",
@@ -46,22 +48,20 @@ async function loadTranslations(lang) {
             session_created_message: "Erro ao criar sessão: ",
             session_id_prompt: "Tente novamente."
         };
-        updateUITexts(); // Tenta atualizar a UI mesmo com erro
+        updateUITexts();
     } finally {
-        // Habilita ou mantém desabilitado com base no sucesso do carregamento
         newGameButton.disabled = !success;
         accessGameButton.disabled = !success;
-        console.log('Botões de Ação re-habilitados após loadTranslations (Sucesso:', success, ')'); // Debug de re-habilitação
+        console.log('Botões de Ação re-habilitados após loadTranslations (Sucesso:', success, ')');
     }
 }
 
 // Função para atualizar os textos da UI com base no idioma carregado
 function updateUITexts() {
-    // Garante que pageTranslations está carregado antes de tentar acessar suas propriedades
     const isTranslationsLoaded = Object.keys(pageTranslations).length > 0 && pageTranslations.main_title;
 
-    console.log('updateUITexts chamado. Estado de pageTranslations:', pageTranslations); // Debug
-    console.log('isTranslationsLoaded:', isTranslationsLoaded); // Debug
+    console.log('updateUITexts chamado. Estado de pageTranslations:', pageTranslations);
+    console.log('isTranslationsLoaded:', isTranslationsLoaded);
 
     document.getElementById('mainTitle').textContent = isTranslationsLoaded ? pageTranslations.main_title : "Jogo de Gerenciamento de Projetos";
     document.getElementById('descriptionText').innerHTML = isTranslationsLoaded ? pageTranslations.description_text : "Domine as habilidades essenciais de gerenciamento de projetos neste jogo interativo! Aprenda sobre **planejamento**, **execução**, **monitoramento de progresso** e **resolução de desafios** em cenários simulados para se tornar um gestor de projetos de sucesso. Cada decisão importa!";
@@ -71,24 +71,26 @@ function updateUITexts() {
     document.querySelector('#accessGameButton [data-lang-key="button_access_game"]').textContent = isTranslationsLoaded ? pageTranslations.button_access_game : "Acessar Jogo";
     document.getElementById('languageSelectTitle').textContent = isTranslationsLoaded ? pageTranslations.language_select_title : "Idioma";
     
+    // Define o título da página
+    document.title = isTranslationsLoaded ? pageTranslations.main_page_title : "Jogo de Gerenciamento de Projetos";
+    
     if (!errorMessage.classList.contains('hidden')) {
         errorMessage.textContent = isTranslationsLoaded ? pageTranslations.error_invalid_session_id : "Por favor, digite um ID de sessão válido (4 dígitos numéricos).";
     }
     
-    // Lógica para sessionInfo
     if (!sessionInfo.classList.contains('hidden')) {
         const currentSessionId = sessionInfo.getAttribute('data-session-id');
-        console.log('sessionInfo está visível. currentSessionId:', currentSessionId); // Debug
+        console.log('sessionInfo está visível. currentSessionId:', currentSessionId);
 
         if (isTranslationsLoaded && pageTranslations.session_created_message && pageTranslations.session_id_prompt) {
-            console.log('Usando traduções para sessionInfo.'); // Debug
+            console.log('Usando traduções para sessionInfo.');
             sessionInfo.innerHTML = `${pageTranslations.session_created_message} <span class="font-bold text-teal-700">${currentSessionId}</span>.<br>${pageTranslations.session_id_prompt}`;
         } else {
-            console.log('Usando fallback para sessionInfo.'); // Debug
+            console.log('Usando fallback para sessionInfo.');
             sessionInfo.innerHTML = `Sessão criada! Seu ID é: <span class="font-bold text-teal-700">${currentSessionId}</span>.<br>Insira este ID para acessar seu jogo.`;
         }
     } else {
-        console.log('sessionInfo está oculto. Não será atualizado.'); // Debug
+        console.log('sessionInfo está oculto. Não será atualizado.');
     }
 }
 
@@ -103,11 +105,11 @@ newGameButton.addEventListener('click', () => {
     sessionIdInput.value = sessionId;
     sessionInfo.setAttribute('data-session-id', sessionId);
     
-    sessionInfo.classList.remove('hidden'); // Certifica que o elemento está visível
-    errorMessage.classList.add('hidden'); // Esconde qualquer mensagem de erro
+    sessionInfo.classList.remove('hidden');
+    errorMessage.classList.add('hidden');
     
-    updateUITexts(); // Garante que a mensagem seja atualizada com as traduções corretas
-    console.log('Botão "Iniciar Novo Jogo" clicado. ID da sessão:', sessionId); // Debug
+    updateUITexts();
+    console.log('Botão "Iniciar Novo Jogo" clicado. ID da sessão:', sessionId);
 });
 
 // Event listener para o botão "Acessar Jogo"
@@ -127,12 +129,10 @@ accessGameButton.addEventListener('click', () => {
 async function setLanguage(lang) {
     currentLanguage = lang;
     
-    // Remove a seleção de outros botões
     document.querySelectorAll('.language-button').forEach(btn => {
         btn.classList.remove('selected');
     });
 
-    // Encontra o botão correto usando as referências diretas (já atribuídas em DOMContentLoaded)
     let selectedButtonElement = null;
     if (lang === 'pt-BR') selectedButtonElement = langPtBrButton;
     else if (lang === 'en-US') selectedButtonElement = langEnUsButton;
@@ -140,13 +140,11 @@ async function setLanguage(lang) {
     
     if (selectedButtonElement) {
         selectedButtonElement.classList.add('selected');
-        console.log('Botão de idioma selecionado:', selectedButtonElement.id); // Debug
+        console.log('Botão de idioma selecionado:', selectedButtonElement.id);
     } else {
-        // Isso só deve acontecer se getElementById falhou em DOMContentLoaded ou se o ID está errado no HTML
         console.error(`Elemento para idioma '${lang}' não encontrado. Não foi possível adicionar a classe 'selected'.`);
     }
     
-    // Desabilita os botões de ação enquanto as traduções são carregadas
     newGameButton.disabled = true;
     accessGameButton.disabled = true;
 
@@ -155,17 +153,17 @@ async function setLanguage(lang) {
 
 // Ao carregar a página: define o idioma padrão e carrega as traduções
 document.addEventListener('DOMContentLoaded', () => {
-    // Atribui as variáveis dos botões de idioma AQUI, após o DOM estar carregado
+    // Define o atributo lang do elemento <html>
+    document.documentElement.lang = currentLanguage;
+
     langPtBrButton = document.getElementById('langPtBrButton');
     langEnUsButton = document.getElementById('langEnUsButton');
     langEsEsButton = document.getElementById('langEsEsButton');
 
-    // Anexar event listeners para os botões de idioma
     if (langPtBrButton) langPtBrButton.addEventListener('click', () => setLanguage('pt-BR'));
     if (langEnUsButton) langEnUsButton.addEventListener('click', () => setLanguage('en-US'));
     if (langEsEsButton) langEsEsButton.addEventListener('click', () => setLanguage('es-ES'));
 
-    // Define o idioma padrão ao carregar
-    setLanguage('pt-BR'); 
-    console.log('Página carregada. setLanguage("pt-BR") inicial chamado.'); // Debug
+    setLanguage(AppConfig.defaultLanguage); 
+    console.log('Página carregada. setLanguage() inicial chamado com o idioma padrão do config.');
 });
