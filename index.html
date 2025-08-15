@@ -106,9 +106,10 @@
                 Idioma
             </h2>
             <div class="flex justify-center gap-2">
-                <button id="langPtBrButton" class="language-button py-2 px-4 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800 selected" onclick="setLanguage('pt-BR')">Português</button>
-                <button id="langEnUsButton" class="language-button py-2 px-4 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800" onclick="setLanguage('en-US')">English</button>
-                <button id="langEsEsButton" class="language-button py-2 px-4 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800" onclick="setLanguage('es-ES')">Español</button>
+                <!-- Removido onclick para anexar event listeners via JS -->
+                <button id="langPtBrButton" class="language-button py-2 px-4 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800 selected">Português</button>
+                <button id="langEnUsButton" class="language-button py-2 px-4 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800">English</button>
+                <button id="langEsEsButton" class="language-button py-2 px-4 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800">Español</button>
             </div>
         </div>
     </div>
@@ -243,38 +244,36 @@
         // Função para definir o idioma
         async function setLanguage(lang) {
             currentLanguage = lang;
-            // Atualiza o estado visual dos botões de idioma
+            // Desabilita temporariamente os botões de ação enquanto as traduções são carregadas
+            newGameButton.disabled = true;
+            accessGameButton.disabled = true;
+
+            // Remove a seleção de outros botões e adiciona ao botão clicado
+            // Esta parte foi movida para dentro do DOMContentLoaded para garantir que os elementos existam
             document.querySelectorAll('.language-button').forEach(btn => {
                 btn.classList.remove('selected');
             });
             const buttonId = `lang${lang.replace('-', '').charAt(0).toUpperCase() + lang.replace('-', '').slice(1)}Button`;
-            
-            // --- DEBUGGING START ---
-            console.log('Attempting to select button with ID:', buttonId);
             const selectedButton = document.getElementById(buttonId);
-            console.log('Result of getElementById:', selectedButton);
-            // --- DEBUGGING END ---
-
+            
             if (selectedButton) {
                 selectedButton.classList.add('selected');
             } else {
-                console.error(`Element with ID '${buttonId}' not found. Cannot add 'selected' class.`);
-                // Se o botão não for encontrado, garantimos que os botões de ação também estejam desabilitados
-                newGameButton.disabled = true;
-                accessGameButton.disabled = true;
-                return; // Impede a continuação se o botão de idioma não for encontrado
+                console.error(`Element with ID '${buttonId}' not found. Cannot add 'selected' class. This should not happen if event listeners are attached correctly after DOMContentLoaded.`);
             }
             
-            // Desabilita temporariamente os botões enquanto as traduções são carregadas
-            newGameButton.disabled = true;
-            accessGameButton.disabled = true;
-
             await loadTranslations(currentLanguage); // Carrega as novas traduções
         }
 
         // Ao carregar a página: define o idioma padrão e carrega as traduções
         document.addEventListener('DOMContentLoaded', () => {
-            setLanguage('pt-BR'); // Define o idioma padrão ao carregar
+            // Anexar event listeners para os botões de idioma AQUI, APÓS DOMContentLoaded
+            langPtBrButton.addEventListener('click', () => setLanguage('pt-BR'));
+            langEnUsButton.addEventListener('click', () => setLanguage('en-US'));
+            langEsEsButton.addEventListener('click', () => setLanguage('es-ES'));
+
+            // Define o idioma padrão ao carregar
+            setLanguage('pt-BR'); 
         });
     </script>
 </body>
