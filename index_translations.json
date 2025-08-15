@@ -1,5 +1,5 @@
 {
-    "pt": {
+    "pt-BR": {
         "main_title": "Jogo de Gerenciamento de Projetos",
         "description_text": "Domine as habilidades essenciais de gerenciamento de projetos neste jogo interativo! Aprenda sobre **planejamento**, **execução**, **monitoramento de progresso** e **resolução de desafios** em cenários simulados para se tornar um gestor de projetos de sucesso. Cada decisão importa!",
         "button_new_game": "Iniciar Novo Jogo",
@@ -11,7 +11,7 @@
         "session_created_message": "Sessão criada! Seu ID é: ",
         "session_id_prompt": "Insira este ID para acessar seu jogo."
     },
-    "en": {
+    "en-US": {
         "main_title": "Project Management Game",
         "description_text": "Master essential project management skills in this interactive game! Learn about **planning**, **execution**, **progress monitoring**, and **challenge resolution** in simulated scenarios to become a successful project manager. Every decision matters!",
         "button_new_game": "Start New Game",
@@ -23,7 +23,7 @@
         "session_created_message": "Session created! Your ID is: ",
         "session_id_prompt": "Enter this ID to access your game."
     },
-    "es": {
+    "es-ES": {
         "main_title": "Juego de Gestión de Proyectos",
         "description_text": "¡Domina las habilidades esenciales de gestión de proyectos en este juego interactivo! Aprende sobre **planificación**, **ejecución**, **seguimiento del progreso** y **resolución de desafíos** en escenarios simulados para convertirte en un gestor de proyectos exitoso. ¡Cada decisión importa!",
         "button_new_game": "Iniciar Nuevo Juego",
