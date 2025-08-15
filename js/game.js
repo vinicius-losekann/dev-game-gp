@@ -4,11 +4,13 @@
 let allQuestions = [];
 let currentQuestion = null;
 let selectedOption = null;
-let currentLanguage = 'pt-BR'; // Idioma padrão, será sobrescrito pela URL
+// Idioma padrão lido do arquivo de configuração, mas será sobrescrito pela URL
+let currentLanguage = AppConfig.defaultLanguage; 
 
 // Objeto para armazenar as traduções de textos estáticos da UI em game.html
 const translations = {
     "pt-BR": {
+        game_page_base_title: "Jogo de Gerenciamento de Projetos - Sessão",
         label_session: "Sessão",
         label_back_to_home: "Voltar para o Início",
         label_choose_area: "Escolha a Área da Próxima Carta:",
@@ -32,6 +34,7 @@ const translations = {
         error_loading_questions: "Erro ao carregar as perguntas. Por favor, recarregue a página."
     },
     "en-US": {
+        game_page_base_title: "Project Management Game - Session",
         label_session: "Session",
         label_back_to_home: "Back to Home",
         label_choose_area: "Choose the Area for the Next Card:",
@@ -55,6 +58,7 @@ const translations = {
         error_loading_questions: "Error loading questions. Please reload the page."
     },
     "es-ES": {
+        game_page_base_title: "Juego de Gestión de Proyectos - Sesión",
         label_session: "Sesión",
         label_back_to_home: "Volver al Inicio",
         label_choose_area: "Elige el Área para la Siguiente Tarjeta:",
@@ -99,12 +103,10 @@ const nextCardButton = document.getElementById('nextCardButton');
 
 // Função para atualizar os textos da UI com base no idioma
 function updateUITexts() {
-    // Verifica se o idioma atual existe nas traduções
     const currentLangTranslations = translations[currentLanguage];
     if (!currentLangTranslations) {
         console.warn(`Traduções para o idioma '${currentLanguage}' não encontradas. Usando 'pt-BR' como fallback.`);
-        currentLanguage = 'pt-BR'; // Fallback para pt-BR
-        // Recarrega as traduções se o fallback for usado, para garantir que as strings existam
+        currentLanguage = 'pt-BR';
         if (!translations[currentLanguage]) {
             console.error("Erro fatal: Fallback para 'pt-BR' também falhou. Certifique-se de que 'pt-BR' está definido.");
             return;
@@ -114,6 +116,9 @@ function updateUITexts() {
     document.getElementById('labelSession').textContent = translations[currentLanguage].label_session;
     document.getElementById('labelBackToHome').textContent = translations[currentLanguage].label_back_to_home;
     document.getElementById('labelChooseArea').textContent = translations[currentLanguage].label_choose_area;
+    
+    // Atualiza o título da página
+    document.title = translations[currentLanguage].game_page_base_title;
 
     document.querySelectorAll('[data-lang-key]').forEach(element => {
         const key = element.getAttribute('data-lang-key');
@@ -122,7 +127,6 @@ function updateUITexts() {
         }
     });
 
-    // Se houver uma questão sendo exibida, a gente a exibe novamente no novo idioma
     if (currentQuestion) {
         displayQuestion(currentQuestion, false);
     }
@@ -131,20 +135,19 @@ function updateUITexts() {
 // Função para carregar as perguntas do arquivo JSON com base no idioma
 async function loadQuestions(lang) {
     let filename;
-    // Mapeamento explícito de códigos BCP 47 para nomes de arquivo JSON de perguntas
     switch (lang) {
         case 'pt-BR':
-            filename = 'questions_pt-BR.json'; // Agora aponta para questions_pt-BR.json
+            filename = 'questions_pt-BR.json';
             break;
         case 'en-US':
-            filename = 'questions_en.json'; // Você precisará criar este arquivo
+            filename = 'questions_en.json';
             break;
         case 'es-ES':
-            filename = 'questions_es.json'; // Você precisará criar este arquivo
+            filename = 'questions_es.json';
             break;
         default:
             console.warn(`Idioma '${lang}' não reconhecido para carregar perguntas. Carregando questions_pt-BR.json como fallback.`);
-            filename = 'questions_pt-BR.json'; // Fallback para português do Brasil
+            filename = 'questions_pt-BR.json';
     }
 
     try {
@@ -155,15 +158,12 @@ async function loadQuestions(lang) {
         allQuestions = await response.json();
         console.log(`Perguntas em ${lang} carregadas com sucesso de ${filename}:`, allQuestions);
 
-        // Habilita os botões de seleção de área após carregar as perguntas
         areaSelectButtons.forEach(button => button.disabled = false);
         randomAreaButtonSelector.disabled = false;
 
     } catch (error) {
         console.error('Falha ao carregar as perguntas:', error);
-        // Exibe uma mensagem de erro na UI
         areaSelector.innerHTML = `<p class="text-red-600">${error.message}</p>`;
-        // Desabilita os botões para evitar que o usuário tente jogar sem perguntas
         areaSelectButtons.forEach(button => button.disabled = true);
         randomAreaButtonSelector.disabled = true;
     }
@@ -174,49 +174,44 @@ function getQueryParams() {
     const urlParams = new URLSearchParams(window.location.search);
     return {
         session: urlParams.get('session'),
-        lang: urlParams.get('lang') || 'pt-BR' // Padrão 'pt-BR' se não especificado na URL
+        lang: urlParams.get('lang') || AppConfig.defaultLanguage // Padrão do config.js
     };
 }
 
 // Função para exibir uma nova carta/pergunta
 function displayQuestion(question, hideAreaSelector = true) {
     currentQuestion = question;
-    selectedOption = null; // Reseta a opção selecionada
-    submitAnswerButton.disabled = true; // Desabilita o botão de verificar
-    submitAnswerButton.classList.add('opacity-50', 'cursor-not-allowed'); // Estilo desabilitado
-    nextCardButton.classList.add('hidden'); // Esconde o botão de próxima carta
+    selectedOption = null;
+    submitAnswerButton.disabled = true;
+    submitAnswerButton.classList.add('opacity-50', 'cursor-not-allowed');
+    nextCardButton.classList.add('hidden');
 
-    // As chaves no JSON não têm mais o sufixo de idioma, pois o arquivo já é do idioma certo
     questionArea.textContent = question.area;
     questionText.textContent = question.question;
-    optionsContainer.innerHTML = ''; // Limpa as opções anteriores
-    feedbackContainer.innerHTML = ''; // Limpa feedback anterior
+    optionsContainer.innerHTML = '';
+    feedbackContainer.innerHTML = '';
 
-    const options = question.options; // As opções também são diretas agora
+    const options = question.options;
 
-    // Cria os botões de opção
     for (const key in options) {
         const optionButton = document.createElement('button');
         optionButton.className = 'option-button bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-3 px-5 rounded-lg text-left w-full shadow';
         optionButton.innerHTML = `<span class="font-bold mr-2">${key})</span> ${options[key]}`;
-        optionButton.setAttribute('data-option', key); // Atributo para identificar a opção
+        optionButton.setAttribute('data-option', key);
 
         optionButton.addEventListener('click', () => {
-            // Remove a seleção de outros botões
             document.querySelectorAll('.option-button').forEach(btn => {
                 btn.classList.remove('selected');
             });
-            // Adiciona seleção ao botão clicado
             optionButton.classList.add('selected');
-            selectedOption = key; // Armazena a opção selecionada
-            submitAnswerButton.disabled = false; // Habilita o botão de verificar
+            selectedOption = key;
+            submitAnswerButton.disabled = false;
             submitAnswerButton.classList.remove('opacity-50', 'cursor-not-allowed');
         });
         optionsContainer.appendChild(optionButton);
     }
 
     if (hideAreaSelector) {
-        // Esconde o seletor de área e mostra a carta do jogo
         areaSelector.classList.add('hidden');
         gameCard.classList.remove('hidden');
     }
@@ -226,7 +221,7 @@ function displayQuestion(question, hideAreaSelector = true) {
 submitAnswerButton.addEventListener('click', () => {
     if (!currentQuestion || !selectedOption) return;
 
-    feedbackContainer.innerHTML = ''; // Limpa feedback anterior
+    feedbackContainer.innerHTML = '';
     const feedbackDiv = document.createElement('div');
     const explanationDiv = document.createElement('div');
     explanationDiv.className = 'explanation text-left';
@@ -238,30 +233,26 @@ submitAnswerButton.addEventListener('click', () => {
         feedbackDiv.className = 'feedback incorrect';
         feedbackDiv.textContent = translations[currentLanguage].feedback_incorrect_prefix + `${currentQuestion.correct}).`;
     }
-    explanationDiv.textContent = translations[currentLanguage].explanation_prefix + currentQuestion.explanation; // Explicação direta
+    explanationDiv.textContent = translations[currentLanguage].explanation_prefix + currentQuestion.explanation;
 
     feedbackContainer.appendChild(feedbackDiv);
     feedbackContainer.appendChild(explanationDiv);
 
-    // Após responder, desabilita as opções e o botão de verificar
     document.querySelectorAll('.option-button').forEach(btn => {
         btn.disabled = true;
     });
     submitAnswerButton.disabled = true;
     submitAnswerButton.classList.add('opacity-50', 'cursor-not-allowed');
 
-    // Mostra o botão para ir para a próxima carta
     nextCardButton.classList.remove('hidden');
 });
 
 // Event listeners para os botões de seleção de área (do seletor inicial)
 areaSelectButtons.forEach(button => {
     button.addEventListener('click', () => {
-        const areaName = button.getAttribute('data-area'); // Pega o nome da área (em PT do JSON)
-        const questionsInArea = allQuestions.filter(q => q.area === areaName); // Filtra pela chave 'area'
+        const areaName = button.getAttribute('data-area');
+        const questionsInArea = allQuestions.filter(q => q.area === areaName);
         if (questionsInArea.length > 0) {
-            // Para este exemplo, pegaremos a primeira pergunta da área.
-            // Para um jogo completo, você precisaria de lógica para embaralhar ou controlar perguntas já vistas.
             displayQuestion(questionsInArea[0]);
         } else {
             console.warn(`Nenhuma pergunta encontrada para a área: ${areaName} no idioma ${currentLanguage}`);
@@ -281,11 +272,10 @@ randomAreaButtonSelector.addEventListener('click', () => {
 
 // Event listener para o botão "Próxima Carta" (após responder)
 nextCardButton.addEventListener('click', () => {
-    // Esconde a carta atual e mostra o seletor de área novamente
     gameCard.classList.add('hidden');
     areaSelector.classList.remove('hidden');
-    feedbackContainer.innerHTML = ''; // Limpa feedback anterior
-    nextCardButton.classList.add('hidden'); // Esconde o botão de próxima carta
+    feedbackContainer.innerHTML = '';
+    nextCardButton.classList.add('hidden');
 });
 
 // Event listener para o botão de voltar para a home
@@ -298,21 +288,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     const params = getQueryParams();
     const sessionId = params.session;
     currentLanguage = params.lang; // Define o idioma com base na URL
+    document.documentElement.lang = currentLanguage; // Define o atributo lang do HTML
 
     if (sessionId) {
         sessionIdDisplay.textContent = sessionId;
-        // Carrega as perguntas com base no idioma da URL
         await loadQuestions(currentLanguage);
         updateUITexts(); // Atualiza todos os textos estáticos da UI
-
-        // Exibe o seletor de área inicialmente
         areaSelector.classList.remove('hidden');
-        gameCard.classList.add('hidden'); // Garante que a carta está oculta inicialmente
+        gameCard.classList.add('hidden');
     } else {
         sessionIdDisplay.textContent = 'N/A';
-        // Usar uma modal customizada em vez de alert() para melhor UX
-        // alert(translations[currentLanguage].error_no_session_id); 
-        console.error(translations[currentLanguage].error_no_session_id); // Log para depuração
+        console.error(translations[currentLanguage].error_no_session_id);
         window.location.href = 'index.html';
     }
 });
