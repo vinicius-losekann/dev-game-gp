@@ -180,7 +180,13 @@
             // Atualiza a mensagem de sessão criada se estiver visível
             if (!sessionInfo.classList.contains('hidden')) {
                 const currentSessionId = sessionInfo.getAttribute('data-session-id');
-                sessionInfo.innerHTML = `${pageTranslations.session_created_message} <span class="font-bold text-teal-700">${currentSessionId}</span>.<br>${pageTranslations.session_id_prompt}`;
+                // Certifica-se de que pageTranslations está definido antes de tentar acessar suas propriedades
+                if (pageTranslations.session_created_message && pageTranslations.session_id_prompt) {
+                    sessionInfo.innerHTML = `${pageTranslations.session_created_message} <span class="font-bold text-teal-700">${currentSessionId}</span>.<br>${pageTranslations.session_id_prompt}`;
+                } else {
+                    // Fallback se as traduções para a mensagem de sessão ainda não estiverem disponíveis
+                    sessionInfo.innerHTML = `Sessão criada! Seu ID é: <span class="font-bold text-teal-700">${currentSessionId}</span>.<br>Insira este ID para acessar seu jogo.`;
+                }
             }
         }
 
@@ -194,7 +200,8 @@
             const sessionId = generateSessionId();
             sessionIdInput.value = sessionId; // Preenche o input com o ID
             sessionInfo.setAttribute('data-session-id', sessionId); // Armazena o ID para referência
-            sessionInfo.innerHTML = `${pageTranslations.session_created_message} <span class="font-bold text-teal-700">${sessionId}</span>.<br>${pageTranslations.session_id_prompt}`;
+            
+            updateUITexts(); // Atualiza a UI para exibir a mensagem da sessão com as traduções corretas
             sessionInfo.classList.remove('hidden'); // Exibe a mensagem
             errorMessage.classList.add('hidden'); // Esconde qualquer mensagem de erro
         });
