@@ -48,44 +48,119 @@
             border-color: #38b2ac; /* teal */
             box-shadow: 0 0 0 3px rgba(56, 178, 172, 0.4); /* teal focus ring */
         }
+        .language-button {
+            transition: all 0.2s ease-in-out;
+            border: 1px solid transparent;
+        }
+        .language-button.selected {
+            border-color: #38b2ac; /* teal */
+            box-shadow: 0 0 0 2px rgba(56, 178, 172, 0.4);
+            background-color: #e6fffa; /* light teal */
+        }
     </style>
 </head>
 <body class="p-4">
     <div class="container bg-white p-10 rounded-2xl shadow-2xl max-w-lg w-full text-center border-b-4 border-teal-500">
-        <h1 class="text-5xl font-extrabold text-teal-700 mb-6 drop-shadow-sm">
+        <h1 id="mainTitle" class="text-5xl font-extrabold text-teal-700 mb-6 drop-shadow-sm">
             Jogo de Gerenciamento de Projetos
         </h1>
-        <p class="text-xl text-gray-800 leading-relaxed mb-8">
+        <p id="descriptionText" class="text-xl text-gray-800 leading-relaxed mb-8">
             Domine as habilidades essenciais de gerenciamento de projetos neste jogo interativo! Aprenda sobre **planejamento**, **execução**, **monitoramento de progresso** e **resolução de desafios** em cenários simulados para se tornar um gestor de projetos de sucesso. Cada decisão importa!
         </p>
 
         <div class="mb-6">
             <button id="newGameButton" class="game-button bg-gradient-to-r from-teal-500 to-green-500 hover:from-teal-600 hover:to-green-600 text-white font-bold py-4 px-8 rounded-full text-xl focus:outline-none focus:ring-4 focus:ring-teal-300 focus:ring-opacity-75">
-                Iniciar Novo Jogo
+                <span data-lang-key="button_new_game">Iniciar Novo Jogo</span>
             </button>
         </div>
 
         <div class="mt-8 pt-6 border-t border-gray-200">
-            <h2 class="text-2xl font-bold text-gray-700 mb-4">
+            <h2 id="accessGameTitle" class="text-2xl font-bold text-gray-700 mb-4">
                 Acessar Jogo Existente
             </h2>
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <input type="text" id="sessionIdInput" placeholder="Digite o ID da Sessão" class="game-input">
                 <button id="accessGameButton" class="game-button bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
-                    Acessar Jogo
+                    <span data-lang-key="button_access_game">Acessar Jogo</span>
                 </button>
             </div>
             <div id="errorMessage" class="mt-4 text-red-600 hidden">
                 <!-- Mensagem de erro para ID de sessão inválido -->
             </div>
         </div>
+
+        <div class="mt-8 pt-6 border-t border-gray-200">
+            <h2 id="languageSelectTitle" class="text-2xl font-bold text-gray-700 mb-4">
+                Idioma
+            </h2>
+            <div class="flex justify-center gap-2">
+                <button id="langPtButton" class="language-button py-2 px-4 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800 selected">Português</button>
+                <button id="langEnButton" class="language-button py-2 px-4 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800">English</button>
+                <button id="langEsButton" class="language-button py-2 px-4 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800">Español</button>
+            </div>
+        </div>
     </div>
 
     <script>
+        let currentLanguage = 'pt'; // Idioma padrão
+
+        const translations = {
+            pt: {
+                main_title: "Jogo de Gerenciamento de Projetos",
+                description_text: "Domine as habilidades essenciais de gerenciamento de projetos neste jogo interativo! Aprenda sobre **planejamento**, **execução**, **monitoramento de progresso** e **resolução de desafios** em cenários simulados para se tornar um gestor de projetos de sucesso. Cada decisão importa!",
+                button_new_game: "Iniciar Novo Jogo",
+                access_game_title: "Acessar Jogo Existente",
+                input_session_placeholder: "Digite o ID da Sessão",
+                button_access_game: "Acessar Jogo",
+                error_invalid_session_id: "Por favor, digite um ID de sessão válido (4 dígitos numéricos).",
+                language_select_title: "Idioma"
+            },
+            en: {
+                main_title: "Project Management Game",
+                description_text: "Master essential project management skills in this interactive game! Learn about **planning**, **execution**, **progress monitoring**, and **challenge resolution** in simulated scenarios to become a successful project manager. Every decision matters!",
+                button_new_game: "Start New Game",
+                access_game_title: "Access Existing Game",
+                input_session_placeholder: "Enter Session ID",
+                button_access_game: "Access Game",
+                error_invalid_session_id: "Please enter a valid session ID (4 numeric digits).",
+                language_select_title: "Language"
+            },
+            es: {
+                main_title: "Juego de Gestión de Proyectos",
+                description_text: "¡Domina las habilidades esenciales de gestión de proyectos en este juego interactivo! Aprende sobre **planificación**, **ejecución**, **seguimiento del progreso** y **resolución de desafíos** en escenarios simulados para convertirte en un gestor de proyectos exitoso. ¡Cada decisión importa!",
+                button_new_game: "Iniciar Nuevo Juego",
+                access_game_title: "Acceder a Juego Existente",
+                input_session_placeholder: "Introduce el ID de Sesión",
+                button_access_game: "Acceder al Juego",
+                error_invalid_session_id: "Por favor, introduce un ID de sesión válido (4 dígitos numéricos).",
+                language_select_title: "Idioma"
+            }
+        };
+
         const newGameButton = document.getElementById('newGameButton');
         const accessGameButton = document.getElementById('accessGameButton');
         const sessionIdInput = document.getElementById('sessionIdInput');
         const errorMessage = document.getElementById('errorMessage');
+
+        const langPtButton = document.getElementById('langPtButton');
+        const langEnButton = document.getElementById('langEnButton');
+        const langEsButton = document.getElementById('langEsButton');
+
+        // Função para atualizar os textos da UI com base no idioma
+        function updateUITexts() {
+            document.getElementById('mainTitle').textContent = translations[currentLanguage].main_title;
+            document.getElementById('descriptionText').innerHTML = translations[currentLanguage].description_text; // Use innerHTML para negrito
+            document.querySelector('#newGameButton [data-lang-key="button_new_game"]').textContent = translations[currentLanguage].button_new_game;
+            document.getElementById('accessGameTitle').textContent = translations[currentLanguage].access_game_title;
+            sessionIdInput.placeholder = translations[currentLanguage].input_session_placeholder;
+            document.querySelector('#accessGameButton [data-lang-key="button_access_game"]').textContent = translations[currentLanguage].button_access_game;
+            document.getElementById('languageSelectTitle').textContent = translations[currentLanguage].language_select_title;
+            
+            // Esconder/exibir mensagem de erro se estiver visível
+            if (!errorMessage.classList.contains('hidden')) {
+                errorMessage.textContent = translations[currentLanguage].error_invalid_session_id;
+            }
+        }
 
         // Função para gerar um ID de sessão de 4 dígitos
         function generateSessionId() {
@@ -95,7 +170,7 @@
         // Event listener para o botão "Iniciar Novo Jogo"
         newGameButton.addEventListener('click', () => {
             const sessionId = generateSessionId();
-            window.location.href = `jogo.html?session=${sessionId}`; // Redireciona para jogo.html com o ID
+            window.location.href = `game.html?session=${sessionId}&lang=${currentLanguage}`; // Passa o idioma
         });
 
         // Event listener para o botão "Acessar Jogo"
@@ -104,11 +179,33 @@
             // Validação simples: verifica se o ID é um número de 4 dígitos
             if (/^\d{4}$/.test(inputId)) {
                 errorMessage.classList.add('hidden'); // Esconde a mensagem de erro
-                window.location.href = `jogo.html?session=${inputId}`; // Redireciona para jogo.html
+                window.location.href = `game.html?session=${inputId}&lang=${currentLanguage}`; // Passa o idioma
             } else {
-                errorMessage.textContent = 'Por favor, digite um ID de sessão válido (4 dígitos numéricos).';
+                errorMessage.textContent = translations[currentLanguage].error_invalid_session_id;
                 errorMessage.classList.remove('hidden'); // Mostra a mensagem de erro
             }
+        });
+
+        // Event listeners para os botões de seleção de idioma
+        langPtButton.addEventListener('click', () => setLanguage('pt'));
+        langEnButton.addEventListener('click', () => setLanguage('en'));
+        langEsButton.addEventListener('click', () => setLanguage('es'));
+
+        function setLanguage(lang) {
+            currentLanguage = lang;
+            // Atualiza o estado visual dos botões de idioma
+            document.querySelectorAll('.language-button').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            // Converte a primeira letra para maiúscula para corresponder ao ID do botão (e.g., 'pt' -> 'Pt')
+            const buttonId = `lang${lang.charAt(0).toUpperCase() + lang.slice(1)}Button`;
+            document.getElementById(buttonId).classList.add('selected');
+            updateUITexts(); // Atualiza todos os textos estáticos da UI
+        }
+
+        // Ao carregar a página: define o idioma padrão e atualiza a UI
+        document.addEventListener('DOMContentLoaded', () => {
+            setLanguage('pt'); // Define o idioma padrão ao carregar
         });
     </script>
 </body>
