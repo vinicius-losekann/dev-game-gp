@@ -9,7 +9,7 @@
     <style>
         /* Estilos personalizados que complementam o Tailwind */
         body {
-            font-family: "Inter", sans-serif; /* Usando a fonte Inter conforme a instrução */
+            font-family: "Inter", sans-serif; /* Usando a fonte Inter */
             background-color: #f0f9ff; /* Um azul muito claro para o fundo */
             display: flex;
             justify-content: center;
@@ -19,7 +19,7 @@
             color: #333;
             background-image: linear-gradient(to top, #cfd9ed 0%, #e2e8f0 100%); /* Gradiente sutil */
         }
-        /* Estilos para o botão com um efeito visual agradável */
+        /* Estilos para os botões com um efeito visual agradável */
         .game-button {
             transition: all 0.2s ease-in-out;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -32,6 +32,22 @@
             transform: translateY(0);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
+        /* Estilos para o campo de input */
+        .game-input {
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e0; /* light gray */
+            width: 100%;
+            max-width: 200px;
+            text-align: center;
+            font-size: 1.1rem;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .game-input:focus {
+            outline: none;
+            border-color: #38b2ac; /* teal */
+            box-shadow: 0 0 0 3px rgba(56, 178, 172, 0.4); /* teal focus ring */
+        }
     </style>
 </head>
 <body class="p-4">
@@ -42,60 +58,58 @@
         <p class="text-xl text-gray-800 leading-relaxed mb-8">
             Domine as habilidades essenciais de gerenciamento de projetos neste jogo interativo! Aprenda sobre **planejamento**, **execução**, **monitoramento de progresso** e **resolução de desafios** em cenários simulados para se tornar um gestor de projetos de sucesso. Cada decisão importa!
         </p>
-        <button id="startButton" class="game-button bg-gradient-to-r from-teal-500 to-green-500 hover:from-teal-600 hover:to-green-600 text-white font-bold py-4 px-8 rounded-full text-xl focus:outline-none focus:ring-4 focus:ring-teal-300 focus:ring-opacity-75">
-            Iniciar Novo Jogo
-        </button>
 
-        <div id="sessionInfo" class="mt-8 hidden p-4 bg-blue-50 border border-blue-200 text-blue-800 rounded-lg text-lg font-medium">
-            <!-- A informação da sessão será exibida aqui -->
+        <div class="mb-6">
+            <button id="newGameButton" class="game-button bg-gradient-to-r from-teal-500 to-green-500 hover:from-teal-600 hover:to-green-600 text-white font-bold py-4 px-8 rounded-full text-xl focus:outline-none focus:ring-4 focus:ring-teal-300 focus:ring-opacity-75">
+                Iniciar Novo Jogo
+            </button>
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-gray-200">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4">
+                Acessar Jogo Existente
+            </h2>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <input type="text" id="sessionIdInput" placeholder="Digite o ID da Sessão" class="game-input">
+                <button id="accessGameButton" class="game-button bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                    Acessar Jogo
+                </button>
+            </div>
+            <div id="errorMessage" class="mt-4 text-red-600 hidden">
+                <!-- Mensagem de erro para ID de sessão inválido -->
+            </div>
         </div>
     </div>
 
     <script>
-        // Obtém uma referência para o botão de início pelo seu ID
-        const startButton = document.getElementById('startButton');
-        // Obtém uma referência para o div onde a informação da sessão será exibida
-        const sessionInfoDiv = document.getElementById('sessionInfo');
+        const newGameButton = document.getElementById('newGameButton');
+        const accessGameButton = document.getElementById('accessGameButton');
+        const sessionIdInput = document.getElementById('sessionIdInput');
+        const errorMessage = document.getElementById('errorMessage');
 
-        // Adiciona um "listener" de evento para quando o botão for clicado
-        startButton.addEventListener('click', () => {
-            // Gera um ID de sessão aleatório de 4 dígitos (entre 1000 e 9999)
-            const sessionId = Math.floor(Math.random() * 9000) + 1000;
+        // Função para gerar um ID de sessão de 4 dígitos
+        function generateSessionId() {
+            return Math.floor(Math.random() * 9000) + 1000;
+        }
 
-            // Atualiza o texto do div de informações da sessão
-            sessionInfoDiv.textContent = `Sessão Iniciada! ID da Sessão: ${sessionId}`;
-            // Remove a classe 'hidden' para tornar o div visível
-            sessionInfoDiv.classList.remove('hidden');
+        // Event listener para o botão "Iniciar Novo Jogo"
+        newGameButton.addEventListener('click', () => {
+            const sessionId = generateSessionId();
+            window.location.href = `jogo.html?session=${sessionId}`; // Redireciona para jogo.html com o ID
+        });
 
-            // Aqui você pode adicionar a lógica real para iniciar o jogo.
-            // Por exemplo, você pode passar o sessionId para uma função de inicialização do jogo:
-            // startGame(sessionId);
-
-            console.log(`Novo jogo iniciado com ID de sessão: ${sessionId}`);
-
-            // Simulação de um atraso antes de uma possível transição para a interface do jogo
-            setTimeout(() => {
-                // Em um jogo real, a interface do jogo seria exibida aqui,
-                // e a tela de introdução poderia ser escondida.
-                // Exemplo: document.querySelector('.container').style.display = 'none';
-                // Ou redirecionar: window.location.href = `game.html?session=${sessionId}`;
-            }, 1000);
+        // Event listener para o botão "Acessar Jogo"
+        accessGameButton.addEventListener('click', () => {
+            const inputId = sessionIdInput.value.trim();
+            // Validação simples: verifica se o ID é um número de 4 dígitos
+            if (/^\d{4}$/.test(inputId)) {
+                errorMessage.classList.add('hidden'); // Esconde a mensagem de erro
+                window.location.href = `jogo.html?session=${inputId}`; // Redireciona para jogo.html
+            } else {
+                errorMessage.textContent = 'Por favor, digite um ID de sessão válido (4 dígitos numéricos).';
+                errorMessage.classList.remove('hidden'); // Mostra a mensagem de erro
+            }
         });
     </script>
 </body>
 </html>
-
-<!---
-### O que foi alterado:
-
-* **Layout:** O container principal agora é ligeiramente maior (`max-w-lg`) e tem um `padding` um pouco maior (`p-10`). Adicionei um gradiente sutil ao fundo do `body` e uma borda inferior ao container para um visual mais moderno e convidativo.
-* **Descrição dos Objetivos do Jogo:** A tag `<p>` foi atualizada para descrever claramente que o jogo ensina gerenciamento de projetos, focando em **planejamento, execução, monitoramento de progresso e resolução de desafios**.
-* **Botão "Iniciar Novo Jogo" com ID de Sessão:**
-    * O texto do botão foi alterado para "Iniciar Novo Jogo".
-    * Ao clicar, um **ID de sessão de 4 dígitos** é gerado aleatoriamente (exemplo: `1413`).
-    * Um novo `div` (`id="sessionInfo"`) é revelado abaixo do botão para exibir o ID da sessão gerado, dando um feedback claro ao jogador.
-
-Este código te dá uma base sólida com um layout aprimorado e a funcionalidade de iniciar uma nova sessão, que é crucial para gerenciar diferentes jogos ou progressos.
-
-Se quiser explorar mais o design ou adicionar elementos específicos da interface do jogo, como um painel de controle ou barras de progresso, é só me diz
--->
