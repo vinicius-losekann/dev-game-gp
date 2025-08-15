@@ -132,9 +132,16 @@
             try {
                 const response = await fetch('index_translations.json');
                 if (!response.ok) {
-                    throw new Error(`Erro ao carregar traduções: ${response.statusText}`);
+                    // Se a resposta não for OK (ex: 404 Not Found), lança um erro com status
+                    throw new Error(`Erro de rede ou arquivo não encontrado: ${response.status} ${response.statusText}`);
                 }
                 const allTranslations = await response.json();
+                
+                // Verifica se o idioma específico existe no JSON carregado
+                if (!allTranslations[lang]) {
+                    throw new Error(`Idioma '${lang}' não encontrado no arquivo de traduções.`);
+                }
+
                 pageTranslations = allTranslations[lang]; // Pega apenas as traduções do idioma selecionado
                 console.log('Traduções carregadas para', lang, ':', pageTranslations);
                 updateUITexts(); // Atualiza a UI após carregar as traduções
@@ -142,7 +149,7 @@
                 newGameButton.disabled = false;
                 accessGameButton.disabled = false;
             } catch (error) {
-                console.error('Falha ao carregar as traduções:', error);
+                console.error('Falha ao carregar ou processar as traduções:', error);
                 // Fallback para textos em português em caso de erro
                 pageTranslations = {
                     main_title: "Jogo de Gerenciamento de Projetos (Erro de Carga)",
@@ -165,23 +172,35 @@
 
         // Função para atualizar os textos da UI com base no idioma carregado
         function updateUITexts() {
-            document.getElementById('mainTitle').textContent = pageTranslations.main_title;
-            document.getElementById('descriptionText').innerHTML = pageTranslations.description_text;
-            document.querySelector('#newGameButton [data-lang-key="button_new_game"]').textContent = pageTranslations.button_new_game;
-            document.getElementById('accessGameTitle').textContent = pageTranslations.access_game_title;
-            sessionIdInput.placeholder = pageTranslations.input_session_placeholder;
-            document.querySelector('#accessGameButton [data-lang-key="button_access_game"]').textContent = pageTranslations.button_access_game;
-            document.getElementById('languageSelectTitle').textContent = pageTranslations.language_select_title;
+            // Verifica se pageTranslations está vazio ou não totalmente carregado
+            if (Object.keys(pageTranslations).length === 0) {
+                console.warn('pageTranslations está vazio ou ainda não carregado. Tentando fallback para textos estáticos.');
+                document.getElementById('mainTitle').textContent = "Jogo de Gerenciamento de Projetos";
+                document.getElementById('descriptionText').innerHTML = "Domine as habilidades essenciais de gerenciamento de projetos neste jogo interativo! Aprenda sobre **planejamento**, **execução**, **monitoramento de progresso** e **resolução de desafios** em cenários simulados para se tornar um gestor de projetos de sucesso. Cada decisão importa!";
+                document.querySelector('#newGameButton [data-lang-key="button_new_game"]').textContent = "Iniciar Novo Jogo";
+                document.getElementById('accessGameTitle').textContent = "Acessar Jogo Existente";
+                sessionIdInput.placeholder = "Digite o ID da Sessão";
+                document.querySelector('#accessGameButton [data-lang-key="button_access_game"]').textContent = "Acessar Jogo";
+                document.getElementById('languageSelectTitle').textContent = "Idioma";
+            } else {
+                document.getElementById('mainTitle').textContent = pageTranslations.main_title;
+                document.getElementById('descriptionText').innerHTML = pageTranslations.description_text;
+                document.querySelector('#newGameButton [data-lang-key="button_new_game"]').textContent = pageTranslations.button_new_game;
+                document.getElementById('accessGameTitle').textContent = pageTranslations.access_game_title;
+                sessionIdInput.placeholder = pageTranslations.input_session_placeholder;
+                document.querySelector('#accessGameButton [data-lang-key="button_access_game"]').textContent = pageTranslations.button_access_game;
+                document.getElementById('languageSelectTitle').textContent = pageTranslations.language_select_title;
+            }
             
             // Atualiza a mensagem de erro se estiver visível
             if (!errorMessage.classList.contains('hidden')) {
-                errorMessage.textContent = pageTranslations.error_invalid_session_id;
+                errorMessage.textContent = pageTranslations.error_invalid_session_id || "Por favor, digite um ID de sessão válido (4 dígitos numéricos).";
             }
             // Atualiza a mensagem de sessão criada se estiver visível
             if (!sessionInfo.classList.contains('hidden')) {
                 const currentSessionId = sessionInfo.getAttribute('data-session-id');
                 // Certifica-se de que pageTranslations está definido e que as chaves da mensagem existem
-                if (pageTranslations && pageTranslations.session_created_message && pageTranslations.session_id_prompt) {
+                if (pageTranslations.session_created_message && pageTranslations.session_id_prompt) {
                     sessionInfo.innerHTML = `${pageTranslations.session_created_message} <span class="font-bold text-teal-700">${currentSessionId}</span>.<br>${pageTranslations.session_id_prompt}`;
                 } else {
                     // Fallback se as traduções para a mensagem de sessão ainda não estiverem disponíveis
@@ -215,7 +234,7 @@
                 // Redireciona para game.html com o ID da sessão e o idioma
                 window.location.href = `game.html?session=${inputId}&lang=${currentLanguage}`;
             } else {
-                errorMessage.textContent = pageTranslations.error_invalid_session_id;
+                errorMessage.textContent = pageTranslations.error_invalid_session_id || "Por favor, digite um ID de sessão válido (4 dígitos numéricos).";
                 errorMessage.classList.remove('hidden'); // Mostra a mensagem de erro
                 sessionInfo.classList.add('hidden'); // Esconde a mensagem de sessão criada
             }
@@ -234,6 +253,10 @@
                 selectedButton.classList.add('selected');
             }
             
+            // Desabilita temporariamente os botões enquanto as traduções são carregadas
+            newGameButton.disabled = true;
+            accessGameButton.disabled = true;
+
             await loadTranslations(currentLanguage); // Carrega as novas traduções
         }
 
