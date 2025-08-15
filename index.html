@@ -248,9 +248,21 @@
                 btn.classList.remove('selected');
             });
             const buttonId = `lang${lang.replace('-', '').charAt(0).toUpperCase() + lang.replace('-', '').slice(1)}Button`;
+            
+            // --- DEBUGGING START ---
+            console.log('Attempting to select button with ID:', buttonId);
             const selectedButton = document.getElementById(buttonId);
+            console.log('Result of getElementById:', selectedButton);
+            // --- DEBUGGING END ---
+
             if (selectedButton) {
                 selectedButton.classList.add('selected');
+            } else {
+                console.error(`Element with ID '${buttonId}' not found. Cannot add 'selected' class.`);
+                // Se o botão não for encontrado, garantimos que os botões de ação também estejam desabilitados
+                newGameButton.disabled = true;
+                accessGameButton.disabled = true;
+                return; // Impede a continuação se o botão de idioma não for encontrado
             }
             
             // Desabilita temporariamente os botões enquanto as traduções são carregadas
