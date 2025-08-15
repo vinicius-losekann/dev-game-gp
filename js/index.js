@@ -60,10 +60,11 @@ async function loadTranslations(lang) {
         accessGameButton.disabled = !success;
         console.log('Botões de Ação re-habilitados após loadTranslations (Sucesso:', success, ')');
         
-        // MOSTRA o contêiner principal definindo display: block;
+        // MOSTRA o contêiner principal com opacity e visibility
         if (mainContentContainer) {
-            mainContentContainer.style.display = 'block';
-            console.log('mainContentContainer definido para display: block;'); // Log de confirmação
+            mainContentContainer.style.opacity = '1';
+            mainContentContainer.style.visibility = 'visible';
+            console.log('mainContentContainer definido para opacity: 1; visibility: visible;'); // Log de confirmação
         }
     }
 }
