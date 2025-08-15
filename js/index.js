@@ -10,6 +10,9 @@ const sessionIdInput = document.getElementById('sessionIdInput');
 const errorMessage = document.getElementById('errorMessage');
 const sessionInfo = document.getElementById('sessionInfo'); // Novo elemento
 
+// Adicionado: Referência ao contêiner principal para controlar a visibilidade
+const mainContentContainer = document.getElementById('main-content-container');
+
 // Estas variáveis serão atribuídas dentro de DOMContentLoaded
 let langPtBrButton;
 let langEnUsButton;
@@ -53,6 +56,11 @@ async function loadTranslations(lang) {
         newGameButton.disabled = !success;
         accessGameButton.disabled = !success;
         console.log('Botões de Ação re-habilitados após loadTranslations (Sucesso:', success, ')');
+        
+        // MOSTRA o contêiner principal removendo a classe 'hidden' do Tailwind
+        if (mainContentContainer) {
+            mainContentContainer.classList.remove('hidden');
+        }
     }
 }
 
@@ -64,7 +72,7 @@ function updateUITexts() {
     console.log('isTranslationsLoaded:', isTranslationsLoaded);
 
     document.getElementById('mainTitle').textContent = isTranslationsLoaded ? pageTranslations.main_title : "Jogo de Gerenciamento de Projetos";
-    document.getElementById('descriptionText').innerHTML = isTranslationsLoaded ? pageTranslations.description_text : "Domine as habilidades essenciais de gerenciamento de projetos neste jogo interativo! Aprenda sobre **planejamento**, **execução**, **monitoramento de progresso** e **resolução de desafios** em cenários simulados para se tornar um gestor de projetos de sucesso. Cada decisão importa!";
+    document.getElementById('descriptionText').innerHTML = isTranslationsLoaded ? pageTranslations.description_text : "Domine as habilidades essenciais de gerenciamento de projetos neste jogo interativo! Aprenda sobre **planejamento**, **execução**, **monitoramento de progresso** e **resolução de desafios** em cenários simulados para se tornar um gestor de projetos de sucesso. Cada decisão importa! ";
     document.querySelector('#newGameButton [data-lang-key="button_new_game"]').textContent = isTranslationsLoaded ? pageTranslations.button_new_game : "Iniciar Novo Jogo";
     document.getElementById('accessGameTitle').textContent = isTranslationsLoaded ? pageTranslations.access_game_title : "Acessar Jogo Existente";
     sessionIdInput.placeholder = isTranslationsLoaded ? pageTranslations.input_session_placeholder : "Digite o ID da Sessão";
@@ -153,7 +161,6 @@ async function setLanguage(lang) {
 
 // Ao carregar a página: define o idioma padrão e carrega as traduções
 document.addEventListener('DOMContentLoaded', () => {
-    // Define o atributo lang do elemento <html>
     document.documentElement.lang = currentLanguage;
 
     langPtBrButton = document.getElementById('langPtBrButton');
