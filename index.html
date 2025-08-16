@@ -21,18 +21,6 @@
 
     <!-- Script para inicializar o Firebase e definir a promessa de inicialização -->
     <!-- Este script DEVE ser carregado antes de 'index.js' para garantir que window.firebaseInitializedPromise exista -->
-    <script>
-        // Importa as funções do Firebase via CDN.
-        // As importações aqui são para o escopo deste script e não precisam ser module.
-        // No entanto, para usar import (módulos ES6), o script precisa ser type="module".
-        // Para garantir que window.firebaseInitializedPromise seja definido globalmente e
-        // acessível de forma síncrona, não usaremos type="module" aqui, mas sim importamos via CDN
-        // e acessamos as funções globais, ou fazemos um importmap (mais complexo).
-        // A melhor abordagem para compatibilidade é carregar o SDK do Firebase via script tags padrão
-        // e usar o namespace global 'firebase'. No entanto, como o projeto já usa imports,
-        // vou manter 'type="module"' e confiar que o navegador processará na ordem,
-        // mas é essencial que este script esteja ANTES do index.js.
-    </script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -51,7 +39,7 @@
                 const auth = getAuth(app);
 
                 // Autenticação: tenta com token customizado primeiro, depois anonimamente.
-                if (typeof window.initialAuthToken !== 'undefined') {
+                if (typeof window.initialAuthToken !== 'undefined' && window.initialAuthToken) {
                     try {
                         await signInWithCustomToken(auth, window.initialAuthToken);
                         console.log("Firebase Init Script: Autenticado com token personalizado.");
@@ -60,8 +48,8 @@
                         await signInAnonymously(auth);
                     }
                 } else {
+                    console.log("Firebase Init Script: initialAuthToken não definido ou vazio, autenticando anonimamente.");
                     await signInAnonymously(auth);
-                    console.log("Firebase Init Script: Autenticado anonimamente.");
                 }
 
                 // Define o userId globalmente após a autenticação.
@@ -84,13 +72,6 @@
         });
 
         // Opcional: listener para mudanças de estado de autenticação.
-        // Importante: `auth` só estará definido após a inicialização dentro da promessa,
-        // então este listener precisa ser configurado com a instância `auth` global.
-        // Colocá-lo aqui fora da promessa pode causar um erro se 'auth' não existir ainda.
-        // Melhor mover para DENTRO do bloco 'if (window.firebaseConfig && window.appId)'
-        // após 'auth' ser definido, ou configurar um listener para a promessa.
-        // Por simplicidade e para garantir que 'auth' esteja disponível,
-        // o listener será movido para dentro da promise, após 'auth' ser inicializado.
         window.firebaseInitializedPromise.then(() => {
             if (window.auth) {
                 onAuthStateChanged(window.auth, (user) => {
