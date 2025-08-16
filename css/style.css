@@ -65,10 +65,14 @@ body {
     border: 1px solid #d1d5db; /* gray-300 */
     padding: 0.75rem 1rem;
     border-radius: 0.5rem;
+    max-width: 300px; /* Limita a largura dos inputs */
     width: 100%;
     box-sizing: border-box; /* Garante que padding não aumente a largura total */
     font-size: 1rem;
     color: #374151; /* gray-700 */
+    margin-left: auto; /* Centraliza o input */
+    margin-right: auto; /* Centraliza o input */
+    display: block; /* Garante que margin auto funcione */
 }
 
 .input-field:focus {
