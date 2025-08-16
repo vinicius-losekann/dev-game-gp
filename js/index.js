@@ -297,6 +297,7 @@ async function initPageLogic() {
     if (copySessionIdButton) copySessionIdButton.addEventListener('click', copySessionIdToClipboard);
 
     // Define o idioma padrão e carrega as traduções (AppConfig.defaultLanguage já está disponível)
+    // Isso garante que o botão do idioma padrão seja selecionado na inicialização
     await setLanguage(AppConfig.defaultLanguage); 
     console.log('Página carregada. setLanguage() inicial chamado com o idioma padrão.');
 
