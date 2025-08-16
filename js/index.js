@@ -35,8 +35,6 @@ function hideMessage() {
     if (messageBox) {
         messageBox.classList.add('hidden');
     }
-    // NOTA: sessionInfo agora só será escondido quando a página carregar
-    // ou quando uma nova sessão for criada, ele se tornará visível.
 }
 
 // Função para carregar as traduções do arquivo JSON
@@ -117,7 +115,7 @@ function generateSessionId() {
 // Função para criar uma nova sessão
 async function createNewSession() {
     hideMessage();
-    newGameButton.disabled = true;
+    newGameButton.disabled = true; // Desabilita o botão para evitar cliques múltiplos
 
     if (!window.db || !window.auth || !window.currentUserId) {
         showMessage(pageTranslations.error_firebase_init || "Erro: Firebase não inicializado ou usuário não autenticado. Verifique a configuração.", 'error');
@@ -163,6 +161,9 @@ async function createNewSession() {
         if (sessionIdInput) {
             sessionIdInput.value = newSessionId; // Preenche o input de ID da sessão
         }
+        if (accessPlayerNameInput) {
+            accessPlayerNameInput.value = ''; // Limpa o campo de nome para o usuário digitar
+        }
         if (sessionInfo) {
             sessionInfo.classList.remove('hidden'); // Mostra a seção que contém o input de ID e nome
         }
@@ -179,7 +180,7 @@ async function createNewSession() {
 // Função para acessar uma sessão existente (agora também usada para recém-criada)
 async function accessExistingSession() {
     hideMessage();
-    accessGameButton.disabled = true;
+    accessGameButton.disabled = true; // Desabilita o botão para evitar cliques múltiplos
 
     if (!window.db || !window.auth || !window.currentUserId) {
         showMessage(pageTranslations.error_firebase_init || "Erro: Firebase não inicializado ou usuário não autenticado. Verifique a configuração.", 'error');
@@ -307,6 +308,12 @@ async function initPageLogic() {
         mainContentContainer.style.visibility = 'visible';
     } else {
         console.warn('mainContentContainer não encontrado. A transição de visibilidade não será aplicada.');
+    }
+
+    // Garante que a seção de informações da sessão esteja oculta ao carregar a página
+    // Será exibida apenas após "Iniciar Novo Jogo" ou quando necessário.
+    if (sessionInfo) {
+        sessionInfo.classList.add('hidden');
     }
 }
 
