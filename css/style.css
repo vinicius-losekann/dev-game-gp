@@ -10,124 +10,48 @@ body {
     margin: 0;
     color: #333;
     background-image: linear-gradient(to top, #cfd9ed 0%, #e2e8f0 100%); /* Gradiente sutil */
-    padding: 20px; /* Adiciona padding geral para não colar nas bordas */
-    box-sizing: border-box; /* Garante que padding e border sejam incluídos no width/height */
+    padding-bottom: 40px; /* Adiciona padding na parte inferior para o texto da versão */
+    position: relative; /* Necessário para posicionamento absoluto de elementos filhos */
 }
-
-/* Estilos para o contêiner principal na index.html e game.html */
-.container {
-    background-color: #ffffff;
-    padding: 2.5rem; /* Aumenta o padding */
-    border-radius: 1rem;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); /* Sombra mais pronunciada */
-    max-width: 900px; /* Aumenta a largura máxima para layouts maiores */
-    width: 100%;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem; /* Espaçamento entre os elementos do container */
-    opacity: 0; /* Inicialmente invisível */
-    visibility: hidden; /* Inicialmente não clicável */
+/* Estilos para o contêiner principal na index.html para evitar o FOUC */
+#main-content-container {
+    opacity: 0;
+    visibility: hidden;
     transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+    /* Certifique-se de que o contêiner principal tenha um padding suficiente para não ser coberto */
+    padding-bottom: 2rem; 
 }
-
-/* Classe para tornar o container visível com transição */
-.container.visible {
-    opacity: 1;
-    visibility: visible;
-}
-
-h1 {
-    font-size: 2.5rem; /* Aumenta o tamanho do título */
-    font-weight: 800; /* Mais negrito */
-    margin-bottom: 1rem; /* Espaço menor, o gap do container ajuda */
-    color: #2c3e50; /* Um tom de azul escuro */
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.05); /* Sombra sutil no texto */
-}
-
-/* Estilos para o texto de descrição */
-.description-text {
-    font-size: 1.15rem;
-    line-height: 1.6;
-    color: #555;
-    margin-bottom: 2rem; /* Mais espaço abaixo da descrição */
-}
-
-/* Estilos para os botões gerais com um efeito visual agradável */
+/* Estilos para os botões com um efeito visual agradável */
 .game-button {
     transition: all 0.2s ease-in-out;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    padding: 0.8rem 1.8rem; /* Ajusta o padding dos botões */
-    font-size: 1.1rem; /* Tamanho da fonte dos botões */
-    border-radius: 0.6rem; /* Arredondamento */
-    font-weight: 600; /* Seminegrito */
 }
 .game-button:hover {
-    transform: translateY(-3px); /* Efeito de elevação maior */
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2); /* Sombra maior no hover */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
 }
 .game-button:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transform: translateY(1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Estilos para o grupo de inputs e selects */
-.input-group, .select-group {
-    margin-bottom: 1.5rem; /* Espaçamento padrão */
-    text-align: left; /* Alinha o label à esquerda */
-    width: 100%; /* Ocupa a largura total disponível no container flex */
-}
-
-.input-group label, .select-group label {
-    display: block; /* Garante que o label ocupe sua própria linha */
-    margin-bottom: 0.6rem; /* Espaço abaixo do label */
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #333;
-}
-
-.game-input {
-    width: 100%;
-    padding: 0.8rem 1rem;
-    border: 2px solid #cbd5e0; /* Cor da borda mais suave */
-    border-radius: 0.5rem;
-    font-size: 1rem;
-    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-    box-sizing: border-box; /* Garante que padding e border sejam incluídos no width */
-}
-.game-input:focus {
-    outline: none;
-    border-color: #3b82f6; /* Cor de foco azul */
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25); /* Anel de foco azul */
-}
-
-/* Botões de idioma */
-.language-selector-buttons {
-    display: flex;
-    flex-wrap: wrap; /* Permite que os botões quebrem a linha em telas pequenas */
-    gap: 0.75rem; /* Espaçamento entre os botões */
-    justify-content: center;
-    margin-top: 0.5rem;
-}
-
+/* Estilos para os botões de seleção de idioma */
 .language-button {
-    flex-grow: 1; /* Permite que os botões cresçam para preencher o espaço */
-    max-width: 180px; /* Limita o tamanho máximo dos botões */
-    padding: 0.7rem 1.2rem;
-    border: 2px solid #a7a7a7; /* Borda padrão */
-    border-radius: 0.5rem;
-    background-color: #f7fafc; /* Fundo claro */
-    color: #4a4a4a;
-    font-weight: 500;
-    transition: all 0.2s ease-in-out;
+    background-color: #cbd5e1; /* gray-300 */
+    color: #475569; /* slate-600 */
+    padding: 0.75rem 1.5rem;
+    border-radius: 9999px; /* Full rounded */
+    font-weight: 600;
     cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: 1px solid transparent; /* Adiciona borda transparente */
 }
 
 .language-button:hover {
-    background-color: #e2e8f0;
-    border-color: #94a3b8;
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #e2e8f0; /* gray-200 */
 }
 
 .language-button.selected {
@@ -135,41 +59,22 @@ h1 {
     background-color: #ecfdf5; /* green-50 */
     color: #065f46; /* green-800 */
     box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3); /* Anel de foco verde */
-    font-weight: 700;
 }
 
-
-/* Layout para os botões "Iniciar Novo Jogo" e "Acessar Jogo" */
-.flex-buttons {
-    display: flex;
-    flex-direction: column; /* Empilha os botões verticalmente em telas pequenas */
-    gap: 1rem; /* Espaçamento entre eles */
-    width: 100%;
-    margin-top: 1rem; /* Espaço acima do grupo de botões */
-}
-
-@media (min-width: 640px) { /* Em telas maiores que 640px */
-    .flex-buttons {
-        flex-direction: row; /* Coloca os botões lado a lado */
-        justify-content: center; /* Centraliza os botões */
-    }
-}
-
-/* Mensagens de feedback (sucesso/erro) */
+/* Estilos para a caixa de mensagem de feedback */
 .message-box {
-    padding: 0.8rem 1.2rem;
+    padding: 1rem;
     border-radius: 0.5rem;
-    margin-top: 1rem;
+    margin-bottom: 1rem;
     font-weight: 600;
-    text-align: center;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    word-break: break-word; /* Garante que o texto quebre para caber na caixa */
+    text-align: center;
 }
 
 .message-box.info {
-    background-color: #e0f2fe; /* light blue-100 */
-    color: #0284c7; /* light blue-700 */
-    border: 1px solid #7dd3fc; /* light blue-300 */
+    background-color: #e0f2fe; /* blue-100 */
+    color: #1e40af; /* blue-800 */
+    border: 1px solid #93c5fd; /* blue-300 */
 }
 
 .message-box.success {
@@ -184,160 +89,23 @@ h1 {
     border: 1px solid #f87171; /* red-300 */
 }
 
-/* Estilos para o contador de versão */
-.version {
-    position: absolute;
-    bottom: 10px;
-    right: 10px;
-    font-size: 0.8rem;
-    color: #999;
-}
-
-/* Estilos específicos para game.html */
-.loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(255, 255, 255, 0.9);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 2rem;
-    color: #333;
-    z-index: 1000;
-    font-weight: bold;
-    text-align: center;
-}
-
-/* Oculta o overlay quando o jogo é carregado */
-.loading-overlay.hidden {
+/* Esconder a caixa de mensagem quando necessário */
+.message-box.hidden {
     display: none;
 }
 
-.session-info {
-    background-color: #f0fdf4; /* green-50 */
-    border: 1px solid #dcfce7; /* green-100 */
-    padding: 1rem;
-    border-radius: 0.75rem;
-    margin-top: 1.5rem;
-    color: #166534; /* green-800 */
-    font-weight: 500;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    text-align: center;
-}
-
-.session-info h2 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin-bottom: 0.75rem;
-    color: #104a2c;
-}
-
-.player-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.5rem;
-}
-
-.player-list li {
-    background-color: #dcfce7; /* green-100 */
-    color: #14532d; /* green-900 */
-    padding: 0.4rem 0.8rem;
-    border-radius: 0.5rem;
-    font-size: 0.9rem;
-    font-weight: 600;
-    border: 1px solid #a7f3d0; /* green-200 */
-}
-
-.game-area-selector {
-    background-color: #f8fafc; /* blue-gray-50 */
-    border: 1px solid #e2e8f0; /* blue-gray-200 */
-    padding: 1.5rem;
-    border-radius: 0.75rem;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-    margin-top: 1.5rem;
-}
-
-.game-area-selector h2 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #2c3e50;
-    margin-bottom: 1.25rem;
-}
-
-.area-select-button {
-    background-color: #3b82f6; /* blue-500 */
-    color: white;
-    font-weight: 600;
-    padding: 1rem;
-    border-radius: 0.75rem;
-    transition: all 0.2s ease-in-out;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.area-select-button:hover {
-    background-color: #2563eb; /* blue-600 */
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
-
-.area-select-button:active {
-    transform: translateY(0);
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-}
-
-/* Estilos para o card da pergunta */
-.card {
-    background-color: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 1rem;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-    padding: 2rem;
-    margin-top: 1.5rem;
-    text-align: left; /* Alinha o conteúdo do card à esquerda */
-}
-
-.card-content h2 {
-    font-size: 2rem;
-    color: #2c3e50;
-    margin-bottom: 1rem;
-}
-
-.card-content p {
-    font-size: 1.15rem;
-    line-height: 1.6;
-    margin-bottom: 1.5rem;
-    color: #4a4a4a;
-}
-
-.options-container {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem; /* Espaçamento entre as opções */
-    margin-bottom: 1.5rem;
-}
-
+/* Estilos para os botões de opção em game.html */
 .option-button {
-    width: 100%;
-    padding: 0.9rem 1.2rem;
-    border: 2px solid #cbd5e0;
-    border-radius: 0.6rem;
-    background-color: #f7fafc;
-    color: #333;
-    font-size: 1rem;
-    text-align: left; /* Alinha o texto das opções à esquerda */
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0; /* gray-200 */
+    padding: 1rem;
+    border-radius: 0.5rem;
     cursor: pointer;
+    text-align: left;
     transition: all 0.2s ease-in-out;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
-
-.option-button:hover:not(.selected):not(.disabled) {
+.option-button:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     background-color: #e2e8f0;
@@ -347,12 +115,6 @@ h1 {
     background-color: #ecfdf5; /* green-50 */
     box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3); /* Anel de foco verde */
 }
-
-.option-button.disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-}
-
 .feedback {
     padding: 1rem;
     border-radius: 0.5rem;
@@ -371,43 +133,23 @@ h1 {
     border: 1px solid #f87171; /* red-300 */
 }
 .explanation {
-    margin-top: 1rem; /* Mais espaçamento */
-    background-color: #e0f2fe; /* light-blue-100 */
-    border: 1px solid #90cdf4; /* light-blue-300 */
+    margin-top: 1rem; /* Mais espaço acima */
     padding: 1rem;
+    background-color: #f0f9ff; /* blue-50 */
+    border: 1px solid #bfdbfe; /* blue-200 */
     border-radius: 0.5rem;
-    color: #2a6988; /* light-blue-800 */
-    font-size: 0.95rem;
+    font-size: 0.95rem; /* Um pouco menor */
     line-height: 1.5;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    color: #475569; /* slate-700 */
 }
 
-/* Media Queries para responsividade */
-@media (max-width: 768px) {
-    h1 {
-        font-size: 2rem;
-    }
-    .container {
-        padding: 1.5rem;
-        gap: 1rem;
-    }
-    .game-button {
-        padding: 0.7rem 1.5rem;
-        font-size: 1rem;
-    }
-    .input-group label, .select-group label {
-        font-size: 1rem;
-    }
-    .game-input {
-        padding: 0.7rem 0.9rem;
-    }
-    .card {
-        padding: 1.5rem;
-    }
-    .card-content h2 {
-        font-size: 1.75rem;
-    }
-    .card-content p {
-        font-size: 1rem;
-    }
+/* Estilos para o texto da versão */
+.version-text {
+    position: absolute; /* Posição absoluta em relação ao body */
+    bottom: 10px;      /* 10px do fundo */
+    right: 10px;       /* 10px da direita */
+    font-size: 0.8rem; /* Tamanho da fonte menor */
+    color: #64748b;    /* cor cinza para o texto */
+    z-index: 10;       /* Garante que fique acima de outros elementos se houver sobreposição */
 }
+
