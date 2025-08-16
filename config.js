@@ -1,12 +1,21 @@
-// Este arquivo expõe as variáveis de configuração do ambiente para o seu código.
-// As variáveis __app_id, __firebase_config e __initial_auth_token são injetadas
-// automaticamente pelo ambiente do Canvas.
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
-window.appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-window.firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-window.initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyDdiedj1Smjzn9CDqShdhG5Y0_Sa18xyWI",
+  authDomain: "jogo-gerencia-de-projetos.firebaseapp.com",
+  projectId: "jogo-gerencia-de-projetos",
+  storageBucket: "jogo-gerencia-de-projetos.firebasestorage.app",
+  messagingSenderId: "356867532123",
+  appId: "1:356867532123:web:0657d84635a5849df2667e",
+  measurementId: "G-M5QYQ36Q9P"
+};
 
-console.log("Config.js carregado:");
-console.log("App ID:", window.appId);
-console.log("Firebase Config:", window.firebaseConfig);
-console.log("Initial Auth Token:", window.initialAuthToken ? "Disponível" : "Não disponível");
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
