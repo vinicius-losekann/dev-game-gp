@@ -122,6 +122,9 @@
     </div>
     <div class="version">Versão: 1.0.0</div>
 
+    <!-- Inclua o arquivo de configuração PRIMEIRO -->
+    <script src="config.js"></script>
+
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -135,18 +138,15 @@
         let firestore; // Referência ao objeto firestore para acesso a funções como doc, setDoc etc.
         let currentUserId = null; // ID do usuário autenticado (anônimo ou via token)
 
-        // As variáveis __app_id, __firebase_config e __initial_auth_token
-        // são injetadas pelo ambiente Canvas. Verificamos se existem.
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        // As variáveis já estão disponíveis em window.appId, window.firebaseConfig e window.initialAuthToken
+        // graças ao config.js carregado anteriormente.
 
         // Promessa para garantir que o Firebase está inicializado e autenticado
         window.firebaseInitializedPromise = new Promise(async (resolve) => {
             try {
                 // Apenas inicializa o Firebase se a configuração for válida
-                if (firebaseConfig && Object.keys(firebaseConfig).length > 0) {
-                    app = initializeApp(firebaseConfig);
+                if (window.firebaseConfig && Object.keys(window.firebaseConfig).length > 0) {
+                    app = initializeApp(window.firebaseConfig);
                     auth = getAuth(app);
                     db = getFirestore(app);
                     firestore = { // Criamos um objeto para agrupar as funções do firestore
@@ -165,11 +165,10 @@
                     };
 
                     window.db = db; // Exporta para game.js
-                    window.appId = appId; // Exporta para game.js
                     window.firestore = firestore; // Exporta o objeto firestore para game.js
 
-                    if (initialAuthToken) {
-                        await signInWithCustomToken(auth, initialAuthToken);
+                    if (window.initialAuthToken) {
+                        await signInWithCustomToken(auth, window.initialAuthToken);
                         console.log("Firebase: Autenticado com token personalizado.");
                     } else {
                         await signInAnonymously(auth);
@@ -182,14 +181,11 @@
                     resolve(); // Resolve a promessa após a inicialização e autenticação
                 } else {
                     console.error("Firebase Configuração não encontrada ou inválida. Pulando a inicialização do Firebase.");
-                    // Não resolve a promessa para indicar que o Firebase não foi inicializado com sucesso
-                    // Ou resolve para não travar o app, mas as operações de DB falharão.
-                    // Para este caso, vamos resolver, mas as funções de DB precisarão checar 'db' e 'auth.currentUser'
                     resolve();
                 }
             } catch (error) {
                 console.error("Erro na inicialização ou autenticação do Firebase:", error);
-                resolve(); // Resolve mesmo com erro para não bloquear o restante do app
+                resolve();
             }
         });
 
@@ -240,7 +236,7 @@
             const selectedLanguage = languageSelect.value;
             const newSessionId = generateSessionIdWithLanguage(selectedLanguage);
             // Caminho da coleção conforme as regras do Firestore: artifacts/{appId}/public/data/sessions
-            const sessionDocRef = firestore.doc(db, `artifacts/${appId}/public/data/sessions`, newSessionId);
+            const sessionDocRef = firestore.doc(db, `artifacts/${window.appId}/public/data/sessions`, newSessionId);
 
             try {
                 // Tenta criar o documento da sessão
@@ -287,7 +283,7 @@
             }
 
             // Caminho da coleção conforme as regras do Firestore: artifacts/{appId}/public/data/sessions
-            const sessionDocRef = firestore.doc(db, `artifacts/${appId}/public/data/sessions`, enteredSessionId);
+            const sessionDocRef = firestore.doc(db, `artifacts/${window.appId}/public/data/sessions`, enteredSessionId);
 
             try {
                 const docSnap = await firestore.getDoc(sessionDocRef);
@@ -310,7 +306,6 @@
                 joinSessionButton.disabled = false;
             }
         });
-
     </script>
 </body>
 </html>
