@@ -7,18 +7,17 @@ let pageTranslations = {}; // Objeto para armazenar as traduções carregadas
 // Elementos DOM (serão atribuídos em initPageLogic)
 let newGameButton;
 let accessGameButton;
-let sessionIdInput;
-let playerNameInput; // Novo campo para o nome do jogador
-let accessPlayerNameInput; // Novo campo para o nome do jogador ao acessar
+let sessionIdInput; // Input para o ID da sessão
+let accessPlayerNameInput; // Campo para o nome do jogador ao acessar (usado para novo e existente)
 let messageBox; 
 let sessionInfo; 
-let displayCreatedSessionId; // Novo elemento para exibir o ID da sessão criada
+let displayCreatedSessionId; // Elemento para exibir o ID da sessão criada
 let mainContentContainer; 
 let languageSelectorButtonsContainer; 
 let langPtBrButton;
 let langEnUsButton;
 let langEsEsButton;
-let copySessionIdButton; // Novo botão para copiar ID
+let copySessionIdButton; // Botão para copiar ID
 
 // Função para mostrar mensagens na tela
 function showMessage(message, type = 'info') {
@@ -36,9 +35,8 @@ function hideMessage() {
     if (messageBox) {
         messageBox.classList.add('hidden');
     }
-    if (sessionInfo) {
-        sessionInfo.classList.add('hidden'); // Esconder info da sessão também
-    }
+    // NOTA: sessionInfo agora só será escondido quando a página carregar
+    // ou quando uma nova sessão for criada, ele se tornará visível.
 }
 
 // Função para carregar as traduções do arquivo JSON
@@ -81,7 +79,6 @@ function applyTranslations() {
     });
 
     // Atualiza placeholders manualmente
-    if (playerNameInput) playerNameInput.placeholder = pageTranslations.input_player_name_placeholder || "Seu nome de identificação (Ex: João)";
     if (accessPlayerNameInput) accessPlayerNameInput.placeholder = pageTranslations.input_player_name_placeholder || "Seu nome de identificação (Ex: João)";
     if (sessionIdInput) sessionIdInput.placeholder = pageTranslations.input_session_placeholder || "Digite o ID da Sessão (Ex: 1234)";
 }
@@ -121,20 +118,10 @@ function generateSessionId() {
 async function createNewSession() {
     hideMessage();
     newGameButton.disabled = true;
-    accessGameButton.disabled = true;
 
     if (!window.db || !window.auth || !window.currentUserId) {
         showMessage(pageTranslations.error_firebase_init || "Erro: Firebase não inicializado ou usuário não autenticado. Verifique a configuração.", 'error');
         newGameButton.disabled = false;
-        accessGameButton.disabled = false;
-        return;
-    }
-
-    const enteredPlayerName = playerNameInput.value.trim();
-    if (!enteredPlayerName) {
-        showMessage(pageTranslations.error_player_name_required || "Por favor, digite seu nome para iniciar um novo jogo.", 'error');
-        newGameButton.disabled = false;
-        accessGameButton.disabled = false;
         return;
     }
 
@@ -146,59 +133,56 @@ async function createNewSession() {
     try {
         const docSnap = await window.firestore.getDoc(sessionDocRef);
         if (docSnap.exists()) {
-            // Se o ID já existir, tenta gerar outro (evita colisão, mas num ambiente real exigiria mais robustez)
+            // Se o ID já existir, tenta gerar outro
             console.warn(`ID de sessão ${newSessionId} já existe, tentando outro.`);
             newSessionId = generateSessionId(); 
-            // Tenta novamente com o novo ID
             const newSessionDocRef = window.firestore.doc(window.db, `artifacts/${window.appId}/public/data/sessions`, newSessionId);
             const newDocSnap = await window.firestore.getDoc(newSessionDocRef);
             if (newDocSnap.exists()) {
-                 // Se o segundo também existir, avisa e pede para tentar novamente
                 showMessage(pageTranslations.error_session_id_collision || "Não foi possível gerar um ID de sessão único. Por favor, tente novamente.", 'error');
                 newGameButton.disabled = false;
-                accessGameButton.disabled = false;
                 return;
             }
         }
 
-        // Cria a nova sessão com o idioma e o primeiro jogador
+        // Cria a nova sessão (sem adicionar o jogador ainda)
         await window.firestore.setDoc(sessionDocRef, {
             createdAt: window.firestore.serverTimestamp(),
             language: currentLanguage,
-            currentPlayers: [{ userId: window.currentUserId, name: enteredPlayerName, joinedAt: new Date() }],
-            status: 'waiting' // Pode ser 'waiting', 'active', 'finished'
+            currentPlayers: [], // Inicia com array vazio de jogadores
+            status: 'waiting'
         });
 
         console.log(`Nova sessão criada com ID: ${newSessionId}`);
         showMessage(pageTranslations.session_created_message + newSessionId, 'success');
         
+        // Preenche o campo de ID e exibe a seção de informações da sessão
         if (displayCreatedSessionId) {
             displayCreatedSessionId.textContent = newSessionId;
         }
-        if (sessionInfo) {
-            sessionInfo.classList.remove('hidden');
+        if (sessionIdInput) {
+            sessionIdInput.value = newSessionId; // Preenche o input de ID da sessão
         }
-
-        newGameButton.disabled = false;
-        accessGameButton.disabled = false;
+        if (sessionInfo) {
+            sessionInfo.classList.remove('hidden'); // Mostra a seção que contém o input de ID e nome
+        }
+        
+        newGameButton.disabled = false; // Reabilita o botão "Novo Jogo"
 
     } catch (error) {
         console.error("Erro ao criar nova sessão no Firestore:", error);
         showMessage(pageTranslations.error_creating_session + `: ${error.message}`, 'error');
         newGameButton.disabled = false;
-        accessGameButton.disabled = false;
     }
 }
 
-// Função para acessar uma sessão existente
+// Função para acessar uma sessão existente (agora também usada para recém-criada)
 async function accessExistingSession() {
     hideMessage();
-    newGameButton.disabled = true;
     accessGameButton.disabled = true;
 
     if (!window.db || !window.auth || !window.currentUserId) {
         showMessage(pageTranslations.error_firebase_init || "Erro: Firebase não inicializado ou usuário não autenticado. Verifique a configuração.", 'error');
-        newGameButton.disabled = false;
         accessGameButton.disabled = false;
         return;
     }
@@ -209,14 +193,12 @@ async function accessExistingSession() {
     // Validação do ID da sessão: 4 dígitos numéricos
     if (!/^\d{4}$/.test(enteredSessionId)) {
         showMessage(pageTranslations.error_invalid_session_id || "Por favor, digite um ID de sessão válido (4 dígitos numéricos).", 'error');
-        newGameButton.disabled = false;
         accessGameButton.disabled = false;
         return;
     }
 
     if (!enteredPlayerName) {
         showMessage(pageTranslations.error_player_name_required || "Por favor, digite seu nome para acessar o jogo.", 'error');
-        newGameButton.disabled = false;
         accessGameButton.disabled = false;
         return;
     }
@@ -232,7 +214,6 @@ async function accessExistingSession() {
             const sessionLanguage = sessionData.language || AppConfig.defaultLanguage; 
             
             // Adiciona o jogador à lista de jogadores da sessão no Firestore
-            // currentPlayers é um array de objetos { userId: ..., name: ..., joinedAt: ... }
             const players = sessionData.currentPlayers || [];
             const playerExists = players.some(player => player.userId === window.currentUserId);
 
@@ -242,7 +223,6 @@ async function accessExistingSession() {
                 });
                 console.log(`Usuário ${window.currentUserId} (${enteredPlayerName}) adicionado à sessão ${enteredSessionId}.`);
             } else {
-                // Se o jogador já existe (mesmo userId), pode-se atualizar o nome ou apenas logar
                 console.log(`Usuário ${window.currentUserId} já está na sessão ${enteredSessionId}.`);
                 // Opcional: Atualizar o nome do jogador se ele mudou
                 const playerIndex = players.findIndex(player => player.userId === window.currentUserId);
@@ -256,17 +236,14 @@ async function accessExistingSession() {
             showMessage(pageTranslations.joining_session_message || `Entrando na sessão ${enteredSessionId}...`, 'success');
             console.log(`Entrando na sessão ${enteredSessionId}.`);
             // Redireciona para a página do jogo com o ID da sessão e o idioma da sessão
-            // Passa o nome do jogador na URL para ser usado na game.html para exibição inicial
             window.location.href = `game.html?session=${enteredSessionId}&lang=${sessionLanguage}&playerName=${encodeURIComponent(enteredPlayerName)}`;
         } else {
             showMessage(pageTranslations.session_not_found_error || `Sessão "${enteredSessionId}" não encontrada.`, 'error');
-            newGameButton.disabled = false;
             accessGameButton.disabled = false;
         }
     } catch (error) {
         console.error("Erro ao verificar ou acessar sessão no Firestore:", error);
         showMessage(pageTranslations.error_checking_session + `: ${error.message}`, 'error');
-        newGameButton.disabled = false;
         accessGameButton.disabled = false;
     }
 }
@@ -275,7 +252,6 @@ async function accessExistingSession() {
 function copySessionIdToClipboard() {
     if (displayCreatedSessionId) {
         const sessionId = displayCreatedSessionId.textContent;
-        // Usa document.execCommand('copy') pois navigator.clipboard.writeText pode não funcionar em iframes
         const tempInput = document.createElement('input');
         document.body.appendChild(tempInput);
         tempInput.value = sessionId;
@@ -298,7 +274,6 @@ async function initPageLogic() {
     newGameButton = document.getElementById('newGameButton');
     accessGameButton = document.getElementById('accessGameButton');
     sessionIdInput = document.getElementById('sessionIdInput');
-    playerNameInput = document.getElementById('playerNameInput');
     accessPlayerNameInput = document.getElementById('accessPlayerNameInput');
     messageBox = document.getElementById('messageBox');
     sessionInfo = document.getElementById('sessionInfo');
