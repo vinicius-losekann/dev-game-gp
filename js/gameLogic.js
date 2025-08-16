@@ -1,4 +1,3 @@
-<!-- js/gameLogic.js -->
 // js/gameLogic.js
 
 let allQuestions = [];
