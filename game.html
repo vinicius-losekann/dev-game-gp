@@ -69,7 +69,8 @@
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { 
             getFirestore, collection, doc, getDoc, setDoc, updateDoc, 
-            onSnapshot, serverTimestamp, arrayUnion, arrayRemove 
+            onSnapshot, serverTimestamp, arrayUnion, arrayRemove,
+            query, where, getDocs // Adicionando importação de query, where, getDocs
         } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         // import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js"; // Descomente se precisar de Analytics
 
@@ -104,11 +105,14 @@
             onSnapshot: onSnapshot,
             serverTimestamp: serverTimestamp,
             arrayUnion: arrayUnion,
-            arrayRemove: arrayRemove
+            arrayRemove: arrayRemove,
+            query: query, // Expondo query
+            where: where,   // Expondo where
+            getDocs: getDocs // Expondo getDocs
         };
 
-        // Função para autenticar e iniciar o jogo
-        async function authenticateAndInitGame() {
+        // Define a promessa que será resolvida quando o Firebase estiver pronto
+        window.firebaseInitializedPromise = new Promise(async (resolve, reject) => {
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(window.auth, __initial_auth_token);
@@ -119,24 +123,15 @@
                 }
                 window.currentUserId = window.auth.currentUser?.uid || 'anonymous-user';
                 console.log("Firebase: App inicializado e autenticado em game.html. ID do Usuário:", window.currentUserId);
-
-                // CHAMA A FUNÇÃO DE INICIALIZAÇÃO DO SEU GAME.JS AQUI!
-                if (typeof window.initGame === 'function') {
-                    await window.initGame();
-                } else {
-                    console.error("Erro: window.initGame() não está definido. Verifique se game.js foi carregado corretamente.");
-                }
+                resolve(); // Resolve a promessa indicando que Firebase está pronto
 
             } catch (error) {
                 console.error("Erro ao inicializar Firebase ou autenticar em game.html:", error);
-                // Redireciona para a página inicial com mensagem de erro se o Firebase falhar
                 alert("Erro ao iniciar o jogo. Por favor, tente novamente.");
                 window.location.href = 'index.html?error=firebase_init_failed';
+                reject(error); // Rejeita a promessa em caso de erro
             }
-        }
-
-        // Garante que o DOM esteja completamente carregado antes de tentar autenticar e iniciar o jogo
-        document.addEventListener('DOMContentLoaded', authenticateAndInitGame);
+        });
 
     </script>
 
