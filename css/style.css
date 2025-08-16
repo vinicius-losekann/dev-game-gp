@@ -76,10 +76,12 @@ body {
 }
 
 /* Ajusta os botões dentro das seções para terem a mesma largura máxima dos inputs */
+/* Removido o w-full do Tailwind nos botões para permitir que a largura máxima de 200px funcione */
 .input-group button {
     max-width: 200px; /* Define largura máxima para os botões dentro de input-group */
     margin-left: auto; /* Centraliza o botão */
     margin-right: auto; /* Centraliza o botão */
+    width: 100%; /* Garante que o botão preencha a largura máxima definida */
 }
 
 
@@ -102,6 +104,13 @@ body {
     flex-direction: column; /* Adicionado para game.html para empilhar elementos */
     gap: 1.5rem; /* Espaçamento entre seções */
     position: relative; /* Para o posicionamento do footer */
+}
+
+/* Reduz a largura máxima dos input-group para 300px */
+.input-group {
+    max-width: 300px; /* Define a largura máxima para as caixas de Novo Jogo e Acessar Jogo */
+    margin-left: auto; /* Centraliza a caixa */
+    margin-right: auto; /* Centraliza a caixa */
 }
 
 /* Estilos para caixas de mensagem (feedback) */
@@ -131,7 +140,7 @@ body {
     border: 1px solid #f87171; /* red-300 */
 }
 
-/* NOVO: Estilo para a mensagem de sessão criada (verde) */
+/* Estilo para a mensagem de sessão criada (verde) */
 .session-message-success {
     background-color: #d1fae5; /* green-100 */
     color: #065f46; /* green-800 */
