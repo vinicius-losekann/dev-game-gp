@@ -22,9 +22,11 @@
     <!-- Script para inicializar o Firebase e definir a promessa de inicialização -->
     <!-- Este script DEVE ser carregado antes de 'index.js' para garantir que window.firebaseInitializedPromise exista -->
     <script type="module">
+        // Importa as funções necessárias do Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayRemove, arrayUnion, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // IMPORTAÇÃO CORRIGIDA: Adicionando collection, query, where, addDoc, getDocs
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayRemove, arrayUnion, serverTimestamp, collection, query, where, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Define uma promessa que será resolvida quando o Firebase for inicializado e autenticado.
         // Esta promessa é global e pode ser aguardada por outros scripts.
@@ -60,7 +62,8 @@
                 // Expõe instâncias de Firebase para outros scripts de forma global.
                 window.app = app; // Adiciona a instância do app
                 window.db = db;
-                window.firestore = { doc, getDoc, setDoc, updateDoc, arrayRemove, arrayUnion, serverTimestamp }; // Exporta funções específicas do firestore
+                // EXPOSIÇÃO CORRIGIDA: Adicionando collection, query, where, addDoc, getDocs
+                window.firestore = { doc, getDoc, setDoc, updateDoc, arrayRemove, arrayUnion, serverTimestamp, collection, query, where, addDoc, getDocs }; // Exporta funções específicas do firestore
                 window.auth = auth; // Expõe a instância de autenticação
 
                 console.log("Firebase Init Script: Firebase inicializado e autenticado. Resolvendo promessa.");
