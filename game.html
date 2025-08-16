@@ -290,7 +290,10 @@
                     if (players.length > 0) {
                         players.forEach(player => {
                             const li = document.createElement('li');
-                            li.textContent = `ID: ${player.userId} (Conectado em: ${new Date(player.joinedAt.seconds * 1000).toLocaleString()})`;
+                            // player.joinedAt é um objeto Timestamp do Firestore, então .toDate() o converte
+                            // para um objeto Date JavaScript, que tem toLocaleString().
+                            const joinedDate = player.joinedAt ? new Date(player.joinedAt.seconds * 1000).toLocaleString() : 'N/A';
+                            li.textContent = `ID: ${player.userId} (Conectado em: ${joinedDate})`;
                             playerList.appendChild(li);
                         });
                     } else {
@@ -327,10 +330,11 @@
                     const playerExists = players.some(player => player.userId === currentUserId);
 
                     if (!playerExists) {
+                        // CORREÇÃO: Usar new Date() em vez de serverTimestamp() dentro de arrayUnion
                         await firestore.updateDoc(sessionDocRef, {
                             currentPlayers: firestore.arrayUnion({
                                 userId: currentUserId,
-                                joinedAt: serverTimestamp(),
+                                joinedAt: new Date(), // Correção aqui: usa new Date()
                                 score: 0
                             })
                         });
@@ -358,10 +362,20 @@
             if (currentSessionId && currentUserId && db) {
                 const sessionDocRef = firestore.doc(db, `artifacts/${window.appId}/public/data/sessions`, currentSessionId);
                 try {
-                    await firestore.updateDoc(sessionDocRef, {
-                        currentPlayers: firestore.arrayRemove({ userId: currentUserId, /* outros dados do jogador */ })
-                    });
-                    console.log(`Usuário ${currentUserId} removido da sessão.`);
+                    // CORREÇÃO: Para arrayRemove, precisamos do objeto exato (com o timestamp correto)
+                    const docSnap = await firestore.getDoc(sessionDocRef);
+                    if (docSnap.exists()) {
+                        const sessionData = docSnap.data();
+                        const players = sessionData.currentPlayers || [];
+                        const playerToRemove = players.find(player => player.userId === currentUserId);
+
+                        if (playerToRemove) {
+                            await firestore.updateDoc(sessionDocRef, {
+                                currentPlayers: firestore.arrayRemove(playerToRemove)
+                            });
+                            console.log(`Usuário ${currentUserId} removido da sessão.`);
+                        }
+                    }
                 } catch (error) {
                     console.error("Erro ao remover usuário da sessão:", error);
                 }
