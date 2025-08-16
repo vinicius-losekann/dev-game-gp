@@ -14,8 +14,7 @@
         "input_session_placeholder": "Digite o ID da Sessão (Ex: 1234)",
         "button_access_game": "Acessar Jogo",
         "session_created_message": "Sessão criada! Seu ID é: ",
-        "session_id_prompt": "Insira este ID no campo abaixo, seu nome e clique em \"Acessar Jogo\".",
-        "button_copy_id": "Copiar ID",
+        "session_id_prompt": "Insira seu nome e clique em \"Acessar Jogo\".",
         "error_invalid_session_id": "Por favor, digite um ID de sessão válido (4 dígitos numéricos).",
         "error_player_name_required": "Por favor, digite seu nome de identificação.",
         "error_firebase_init": "Erro: Firebase não inicializado ou usuário não autenticado. Verifique a configuração.",
@@ -25,9 +24,6 @@
         "accessing_session_message": "Acessando sessão...",
         "joining_session_message": "Entrando na sessão",
         "session_not_found_error": "Sessão não encontrada.",
-        "copy_success": "ID copiado!",
-        "copy_fail": "Falha ao copiar ID.",
-        "error_session_id_collision": "Não foi possível gerar um ID de sessão único. Por favor, tente novamente.",
         "app_version": "Versão 1.0.0"
     },
     "en-US": {
@@ -45,8 +41,7 @@
         "input_session_placeholder": "Enter Session ID (Ex: 1234)",
         "button_access_game": "Access Game",
         "session_created_message": "Session created! Your ID is: ",
-        "session_id_prompt": "Insert this ID in the field below, your name, and click \"Access Game\".",
-        "button_copy_id": "Copy ID",
+        "session_id_prompt": "Enter your name and click \"Access Game\".",
         "error_invalid_session_id": "Please enter a valid session ID (4 numeric digits).",
         "error_player_name_required": "Please enter your identification name.",
         "error_firebase_init": "Error: Firebase not initialized or user not authenticated. Check configuration.",
@@ -56,9 +51,6 @@
         "accessing_session_message": "Accessing session...",
         "joining_session_message": "Joining session",
         "session_not_found_error": "Session not found.",
-        "copy_success": "ID copied!",
-        "copy_fail": "Failed to copy ID.",
-        "error_session_id_collision": "Could not generate a unique session ID. Please try again.",
         "app_version": "Version 1.0.0"
     },
     "es-ES": {
@@ -76,8 +68,7 @@
         "input_session_placeholder": "Introduce el ID de Sesión (Ej: 1234)",
         "button_access_game": "Acceder al Juego",
         "session_created_message": "¡Sesión creada! Tu ID es: ",
-        "session_id_prompt": "Introduce este ID en el campo de abajo, tu nombre y haz clic en \"Acceder al Juego\".",
-        "button_copy_id": "Copiar ID",
+        "session_id_prompt": "Introduce tu nombre y haz clic en \"Acceder al Juego\".",
         "error_invalid_session_id": "Por favor, introduce un ID de sesión válido (4 dígitos numéricos).",
         "error_player_name_required": "Por favor, introduce tu nombre de identificación.",
         "error_firebase_init": "Error: Firebase no inicializado o usuario no autenticado. Verifica la configuración.",
@@ -87,9 +78,6 @@
         "accessing_session_message": "Accediendo a la sesión...",
         "joining_session_message": "Uniéndose a la sesión",
         "session_not_found_error": "Sesión no encontrada.",
-        "copy_success": "¡ID copiado!",
-        "copy_fail": "Error al copiar el ID.",
-        "error_session_id_collision": "No se pudo generar un ID de sesión único. Por favor, inténtalo de nuevo.",
         "app_version": "Versão 1.0.0"
     }
 }
