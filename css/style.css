@@ -20,7 +20,7 @@ body {
     visibility: hidden;
     transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
     /* Certifique-se de que o contêiner principal tenha um padding suficiente para não ser coberto */
-    padding-bottom: 2rem; 
+    padding-bottom: 2rem;
 }
 /* Estilos para os botões com um efeito visual agradável */
 .game-button {
@@ -45,8 +45,7 @@ body {
     font-weight: 600;
     border: 2px solid transparent;
     transition: all 0.2s ease-in-out;
-    width: 150px; /* Largura fixa para todos os botões de idioma */
-    /* Removemos min-width para usar width fixo */
+    width: 150px; /* Mantém largura fixa para todos os botões de idioma */
 }
 
 .lang-button:hover {
@@ -72,7 +71,7 @@ body {
     box-sizing: border-box; /* Garante que padding não aumente a largura total */
     font-size: 1rem;
     color: #374151; /* gray-700 */
-    display: block; 
+    display: block;
 }
 
 /* Ajusta os botões dentro das seções para terem a mesma largura máxima dos inputs */
@@ -95,35 +94,36 @@ body {
     padding: 2rem; /* Mantém o padding interno */
     border-radius: 1rem;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    
-    /* ***** MUDANÇA PRINCIPAL AQUI: LARGURA FIXA E IMPORTANTE ***** */
-    width: 300px !important; /* Força a largura em 300px */
-    max-width: 90% !important; /* Garante que em telas muito pequenas ele ainda se ajuste, com !important */
-    min-width: 280px !important; /* Adiciona um min-width também */
+
+    /* ***** MUDANÇAS PRINCIPAIS AQUI: LARGURA PERCENTUAL E MAX-WIDTH ***** */
+    width: 60%; /* Largura percentual em relação ao pai (body/viewport) */
+    max-width: 600px; /* Limite superior para a largura, para não ficar gigante em telas grandes */
+    min-width: 320px; /* Garante que não fique muito estreito em telas pequenas */
+    /* Removido !important, Tailwind deve ser capaz de sobrescrever se necessário,
+       mas essas regras devem ser mais específicas que as classes utilitárias */
     /* ************************************************************************* */
 
     margin: 20px auto; /* Centraliza e adiciona margem vertical */
     text-align: center;
-    display: flex; 
-    flex-direction: column; 
-    gap: 1.5rem; 
-    position: relative; 
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    position: relative;
     box-sizing: border-box; /* Inclui padding e border no cálculo da largura */
 }
 
 /* Define uma largura para os contêineres menores (Novo Jogo e Acessar Jogo) */
-/* Eles serão um pouco menores que o container principal e responsivos */
+/* Eles serão 100% da largura do pai (o .container branco), com um max-width */
 .input-group {
     background-color: #ffffff; /* Garante que eles tenham seu próprio fundo */
     padding: 1.5rem; /* Padding interno */
     border-radius: 0.75rem; /* Bordas arredondadas */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); /* Sombra sutil */
-    
-    /* Largura relativa ao pai. Se o pai tem 300px, 100% será 300px */
-    width: 100%; 
-    max-width: 260px !important; /* Mantém um limite superior para os contêineres menores, com !important */
-    margin-left: auto; 
-    margin-right: auto; 
+
+    width: 100%; /* Ocupa 100% do .container principal */
+    max-width: 400px; /* Define um limite para o tamanho interno, para não ficarem largos demais */
+    margin-left: auto; /* Centraliza dentro do .container principal */
+    margin-right: auto; /* Centraliza dentro do .container principal */
     box-sizing: border-box; /* Inclui padding e border no cálculo da largura */
 }
 
