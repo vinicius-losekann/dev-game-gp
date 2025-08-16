@@ -17,7 +17,7 @@ let languageSelectorButtonsContainer;
 let langPtBrButton;
 let langEnUsButton;
 let langEsEsButton;
-let copySessionIdButton; // Botão para copiar ID
+// Removido: copySessionIdButton; 
 
 // Função para mostrar mensagens na tela
 function showMessage(message, type = 'info') {
@@ -249,25 +249,9 @@ async function accessExistingSession() {
     }
 }
 
+// Removido: copySessionIdToClipboard
 // Função para copiar o ID da sessão para a área de transferência
-function copySessionIdToClipboard() {
-    if (displayCreatedSessionId) {
-        const sessionId = displayCreatedSessionId.textContent;
-        const tempInput = document.createElement('input');
-        document.body.appendChild(tempInput);
-        tempInput.value = sessionId;
-        tempInput.select();
-        try {
-            const successful = document.execCommand('copy');
-            const msg = successful ? pageTranslations.copy_success || 'ID copiado!' : pageTranslations.copy_fail || 'Falha ao copiar ID.';
-            showMessage(msg, successful ? 'success' : 'error');
-        } catch (err) {
-            console.error('Erro ao copiar:', err);
-            showMessage(pageTranslations.copy_fail || 'Falha ao copiar ID.', 'error');
-        }
-        document.body.removeChild(tempInput);
-    }
-}
+// function copySessionIdToClipboard() { /* ... */ }
 
 // Inicializa a lógica da página (chamada após o Firebase ser inicializado)
 async function initPageLogic() {
@@ -284,7 +268,7 @@ async function initPageLogic() {
     langPtBrButton = document.getElementById('langPtBrButton');
     langEnUsButton = document.getElementById('langEnUsButton');
     langEsEsButton = document.getElementById('langEsEsButton');
-    copySessionIdButton = document.getElementById('copySessionIdButton');
+    // Removido: copySessionIdButton = document.getElementById('copySessionIdButton');
 
     // Adiciona event listeners
     if (newGameButton) newGameButton.addEventListener('click', createNewSession);
@@ -295,7 +279,7 @@ async function initPageLogic() {
     if (langEnUsButton) langEnUsButton.addEventListener('click', () => setLanguage('en-US'));
     if (langEsEsButton) langEsEsButton.addEventListener('click', () => setLanguage('es-ES'));
 
-    if (copySessionIdButton) copySessionIdButton.addEventListener('click', copySessionIdToClipboard);
+    // Removido: if (copySessionIdButton) copySessionIdButton.addEventListener('click', copySessionIdToClipboard);
 
     // Define o idioma padrão e carrega as traduções (AppConfig.defaultLanguage já está disponível)
     // Isso garante que o botão do idioma padrão seja selecionado na inicialização
