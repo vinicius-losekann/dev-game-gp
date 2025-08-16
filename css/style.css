@@ -95,11 +95,11 @@ body {
     border-radius: 1rem;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 
-    /* ***** MUDANÇAS PRINCIPAIS AQUI ***** */
-    width: 90%; /* Ocupa 90% da largura da viewport */
-    max-width: 800px; /* Limite superior para a largura, para não ficar gigante em telas grandes */
-    min-width: 320px; /* Garante que não fique muito estreito em telas pequenas */
-    /* ************************************* */
+    /* ***** MUDANÇAS PRINCIPAIS AQUI: LARGURA PERCENTUAL E MAX-WIDTH ***** */
+    width: 60%; /* Voltando para 60% para um container mais estreito */
+    max-width: 500px; /* Limite superior para a largura, para não ficar gigante em telas grandes */
+    min-width: 300px; /* Garante que não fique muito estreito em telas pequenas */
+    /* ************************************************************************* */
 
     margin: 20px auto; /* Centraliza e adiciona margem vertical */
     text-align: center;
@@ -119,7 +119,7 @@ body {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); /* Sombra sutil */
 
     width: 100%; /* Ocupa 100% do .container principal */
-    max-width: 500px; /* Define um limite para o tamanho interno, para não ficarem largos demais */
+    max-width: 360px; /* Um pouco menor para ficar proporcional ao container principal */
     margin-left: auto; /* Centraliza dentro do .container principal */
     margin-right: auto; /* Centraliza dentro do .container principal */
     box-sizing: border-box; /* Inclui padding e border no cálculo da largura */
