@@ -7,7 +7,7 @@ const firebaseConfig = {
     projectId: "jogo-gerencia-de-projetos",
     storageBucket: "jogo-gerencia-de-projetos.firebasestorage.app",
     messagingSenderId: "356867532123",
-    appId: "1:356867532123:web:0657d84635a584999f2667e", // Verifique se este appId é o correto do seu projeto Firebase
+    appId: "1:356867532123:web:0657d84445a584999f2667e", // Verifique se este appId é o correto do seu projeto Firebase
     measurementId: "G-M5QYQ36Q9P"
 };
 
