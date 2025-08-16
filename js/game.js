@@ -146,12 +146,10 @@ function updateUITexts() {
         }
     }
 
-    document.getElementById('labelSession').textContent = translations[currentLanguage].label_session;
-    document.getElementById('labelBackToHome').textContent = translations[currentLanguage].label_back_to_home;
-    document.getElementById('labelChooseArea').textContent = translations[currentLanguage].label_choose_area;
-    
+    // Atualiza o título da página
     document.title = translations[currentLanguage].game_page_base_title;
 
+    // Atualiza textos com data-lang-key
     document.querySelectorAll('[data-lang-key]').forEach(element => {
         const key = element.getAttribute('data-lang-key');
         if (translations[currentLanguage] && translations[currentLanguage][key]) {
@@ -159,13 +157,15 @@ function updateUITexts() {
         }
     });
 
-    if (currentQuestion) {
-        // Se uma pergunta está sendo exibida, atualiza seus textos (áreas, etc.)
-        // No seu JSON, o campo 'area' é o texto já traduzido, então não precisa de ._lang aqui
-        questionArea.textContent = currentQuestion.area; 
-        questionText.textContent = currentQuestion.question;
+    // Atualiza elementos específicos que não usam data-lang-key mas precisam de tradução
+    if (document.getElementById('labelSession')) document.getElementById('labelSession').textContent = translations[currentLanguage].label_session;
+    if (document.getElementById('labelBackToHome')) document.getElementById('labelBackToHome').textContent = translations[currentLanguage].label_back_to_home;
+    if (document.getElementById('labelChooseArea')) document.getElementById('labelChooseArea').textContent = translations[currentLanguage].label_choose_area;
 
-        // Atualiza as opções
+    if (currentQuestion) {
+        questionArea.textContent = currentQuestion.area; 
+        questionText.textContent = currentQuestion.questionText;
+
         optionsContainer.innerHTML = '';
         const options = currentQuestion.options;
         for (const key in options) {
@@ -173,7 +173,6 @@ function updateUITexts() {
             optionButton.className = 'option-button bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-3 px-5 rounded-lg text-left w-full shadow';
             optionButton.innerHTML = `<span class="font-bold mr-2">${key})</span> ${options[key]}`;
             optionButton.setAttribute('data-option', key);
-            // Re-adiciona o event listener
             optionButton.addEventListener('click', () => {
                 document.querySelectorAll('.option-button').forEach(btn => { btn.classList.remove('selected'); });
                 optionButton.classList.add('selected');
@@ -184,10 +183,9 @@ function updateUITexts() {
             optionsContainer.appendChild(optionButton);
         }
         
-        // Se já houve feedback, atualiza o texto do feedback também
         if (feedbackContainer.innerHTML) {
-            const isCorrect = (selectedOption === currentQuestion.correct); // Usa selectedOption que já estará definido se o feedback foi gerado
-            feedbackContainer.innerHTML = ''; // Limpa antes de recriar
+            const isCorrect = (selectedOption === currentQuestion.correctAnswer);
+            feedbackContainer.innerHTML = ''; 
             const feedbackDiv = document.createElement('div');
             const explanationDiv = document.createElement('div');
             explanationDiv.className = 'explanation text-left';
@@ -197,7 +195,7 @@ function updateUITexts() {
                 feedbackDiv.textContent = translations[currentLanguage].feedback_correct;
             } else {
                 feedbackDiv.className = 'feedback incorrect';
-                feedbackDiv.textContent = translations[currentLanguage].feedback_incorrect_prefix + `${currentQuestion.correct}).`;
+                feedbackDiv.textContent = translations[currentLanguage].feedback_incorrect_prefix + `${currentQuestion.correctAnswer}).`;
             }
             explanationDiv.textContent = translations[currentLanguage].explanation_prefix + currentQuestion.explanation;
 
@@ -210,17 +208,13 @@ function updateUITexts() {
 // Função para carregar as perguntas do Firestore com base no idioma
 async function loadQuestions(lang) {
     try {
-        // window.db e window.appId são expostos globalmente pelo script module em game.html
-        if (!window.db || !window.appId) {
-            throw new Error("Firebase Firestore ou App ID não inicializados.");
+        if (!window.db || !window.appId || !window.firestore) {
+            throw new Error("Objetos Firebase não inicializados.");
         }
 
-        // Constrói a referência para a coleção principal 'questions'
-        // Filtrará pelo campo 'language' dentro dos documentos
-        const questionsCollectionRef = firebase.firestore.collection('artifacts').doc(window.appId).collection('public').doc('data').collection('questions');
+        const questionsCollectionRef = window.firestore.collection(window.db, `artifacts/${window.appId}/public/data/questions`);
         
-        // Realiza a consulta para obter as perguntas do idioma específico
-        const querySnapshot = await questionsCollectionRef.where('language', '==', lang).get();
+        const querySnapshot = await window.firestore.getDocs(window.firestore.query(questionsCollectionRef, window.firestore.where('language', '==', lang)));
         
         allQuestions = querySnapshot.docs.map(docSnapshot => ({
             id: docSnapshot.id,
@@ -234,7 +228,9 @@ async function loadQuestions(lang) {
 
     } catch (error) {
         console.error('Falha ao carregar as perguntas do Firestore:', error);
-        areaSelector.innerHTML = `<p class="text-red-600">${translations[currentLanguage].error_loading_questions}: ${error.message}</p>`;
+        if (areaSelector) { // Verifica se o elemento existe antes de tentar manipular
+            areaSelector.innerHTML = `<p class="text-red-600">${translations[currentLanguage].error_loading_questions}: ${error.message}</p>`;
+        }
         areaSelectButtons.forEach(button => button.disabled = true);
         randomAreaButtonSelector.disabled = true;
     }
@@ -254,12 +250,9 @@ function getUnansweredQuestions(areaFilter = null) {
     let availableQuestions = allQuestions;
 
     if (areaFilter) {
-        // Filtrar por área. O campo 'area' no documento da pergunta deve corresponder ao data-area do botão.
         availableQuestions = availableQuestions.filter(q => q.area === areaFilter); 
     }
     
-    // Filtra as perguntas que já foram respondidas na sessão (pelo originalId)
-    // answeredQuestionsCache é um Set de originalIds
     return availableQuestions.filter(q => !answeredQuestionsCache.has(q.originalId));
 }
 
@@ -269,6 +262,7 @@ async function displayNextQuestion(areaFilter = null) {
 
     if (unansweredQuestions.length === 0) {
         alert(translations[currentLanguage].no_more_questions);
+        // Atualiza o status da sessão para "completed" se não houver mais perguntas
         await updateSessionState(currentSessionId, { status: "completed" });
         return;
     }
@@ -286,7 +280,7 @@ async function displayNextQuestion(areaFilter = null) {
             correctAnswer: questionToAsk.correct,
             explanation: questionToAsk.explanation,
             askedByPlayerId: window.currentUserId,
-            timestampAsked: window.serverTimestamp()
+            timestampAsked: window.firestore.serverTimestamp()
         }
     });
 }
@@ -328,7 +322,7 @@ function displayQuestionInUI(question) {
     gameCard.classList.remove('hidden');
 }
 
-// Função para verificar a resposta
+// Event Listeners
 submitAnswerButton.addEventListener('click', async () => {
     if (!currentQuestion || !selectedOption) return;
 
@@ -357,28 +351,30 @@ submitAnswerButton.addEventListener('click', async () => {
 
     const appId = window.appId;
     const db = window.db;
-    const answeredQuestionDocRef = firebase.firestore.doc(db, `artifacts/${appId}/public/data/sessions/${currentSessionId}/answeredQuestions`, currentQuestion.originalId);
+    const firestore = window.firestore;
+
+    const answeredQuestionDocRef = firestore.doc(db, `artifacts/${appId}/public/data/sessions/${currentSessionId}/answeredQuestions`, currentQuestion.originalId);
 
     try {
-        await firebase.firestore.setDoc(answeredQuestionDocRef, {
+        await firestore.setDoc(answeredQuestionDocRef, {
             originalQuestionId: currentQuestion.originalId,
             area: currentQuestion.area,
-            answeredCorrectlyBy: isCorrect ? window.arrayUnion(window.currentUserId) : window.arrayRemove(window.currentUserId),
+            answeredCorrectlyBy: isCorrect ? firestore.arrayUnion(window.currentUserId) : firestore.arrayRemove(window.currentUserId),
             answeredByAnyPlayer: true,
-            timestampAnswered: window.serverTimestamp()
+            timestampAnswered: firestore.serverTimestamp()
         }, { merge: true });
         console.log(`Pergunta ${currentQuestion.originalId} marcada como respondida no Firestore.`);
 
-        const playerDocRef = firebase.firestore.doc(db, `artifacts/${appId}/public/data/sessions/${currentSessionId}/players`, window.currentUserId);
+        const playerDocRef = firestore.doc(db, `artifacts/${appId}/public/data/sessions/${currentSessionId}/players`, window.currentUserId);
         if (isCorrect) {
-            await firebase.firestore.updateDoc(playerDocRef, {
+            await firestore.updateDoc(playerDocRef, {
                 score: (playersInSessionCache[window.currentUserId]?.score || 0) + 1,
-                lastActive: window.serverTimestamp()
+                lastActive: firestore.serverTimestamp()
             });
             console.log(`Pontuação de ${window.currentUserId} atualizada.`);
         } else {
-            await firebase.firestore.updateDoc(playerDocRef, {
-                lastActive: window.serverTimestamp()
+            await firestore.updateDoc(playerDocRef, {
+                lastActive: firestore.serverTimestamp()
             });
         }
 
@@ -433,26 +429,27 @@ backToHomeButton.addEventListener('click', async () => {
 async function addOrUpdatePlayerToSession(sessionId, userId, userName = `Jogador_${userId.substring(0,4)}`) {
     const appId = window.appId;
     const db = window.db;
-    const playerDocRef = firebase.firestore.doc(db, `artifacts/${appId}/public/data/sessions/${sessionId}/players`, userId);
+    const firestore = window.firestore;
+    const playerDocRef = firestore.doc(db, `artifacts/${appId}/public/data/sessions/${sessionId}/players`, userId);
 
     try {
-        const playerSnap = await firebase.firestore.getDoc(playerDocRef);
+        const playerSnap = await firestore.getDoc(playerDocRef);
         let playerInitialScore = 0;
         if (playerSnap.exists()) {
             playerInitialScore = playerSnap.data().score || 0;
         }
 
-        await firebase.firestore.setDoc(playerDocRef, {
+        await firestore.setDoc(playerDocRef, {
             uid: userId,
             name: userName, 
             score: playerInitialScore,
-            lastActive: window.serverTimestamp(),
+            lastActive: firestore.serverTimestamp(),
             status: "connected"
         }, { merge: true }); 
         console.log(`Jogador ${userId} adicionado/atualizado na sessão ${sessionId}.`);
 
-        await firebase.firestore.updateDoc(firebase.firestore.doc(db, `artifacts/${appId}/public/data/sessions`, sessionId), {
-            currentPlayers: window.arrayUnion(userId)
+        await firestore.updateDoc(firestore.doc(db, `artifacts/${appId}/public/data/sessions`, sessionId), {
+            currentPlayers: firestore.arrayUnion(userId)
         });
     } catch (error) {
         console.error("Erro ao adicionar/atualizar jogador na sessão:", error);
@@ -462,17 +459,18 @@ async function addOrUpdatePlayerToSession(sessionId, userId, userName = `Jogador
 async function removePlayerFromSession(sessionId, userId) {
     const appId = window.appId;
     const db = window.db;
-    const playerDocRef = firebase.firestore.doc(db, `artifacts/${appId}/public/data/sessions/${sessionId}/players`, userId);
+    const firestore = window.firestore;
+    const playerDocRef = firestore.doc(db, `artifacts/${appId}/public/data/sessions/${sessionId}/players`, userId);
 
     try {
-        await firebase.firestore.updateDoc(playerDocRef, {
+        await firestore.updateDoc(playerDocRef, {
             status: "disconnected",
-            lastActive: window.serverTimestamp()
+            lastActive: firestore.serverTimestamp()
         });
         console.log(`Jogador ${userId} marcado como desconectado na sessão ${sessionId}.`);
 
-        await firebase.firestore.updateDoc(firebase.firestore.doc(db, `artifacts/${appId}/public/data/sessions`, sessionId), {
-            currentPlayers: window.arrayRemove(userId)
+        await firestore.updateDoc(firestore.doc(db, `artifacts/${appId}/public/data/sessions`, sessionId), {
+            currentPlayers: firestore.arrayRemove(userId)
         });
     } catch (error) {
         console.error("Erro ao remover jogador da sessão:", error);
@@ -482,9 +480,10 @@ async function removePlayerFromSession(sessionId, userId) {
 async function updateSessionState(sessionId, data) {
     const appId = window.appId;
     const db = window.db;
-    const sessionDocRef = firebase.firestore.doc(db, `artifacts/${appId}/public/data/sessions`, sessionId);
+    const firestore = window.firestore;
+    const sessionDocRef = firestore.doc(db, `artifacts/${appId}/public/data/sessions`, sessionId);
     try {
-        await firebase.firestore.updateDoc(sessionDocRef, data);
+        await firestore.updateDoc(sessionDocRef, data);
         console.log(`Estado da sessão ${sessionId} atualizado no Firestore.`, data);
     } catch (error) {
         console.error("Erro ao atualizar estado da sessão:", error);
@@ -494,9 +493,10 @@ async function updateSessionState(sessionId, data) {
 function listenToSessionChanges(sessionId) {
     const appId = window.appId;
     const db = window.db;
+    const firestore = window.firestore;
 
-    const sessionDocRef = firebase.firestore.doc(db, `artifacts/${appId}/public/data/sessions`, sessionId);
-    unsubscribeSession = firebase.firestore.onSnapshot(sessionDocRef, (docSnap) => {
+    const sessionDocRef = firestore.doc(db, `artifacts/${appId}/public/data/sessions`, sessionId);
+    unsubscribeSession = firestore.onSnapshot(sessionDocRef, (docSnap) => {
         if (docSnap.exists()) {
             const sessionData = docSnap.data();
             console.log("Mudanças na sessão (principal):", sessionData);
@@ -521,8 +521,8 @@ function listenToSessionChanges(sessionId) {
         }
     });
 
-    const answeredQuestionsColRef = firebase.firestore.collection(db, `artifacts/${appId}/public/data/sessions/${sessionId}/answeredQuestions`);
-    unsubscribeAnsweredQuestions = firebase.firestore.onSnapshot(answeredQuestionsColRef, (snapshot) => {
+    const answeredQuestionsColRef = firestore.collection(db, `artifacts/${appId}/public/data/sessions/${sessionId}/answeredQuestions`);
+    unsubscribeAnsweredQuestions = firestore.onSnapshot(answeredQuestionsColRef, (snapshot) => {
         answeredQuestionsCache.clear();
         snapshot.forEach((doc) => {
             answeredQuestionsCache.add(doc.data().originalQuestionId);
@@ -530,8 +530,8 @@ function listenToSessionChanges(sessionId) {
         console.log("Perguntas respondidas atualizadas (cache):", Array.from(answeredQuestionsCache));
     });
 
-    const playersColRef = firebase.firestore.collection(db, `artifacts/${appId}/public/data/sessions/${sessionId}/players`);
-    unsubscribePlayers = firebase.firestore.onSnapshot(playersColRef, (snapshot) => {
+    const playersColRef = firestore.collection(db, `artifacts/${appId}/public/data/sessions/${sessionId}/players`);
+    unsubscribePlayers = firestore.onSnapshot(playersColRef, (snapshot) => {
         playersInSessionCache = {}; 
         snapshot.forEach((doc) => {
             playersInSessionCache[doc.id] = doc.data();
@@ -540,11 +540,11 @@ function listenToSessionChanges(sessionId) {
     });
 }
 
-
-document.addEventListener('DOMContentLoaded', async () => {
-    // Aguarda a inicialização do Firebase via window.firebaseReadyPromise
-    await window.firebaseReadyPromise; // Garante que window.db, window.auth, window.appId etc. estão definidos
-
+// ===========================================
+// FUNÇÃO PRINCIPAL DE INICIALIZAÇÃO DO JOGO
+// Chamada por game.html depois que o Firebase está pronto
+// ===========================================
+window.initGame = async () => {
     const params = getQueryParams();
     currentSessionId = params.session;
     let langFromUrl = params.lang; 
@@ -556,8 +556,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (!determinedLanguage) {
             console.error(`Não foi possível determinar o idioma a partir do ID da sessão '${currentSessionId}'. Redirecionando.`);
-            await loadUITranslations(AppConfig.defaultLanguage);
-            alert(translations[AppConfig.defaultLanguage].no_session_id_message); // Usar default para alert antes de redirecionar
+            // Precisamos garantir que as traduções estejam carregadas para o alert
+            await loadUITranslations(AppConfig.defaultLanguage); 
+            alert(translations[AppConfig.defaultLanguage].no_session_id_message); 
             window.location.href = 'index.html?error=invalid_session_id_format';
             return;
         } 
@@ -569,14 +570,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentLanguage = determinedLanguage;
         document.documentElement.lang = currentLanguage;
 
+        // Carrega as traduções da UI para o idioma determinado
         await loadUITranslations(currentLanguage);
 
         const appId = window.appId;
         const db = window.db; 
-        currentSessionDocRef = firebase.firestore.doc(db, `artifacts/${appId}/public/data/sessions`, currentSessionId);
+        const firestore = window.firestore; // Instância firestore com métodos expostos
+        currentSessionDocRef = firestore.doc(db, `artifacts/${appId}/public/data/sessions`, currentSessionId);
 
         try {
-            const docSnap = await firebase.firestore.getDoc(currentSessionDocRef);
+            const docSnap = await firestore.getDoc(currentSessionDocRef);
 
             if (docSnap.exists()) {
                 const sessionData = docSnap.data();
@@ -588,7 +591,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 listenToSessionChanges(currentSessionId);
                 
-                await loadQuestions(currentLanguage);
+                await loadQuestions(currentLanguage); // Carrega as perguntas do Firestore
 
                 if (sessionData.currentQuestion) {
                     displayQuestionInUI(sessionData.currentQuestion);
@@ -618,9 +621,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.location.href = 'index.html?error=no_session_id';
     }
 
+    // Adiciona listener para remover jogador ao fechar/navegar
     window.addEventListener('beforeunload', async () => {
         if (currentSessionId && window.currentUserId) {
             await removePlayerFromSession(currentSessionId, window.currentUserId);
         }
     });
-});
+};
+
+// ===========================================
+// Nova função para carregar traduções da UI para `updateUITexts`
+// Isso é necessário para que os alerts e mensagens de erro iniciais usem o idioma correto
+// ===========================================
+async function loadUITranslations(lang) {
+    // Para simplificar, estamos usando o objeto `translations` hardcoded.
+    // Se você estivesse carregando traduções de um arquivo JSON externo, faria o fetch aqui.
+    // Por enquanto, apenas garante que `currentLanguage` está definido e chama `updateUITexts`
+    currentLanguage = lang;
+    document.documentElement.lang = currentLanguage;
+    updateUITexts(); // Atualiza a UI imediatamente com o idioma carregado
+}
