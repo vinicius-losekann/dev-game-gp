@@ -15,134 +15,166 @@
         Carregando...
     </div>
 
-    <!-- Contêiner principal do jogo, inicialmente invisível -->
-    <div id="main-content-container" class="container opacity-0 invisible">
-        <h1 data-lang-key="main_title">Jogo de Gerenciamento de Projetos</h1>
+    <!-- Script para carregar configurações globais do Firebase e da aplicação -->
+    <!-- Este script DEVE ser carregado antes de qualquer script que dependa de suas variáveis -->
+    <script src="js/config.js"></script>
+
+    <!-- Script para inicializar o Firebase e definir a promessa de inicialização -->
+    <!-- Este script DEVE ser carregado antes de 'index.js' para garantir que window.firebaseInitializedPromise exista -->
+    <script>
+        // Importa as funções do Firebase via CDN.
+        // As importações aqui são para o escopo deste script e não precisam ser module.
+        // No entanto, para usar import (módulos ES6), o script precisa ser type="module".
+        // Para garantir que window.firebaseInitializedPromise seja definido globalmente e
+        // acessível de forma síncrona, não usaremos type="module" aqui, mas sim importamos via CDN
+        // e acessamos as funções globais, ou fazemos um importmap (mais complexo).
+        // A melhor abordagem para compatibilidade é carregar o SDK do Firebase via script tags padrão
+        // e usar o namespace global 'firebase'. No entanto, como o projeto já usa imports,
+        // vou manter 'type="module"' e confiar que o navegador processará na ordem,
+        // mas é essencial que este script esteja ANTES do index.js.
+    </script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayRemove, arrayUnion, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Define uma promessa que será resolvida quando o Firebase for inicializado e autenticado.
+        // Esta promessa é global e pode ser aguardada por outros scripts.
+        window.firebaseInitializedPromise = new Promise(async (resolve, reject) => {
+            console.log("Firebase Init Script: Iniciando a promessa de inicialização.");
+            // Garante que as configurações globais estejam disponíveis.
+            // window.firebaseConfig e window.appId são definidos por config.js.
+            if (window.firebaseConfig && window.appId) {
+                console.log("Firebase Init Script: Configurações encontradas. Inicializando app...");
+                const app = initializeApp(window.firebaseConfig);
+                const db = getFirestore(app);
+                const auth = getAuth(app);
+
+                // Autenticação: tenta com token customizado primeiro, depois anonimamente.
+                if (typeof window.initialAuthToken !== 'undefined') {
+                    try {
+                        await signInWithCustomToken(auth, window.initialAuthToken);
+                        console.log("Firebase Init Script: Autenticado com token personalizado.");
+                    } catch (error) {
+                        console.warn("Firebase Init Script: Erro ao autenticar com token personalizado, tentando anonimamente:", error);
+                        await signInAnonymously(auth);
+                    }
+                } else {
+                    await signInAnonymously(auth);
+                    console.log("Firebase Init Script: Autenticado anonimamente.");
+                }
+
+                // Define o userId globalmente após a autenticação.
+                // Usa o UID do Firebase se disponível, ou um UUID anônimo de fallback.
+                window.currentUserId = auth.currentUser?.uid || `anon-${crypto.randomUUID()}`;
+                console.log("Firebase Init Script: UserID definido:", window.currentUserId);
+
+                // Expõe instâncias de Firebase para outros scripts de forma global.
+                window.app = app; // Adiciona a instância do app
+                window.db = db;
+                window.firestore = { doc, getDoc, setDoc, updateDoc, arrayRemove, arrayUnion, serverTimestamp }; // Exporta funções específicas do firestore
+                window.auth = auth; // Expõe a instância de autenticação
+
+                console.log("Firebase Init Script: Firebase inicializado e autenticado. Resolvendo promessa.");
+                resolve(); // Resolve a promessa indicando que o Firebase está pronto.
+            } else {
+                console.error("Firebase Init Script: Configuração não encontrada ou inválida. Pulando inicialização.");
+                reject(new Error("Firebase configuration missing or invalid.")); // Rejeita a promessa.
+            }
+        });
+
+        // Opcional: listener para mudanças de estado de autenticação.
+        // Importante: `auth` só estará definido após a inicialização dentro da promessa,
+        // então este listener precisa ser configurado com a instância `auth` global.
+        // Colocá-lo aqui fora da promessa pode causar um erro se 'auth' não existir ainda.
+        // Melhor mover para DENTRO do bloco 'if (window.firebaseConfig && window.appId)'
+        // após 'auth' ser definido, ou configurar um listener para a promessa.
+        // Por simplicidade e para garantir que 'auth' esteja disponível,
+        // o listener será movido para dentro da promise, após 'auth' ser inicializado.
+        window.firebaseInitializedPromise.then(() => {
+            if (window.auth) {
+                onAuthStateChanged(window.auth, (user) => {
+                    if (user) {
+                        console.log("onAuthStateChanged: Usuário logado:", user.uid);
+                    } else {
+                        console.log("onAuthStateChanged: Usuário deslogado.");
+                    }
+                });
+            }
+        }).catch(error => {
+            console.error("Erro na inicialização da promessa do Firebase:", error);
+            // Poderia mostrar uma mensagem de erro ao usuário aqui.
+        });
+    </script>
+
+    <!-- Container principal do jogo, inicialmente invisível -->
+    <div id="main-content-container" class="container">
+        <h1 data-lang-key="main_title" class="text-4xl font-extrabold text-teal-800 mb-4">Jogo de Gerenciamento de Projetos</h1>
         <p class="text-gray-700 mb-6 leading-relaxed" data-lang-key="description_text">
             Domine as habilidades essenciais de gerenciamento de projetos neste jogo interativo! Aprenda sobre **planejamento**, **execução**, **monitoramento de progresso** e **resolução de desafios** em cenários simulados para se tornar um gestor de projetos de sucesso. Cada decisão importa!
         </p>
 
         <!-- Seção de Seleção de Idioma -->
-        <div class="select-group mb-6">
-            <h2 class="text-xl font-semibold mb-3" data-lang-key="language_select_title">Selecione o Idioma:</h2>
-            <!-- Contêiner para os botões de idioma, populado via JavaScript -->
+        <div class="select-group mb-6 p-4 bg-blue-50 rounded-lg shadow-inner">
+            <h2 class="text-xl font-semibold mb-3 text-blue-800" data-lang-key="language_select_title">Selecione o Idioma:</h2>
+            <!-- Contêiner para os botões de seleção de idioma (preenchido por JS) -->
             <div id="languageSelectorButtons" class="flex flex-wrap justify-center gap-3">
-                <!-- Botões de idioma serão inseridos aqui pelo JavaScript -->
+                <!-- Botões de idioma serão carregados aqui pelo JS -->
             </div>
         </div>
 
         <!-- Campo para nome de usuário -->
-        <div class="action-card w-full max-w-lg mx-auto mb-8">
-            <h2 class="text-2xl font-bold text-teal-600 mb-6" data-lang-key="username_title">Seu Nome de Usuário</h2>
-            <div class="input-group mb-6">
-                <input type="text" id="usernameInput" placeholder="Seu Nome" class="input-field p-3 rounded-lg text-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500">
-            </div>
+        <div class="mb-6 input-group">
+            <label for="usernameInput" class="block text-gray-700 text-lg font-semibold mb-2" data-lang-key="label_username">Seu Nome de Usuário:</label>
+            <input type="text" id="usernameInput" placeholder="Digite seu nome" class="input-field p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500" required>
         </div>
 
         <!-- Seção de Novo Jogo -->
-        <div class="action-card w-full max-w-lg mx-auto mb-8">
-            <h2 class="text-2xl font-bold text-teal-600 mb-6" data-lang-key="new_game_title">Iniciar Novo Jogo</h2>
-            <button id="newGameButton" class="game-button bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg">
+        <div class="action-card mb-8">
+            <h2 class="text-2xl font-bold text-teal-700 mb-4" data-lang-key="new_game_title">Iniciar Novo Jogo</h2>
+            <p class="text-gray-600 mb-6 text-center" data-lang-key="new_game_description">
+                Crie uma nova sessão de jogo para começar do zero ou convidar amigos.
+            </p>
+            <button id="newGameButton" class="game-button bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out">
                 <span data-lang-key="button_new_game">Iniciar Novo Jogo</span>
             </button>
-            <div id="sessionInfo" class="hidden mt-6 text-center">
-                <p class="text-gray-700 font-medium mb-2" data-lang-key="session_created_message">Sessão criada! Seu ID é:</p>
-                <p id="displaySessionId" class="text-3xl font-extrabold text-blue-600 mb-4 break-words"></p>
-                <p class="text-sm text-gray-600 mb-4" data-lang-key="session_id_prompt">Insira este ID para acessar seu jogo ou compartilhe com outros jogadores.</p>
-                <button id="goToGameButton" class="game-button bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow">
+            <div id="sessionInfo" class="hidden mt-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-800 text-center text-lg shadow-sm">
+                <p><span data-lang-key="session_created_message">Sessão criada! Seu ID é: </span><strong id="displaySessionId" class="text-green-900"></strong></p>
+                <p class="text-sm text-green-700 mt-2" data-lang-key="session_id_prompt">Insira este ID para acessar seu jogo.</p>
+                <button id="goToGameButton" class="game-button bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md mt-4">
                     <span data-lang-key="button_go_to_game">Ir para o Jogo</span>
                 </button>
             </div>
         </div>
 
         <!-- Seção de Acessar Jogo Existente -->
-        <div class="action-card w-full max-w-lg mx-auto">
-            <h2 class="text-2xl font-bold text-teal-600 mb-6" data-lang-key="access_game_title">Acessar Jogo Existente</h2>
-            <div class="input-group mb-6">
-                <input type="text" id="sessionIdInput" placeholder="Digite o ID da Sessão (Ex: 1234PTBR)" class="input-field p-3 rounded-lg text-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500">
+        <div class="action-card">
+            <h2 class="text-2xl font-bold text-blue-700 mb-4" data-lang-key="access_game_title">Acessar Jogo Existente</h2>
+            <p class="text-gray-600 mb-6 text-center" data-lang-key="access_game_description">
+                Entre em uma sessão de jogo existente usando um ID de sessão.
+            </p>
+            <div class="input-group mb-4">
+                <input type="text" id="sessionIdInput" placeholder="Digite o ID da Sessão (Ex: 1234PTBR)"
+                       class="input-field p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
             </div>
-            <button id="accessGameButton" class="game-button bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg">
+            <button id="accessGameButton" class="game-button bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out">
                 <span data-lang-key="button_access_game">Acessar Jogo</span>
             </button>
         </div>
 
-        <!-- Caixa de mensagem para feedback ao usuário -->
-        <div id="messageBox" class="message-box hidden" role="alert"></div>
+        <!-- Caixa de Mensagens (para feedback do usuário) -->
+        <div id="messageBox" class="message-box hidden"></div>
     </div>
 
-    <!-- Informações da versão no rodapé -->
+    <!-- Informações da Versão -->
     <div class="version-info">
-        <span>v1.1.0</span>
-        <span>|</span>
-        <a href="https://github.com/vinicius-losekann/dev-game-gp" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">GitHub</a>
-        <span>|</span>
-        <a href="LICENSE" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">License</a>
+        <span>Versão 1.0.0</span>
+        <span>&bull;</span>
+        <span>&copy; 2025 Vinicius Losekann</span>
     </div>
 
-    <!-- Scripts do Firebase e do seu jogo -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayRemove, arrayUnion, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // Importa a configuração do Firebase e AppConfig
-        // Certifique-se de que config.js é carregado antes deste script type="module" ou que suas variáveis sejam globais.
-        // No seu game.html, config.js é carregado via <script src="js/config.js"></script>
-        // No index.html, você precisa garantir que window.firebaseConfig e window.AppConfig estejam disponíveis.
-        // Se config.js for um módulo, você precisaria importá-lo aqui.
-        // Para simplificar e garantir que esteja disponível globalmente (como parece estar configurado no config.js),
-        // assumimos que window.firebaseConfig e window.AppConfig já existem.
-
-        // Promessa para rastrear a inicialização do Firebase
-        window.firebaseInitializedPromise = new Promise(async (resolve) => {
-            if (typeof window.firebaseConfig !== 'undefined') {
-                const app = initializeApp(window.firebaseConfig);
-                const db = getFirestore(app);
-                const auth = getAuth(app);
-
-                // Autenticação: tenta com token customizado primeiro, depois anonimamente.
-                try {
-                    if (typeof window.initialAuthToken !== 'undefined' && window.initialAuthToken) {
-                        await signInWithCustomToken(auth, window.initialAuthToken);
-                        console.log("Firebase (index.html): Autenticado com token personalizado.");
-                    } else {
-                        await signInAnonymously(auth);
-                        console.log("Firebase (index.html): Autenticado anonimamente.");
-                    }
-                } catch (error) {
-                    console.warn("Erro ao autenticar com token personalizado, tentando anonimamente:", error);
-                    await signInAnonymously(auth);
-                }
-
-                // Define o userId globalmente após a autenticação
-                window.currentUserId = auth.currentUser?.uid || `anon-${crypto.randomUUID()}`;
-                console.log("Firebase (index.html): UserID definido:", window.currentUserId);
-
-                // Expõe instâncias de Firebase para outros scripts
-                window.db = db;
-                window.firestore = { doc, getDoc, setDoc, updateDoc, arrayRemove, arrayUnion, serverTimestamp }; // Exporta funções específicas
-                window.auth = auth; // Expõe a instância de autenticação
-
-                // Notifica que o Firebase está pronto
-                resolve();
-            } else {
-                console.error("Firebase (index.html): Configuração não encontrada ou inválida. Firebase não será inicializado.");
-                // Ainda resolve a promessa para não bloquear a DCL, mas o Firebase não estará disponível
-                resolve();
-            }
-        });
-
-        // Opcional: listener para mudanças de estado de autenticação
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                console.log("Firebase (index.html - onAuthStateChanged): Usuário logado:", user.uid);
-            } else {
-                console.log("Firebase (index.html - onAuthStateChanged): Usuário deslogado.");
-            }
-        });
-    </script>
-    <!-- Carrega o script principal do jogo (index.js) com type="module" se ele importar outras coisas -->
-    <script src="js/config.js"></script> <!-- Certifique-se que config.js é carregado antes de index.js para que AppConfig esteja disponível -->
+    <!-- Carrega o script principal do jogo (index.js) com type="module" -->
+    <!-- Este script depende da inicialização do Firebase acima -->
     <script src="js/index.js" type="module"></script>
 </body>
 </html>
