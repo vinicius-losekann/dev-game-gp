@@ -10,6 +10,8 @@ body {
     margin: 0;
     color: #333;
     background-image: linear-gradient(to top, #cfd9ed 0%, #e2e8f0 100%); /* Gradiente sutil */
+    position: relative; /* Adicionado para que .version com absolute seja relativo a body */
+    padding-bottom: 40px; /* Adicionado para dar espaço para o texto da versão no final da página */
 }
 /* Estilos para o contêiner principal na index.html para evitar o FOUC */
 #main-content-container {
@@ -237,7 +239,7 @@ body {
 
 /* Versão do rodapé */
 .version {
-    position: absolute;
+    position: absolute; /* Alterado de 'fixed' para 'absolute' */
     bottom: 10px;
     right: 10px;
     font-size: 0.8em;
