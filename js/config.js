@@ -15,8 +15,8 @@ const firebaseConfig = {
 const AppConfig = {
     // Define o idioma padrão da aplicação.
     defaultLanguage: 'pt-BR',
-    
-    // NOVO: Adiciona a lista de idiomas suportados
+
+    // Adiciona a lista de idiomas suportados
     supportedLanguages: [
         { code: 'pt-BR', name: 'Português (Brasil)' },
         { code: 'en-US', name: 'English (US)' },
