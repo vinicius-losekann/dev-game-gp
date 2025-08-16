@@ -15,136 +15,134 @@
         Carregando...
     </div>
 
-    <!-- Contêiner principal do conteúdo da página, inicialmente invisível -->
-    <div id="main-content-container" class="container opacity-0 invisible transition-opacity duration-500 ease-in-out">
+    <!-- Contêiner principal do jogo, inicialmente invisível -->
+    <div id="main-content-container" class="container opacity-0 invisible">
         <h1 data-lang-key="main_title">Jogo de Gerenciamento de Projetos</h1>
         <p class="text-gray-700 mb-6 leading-relaxed" data-lang-key="description_text">
             Domine as habilidades essenciais de gerenciamento de projetos neste jogo interativo! Aprenda sobre **planejamento**, **execução**, **monitoramento de progresso** e **resolução de desafios** em cenários simulados para se tornar um gestor de projetos de sucesso. Cada decisão importa!
         </p>
 
         <!-- Seção de Seleção de Idioma -->
-        <div class="select-group mb-6 p-6 bg-white rounded-lg shadow-lg">
-            <h2 class="text-xl font-semibold mb-3 text-gray-800" data-lang-key="language_select_title">Selecione o Idioma:</h2>
-            <div id="languageSelectorButtons" class="flex flex-wrap gap-4 justify-center">
-                <!-- Botões de idioma serão injetados aqui pelo JavaScript -->
+        <div class="select-group mb-6">
+            <h2 class="text-xl font-semibold mb-3" data-lang-key="language_select_title">Selecione o Idioma:</h2>
+            <!-- Contêiner para os botões de idioma, populado via JavaScript -->
+            <div id="languageSelectorButtons" class="flex flex-wrap justify-center gap-3">
+                <!-- Botões de idioma serão inseridos aqui pelo JavaScript -->
             </div>
         </div>
 
-        <!-- Seção de Ações Principais -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl mx-auto">
-            <!-- Card para Criar Nova Sessão -->
-            <div class="action-card bg-white p-8 rounded-lg shadow-lg flex flex-col items-center justify-center text-center">
-                <h2 class="text-2xl font-bold mb-4 text-teal-700" data-lang-key="new_game_title">Iniciar Novo Jogo</h2>
-                <button id="newGameButton" class="game-button bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105">
-                    <span data-lang-key="button_new_game">Criar Nova Sessão</span>
-                </button>
+        <!-- Campo para nome de usuário -->
+        <div class="action-card w-full max-w-lg mx-auto mb-8">
+            <h2 class="text-2xl font-bold text-teal-600 mb-6" data-lang-key="username_title">Seu Nome de Usuário</h2>
+            <div class="input-group mb-6">
+                <input type="text" id="usernameInput" placeholder="Seu Nome" class="input-field p-3 rounded-lg text-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500">
             </div>
+        </div>
 
-            <!-- Card para Acessar Jogo Existente e Campo de Usuário -->
-            <div class="action-card bg-white p-8 rounded-lg shadow-lg flex flex-col items-center justify-center text-center">
-                <h2 class="text-2xl font-bold mb-4 text-blue-700" data-lang-key="access_game_title">Acessar Jogo Existente</h2>
-                <div class="input-group w-full mb-4">
-                    <label for="usernameInput" class="sr-only" data-lang-key="input_username_placeholder">Digite seu Nome de Usuário</label>
-                    <input type="text" id="usernameInput" placeholder="Digite seu Nome de Usuário"
-                           class="input-field text-center w-full py-3 px-4 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-800 mb-4"
-                           data-lang-key="input_username_placeholder">
-
-                    <label for="sessionIdInput" class="sr-only" data-lang-key="input_session_placeholder">Digite o ID da Sessão</label>
-                    <input type="text" id="sessionIdInput" placeholder="Digite o ID da Sessão (Ex: 1234PTBR)"
-                           class="input-field text-center w-full py-3 px-4 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800"
-                           data-lang-key="input_session_placeholder">
-                </div>
-                <button id="accessGameButton" class="game-button bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105">
-                    <span data-lang-key="button_access_game">Acessar Sessão</span>
+        <!-- Seção de Novo Jogo -->
+        <div class="action-card w-full max-w-lg mx-auto mb-8">
+            <h2 class="text-2xl font-bold text-teal-600 mb-6" data-lang-key="new_game_title">Iniciar Novo Jogo</h2>
+            <button id="newGameButton" class="game-button bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg">
+                <span data-lang-key="button_new_game">Iniciar Novo Jogo</span>
+            </button>
+            <div id="sessionInfo" class="hidden mt-6 text-center">
+                <p class="text-gray-700 font-medium mb-2" data-lang-key="session_created_message">Sessão criada! Seu ID é:</p>
+                <p id="displaySessionId" class="text-3xl font-extrabold text-blue-600 mb-4 break-words"></p>
+                <p class="text-sm text-gray-600 mb-4" data-lang-key="session_id_prompt">Insira este ID para acessar seu jogo ou compartilhe com outros jogadores.</p>
+                <button id="goToGameButton" class="game-button bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow">
+                    <span data-lang-key="button_go_to_game">Ir para o Jogo</span>
                 </button>
             </div>
         </div>
 
-        <!-- Área de Mensagens para o Usuário -->
-        <div id="messageBox" class="message-box hidden" role="alert"></div>
-
-        <!-- Informações da Sessão (escondido por padrão) -->
-        <div id="sessionInfo" class="session-info hidden mt-6 p-4 bg-teal-100 border border-teal-300 rounded-lg shadow-md text-center">
-            <p class="text-teal-800 font-semibold mb-2" data-lang-key="session_created_message">Sessão criada! Seu ID é: <span id="displaySessionId" class="font-extrabold text-teal-700"></span></p>
-            <p class="text-teal-700 mb-4" data-lang-key="session_id_prompt">Insira este ID para que outros jogadores possam acessar seu jogo. Clique em 'Entrar no Jogo' quando estiver pronto.</p>
-            <button id="goToGameButton" class="game-button bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg">
-                <span data-lang-key="button_go_to_game">Entrar no Jogo</span>
+        <!-- Seção de Acessar Jogo Existente -->
+        <div class="action-card w-full max-w-lg mx-auto">
+            <h2 class="text-2xl font-bold text-teal-600 mb-6" data-lang-key="access_game_title">Acessar Jogo Existente</h2>
+            <div class="input-group mb-6">
+                <input type="text" id="sessionIdInput" placeholder="Digite o ID da Sessão (Ex: 1234PTBR)" class="input-field p-3 rounded-lg text-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500">
+            </div>
+            <button id="accessGameButton" class="game-button bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg">
+                <span data-lang-key="button_access_game">Acessar Jogo</span>
             </button>
         </div>
 
-        <!-- Texto de Versão -->
-        <div class="version-info">
-            <p data-lang-key="version_label">Versão:</p>
-            <p>1.0.0</p>
-        </div>
+        <!-- Caixa de mensagem para feedback ao usuário -->
+        <div id="messageBox" class="message-box hidden" role="alert"></div>
     </div>
 
-    <!-- Carrega o arquivo de configuração (js/config.js) -->
-    <script src="js/config.js"></script>
+    <!-- Informações da versão no rodapé -->
+    <div class="version-info">
+        <span>v1.1.0</span>
+        <span>|</span>
+        <a href="https://github.com/vinicius-losekann/dev-game-gp" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">GitHub</a>
+        <span>|</span>
+        <a href="LICENSE" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">License</a>
+    </div>
 
-    <!-- Inicialização do Firebase -->
+    <!-- Scripts do Firebase e do seu jogo -->
     <script type="module">
-        // Importa as funções necessárias do Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayRemove, arrayUnion, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Cria uma promessa que será resolvida quando o Firebase estiver inicializado e autenticado
+        // Importa a configuração do Firebase e AppConfig
+        // Certifique-se de que config.js é carregado antes deste script type="module" ou que suas variáveis sejam globais.
+        // No seu game.html, config.js é carregado via <script src="js/config.js"></script>
+        // No index.html, você precisa garantir que window.firebaseConfig e window.AppConfig estejam disponíveis.
+        // Se config.js for um módulo, você precisaria importá-lo aqui.
+        // Para simplificar e garantir que esteja disponível globalmente (como parece estar configurado no config.js),
+        // assumimos que window.firebaseConfig e window.AppConfig já existem.
+
+        // Promessa para rastrear a inicialização do Firebase
         window.firebaseInitializedPromise = new Promise(async (resolve) => {
-            let app;
-            let db;
-            let auth;
+            if (typeof window.firebaseConfig !== 'undefined') {
+                const app = initializeApp(window.firebaseConfig);
+                const db = getFirestore(app);
+                const auth = getAuth(app);
 
-            try {
-                // Certifica-se de que window.firebaseConfig está disponível
-                if (window.firebaseConfig) {
-                    app = initializeApp(window.firebaseConfig);
-                    db = getFirestore(app);
-                    auth = getAuth(app);
-
-                    // Expõe as instâncias de Firebase para outros scripts globalmente
-                    window.app = app;
-                    window.db = db;
-                    window.auth = auth;
-                    window.firestore = { doc, getDoc, setDoc, updateDoc, arrayRemove, arrayUnion, serverTimestamp };
-
-                    // Autenticação: tenta com token customizado primeiro, depois anonimamente.
-                    // O __initial_auth_token é injetado pelo ambiente Canvas, se disponível.
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
+                // Autenticação: tenta com token customizado primeiro, depois anonimamente.
+                try {
+                    if (typeof window.initialAuthToken !== 'undefined' && window.initialAuthToken) {
+                        await signInWithCustomToken(auth, window.initialAuthToken);
                         console.log("Firebase (index.html): Autenticado com token personalizado.");
                     } else {
                         await signInAnonymously(auth);
                         console.log("Firebase (index.html): Autenticado anonimamente.");
                     }
-
-                    // Define o userId globalmente após a autenticação
-                    window.currentUserId = auth.currentUser?.uid || `anon-${crypto.randomUUID()}`;
-                    console.log("Firebase (index.html): UserID definido:", window.currentUserId);
-
-                    // Notifica que o Firebase está pronto
-                    resolve();
-                } else {
-                    console.error("Firebase: Configuração não encontrada ou inválida. Pulando inicialização.");
-                    resolve();
+                } catch (error) {
+                    console.warn("Erro ao autenticar com token personalizado, tentando anonimamente:", error);
+                    await signInAnonymously(auth);
                 }
-            } catch (error) {
-                console.error("Erro na inicialização ou autenticação do Firebase:", error);
-                // Mesmo em caso de erro, resolve a promessa para não bloquear o carregamento da página
+
+                // Define o userId globalmente após a autenticação
+                window.currentUserId = auth.currentUser?.uid || `anon-${crypto.randomUUID()}`;
+                console.log("Firebase (index.html): UserID definido:", window.currentUserId);
+
+                // Expõe instâncias de Firebase para outros scripts
+                window.db = db;
+                window.firestore = { doc, getDoc, setDoc, updateDoc, arrayRemove, arrayUnion, serverTimestamp }; // Exporta funções específicas
+                window.auth = auth; // Expõe a instância de autenticação
+
+                // Notifica que o Firebase está pronto
+                resolve();
+            } else {
+                console.error("Firebase (index.html): Configuração não encontrada ou inválida. Firebase não será inicializado.");
+                // Ainda resolve a promessa para não bloquear a DCL, mas o Firebase não estará disponível
                 resolve();
             }
         });
 
-        // Opcional: listener para mudanças de estado de autenticação (para depuração)
+        // Opcional: listener para mudanças de estado de autenticação
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                console.log("onAuthStateChanged: Usuário logado:", user.uid);
+                console.log("Firebase (index.html - onAuthStateChanged): Usuário logado:", user.uid);
             } else {
-                console.log("onAuthStateChanged: Usuário deslogado.");
+                console.log("Firebase (index.html - onAuthStateChanged): Usuário deslogado.");
             }
         });
     </script>
     <!-- Carrega o script principal do jogo (index.js) com type="module" se ele importar outras coisas -->
+    <script src="js/config.js"></script> <!-- Certifique-se que config.js é carregado antes de index.js para que AppConfig esteja disponível -->
     <script src="js/index.js" type="module"></script>
 </body>
 </html>
