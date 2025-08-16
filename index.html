@@ -17,10 +17,9 @@
 
         <div class="select-group">
             <label for="languageSelect" id="languageSelectTitle" data-lang-key="language_select_title">Selecione o Idioma:</label>
-            <div class="language-selector-buttons">
-                <button id="langPtBrButton" class="language-button" data-lang-key="lang_pt_br">Português (Brasil)</button>
-                <button id="langEnUsButton" class="language-button" data-lang-key="lang_en_us">English (US)</button>
-                <button id="langEsEsButton" class="language-button" data-lang-key="lang_es_es">Español (España)</button>
+            <!-- Div onde os botões de idioma serão gerados dinamicamente pelo JavaScript -->
+            <div id="languageSelectorButtonsContainer" class="language-selector-buttons">
+                <!-- Botões de idioma serão inseridos aqui -->
             </div>
         </div>
 
@@ -36,6 +35,7 @@
                 <span data-lang-key="button_access_game">Acessar Jogo</span>
             </button>
         </div>
+        <!-- O elemento messageBox deve estar presente no DOM -->
         <div id="messageBox" class="message-box hidden"></div>
         <div id="sessionInfo" class="session-info hidden"></div>
     </div>
