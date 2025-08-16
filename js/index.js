@@ -34,8 +34,10 @@ function hideMessage() {
 async function loadTranslations(lang) {
     let success = false;
     try {
-        // CORRIGIDO: Caminho relativo correto para o arquivo de traduções
-        const response = await fetch(`../translations/index_translations.json`);
+        // CORREÇÃO: Usando caminho absoluto a partir da raiz do repositório
+        // Isso garante que o navegador sempre procure o arquivo no local esperado,
+        // independentemente da localização do script.
+        const response = await fetch(`/dev-game-gp/translations/index_translations.json`); 
         if (!response.ok) {
             throw new Error(`Erro de rede ou arquivo não encontrado: ${response.status} ${response.statusText}`);
         }
@@ -315,4 +317,3 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Agora que Firebase e AppConfig estão prontos, inicia a lógica principal da página
     await initPageLogic();
 });
-
