@@ -3,8 +3,8 @@
 let allQuestions = [];
 let currentQuestion = null;
 let selectedOption = null;
-let currentLanguage = AppConfig.defaultLanguage; // currentLanguage é inicializado com um valor padrão de AppConfig
-let gameTranslations = {}; // Objeto para armazenar as traduções carregadas do jogo
+let currentLanguage = AppConfig.defaultLanguage; 
+let gameTranslations = {}; 
 
 // Elementos DOM
 const displaySessionIdElement = document.getElementById('displaySessionId');
@@ -20,19 +20,18 @@ const feedbackContainer = document.getElementById('feedbackContainer');
 const backToHomeButton = document.getElementById('backToHomeButton');
 const randomCardButton = document.getElementById('randomCardButton');
 const messageBox = document.getElementById('messageBox');
-const loadingOverlay = document.getElementById('loadingOverlay'); // Referência ao overlay de carregamento
-const gameContainer = document.getElementById('gameContainer'); // Referência ao container principal do jogo
+const loadingOverlay = document.getElementById('loadingOverlay'); 
+const gameContainer = document.getElementById('gameContainer'); 
 
 let currentSessionId = null;
-let sessionPlayersUnsubscribe = null; // Para guardar a função de unsubscribe do listener de players
+let sessionPlayersUnsubscribe = null; 
 
 // Função para exibir mensagens ao usuário
 function showMessage(message, type = 'info') {
     messageBox.textContent = message;
-    messageBox.className = `message-box ${type}`; // Define a classe com base no tipo
-    messageBox.classList.remove('hidden'); // Garante que a mensagem seja visível
+    messageBox.className = `message-box ${type}`; 
+    messageBox.classList.remove('hidden'); 
 
-    // Oculta a mensagem após 5 segundos
     setTimeout(() => {
         messageBox.classList.add('hidden');
     }, 5000);
@@ -41,22 +40,23 @@ function showMessage(message, type = 'info') {
 // Função para carregar as traduções do arquivo JSON
 async function loadGameTranslations(lang) {
     try {
-        const response = await fetch('game_translations.json');
+        // CORRIGIDO: Caminho relativo correto para o arquivo de traduções do jogo
+        const response = await fetch('../translations/game_translations.json');
         if (!response.ok) {
             throw new Error(`Erro de rede ou arquivo não encontrado: ${response.status} ${response.statusText}`);
         }
         const allTranslations = await response.json();
         
         if (!allTranslations[lang]) {
-            console.warn(`Idioma '${lang}' não encontrado no arquivo de traduções. Usando pt-BR como fallback.`);
-            gameTranslations = allTranslations['pt-BR']; // Fallback para pt-BR
+            console.warn(`Idioma '${lang}' não encontrado no arquivo de traduções do jogo. Usando pt-BR como fallback.`);
+            gameTranslations = allTranslations['pt-BR']; 
             currentLanguage = 'pt-BR';
         } else {
             gameTranslations = allTranslations[lang];
-            currentLanguage = lang; // Define o idioma atual para o carregado
+            currentLanguage = lang; 
         }
-        document.documentElement.lang = currentLanguage; // Atualiza o atributo lang do <html>
-        applyGameTranslations(); // Aplica as traduções
+        document.documentElement.lang = currentLanguage; 
+        applyGameTranslations(); 
 
         console.log(`Traduções para ${currentLanguage} carregadas com sucesso.`);
     } catch (error) {
@@ -73,7 +73,6 @@ function applyGameTranslations() {
             element.textContent = gameTranslations[key];
         }
     });
-    // Atualiza o título da página com o ID da sessão, se disponível
     const baseTitle = gameTranslations['game_page_base_title'] || "Jogo de Gerenciamento de Projetos - Sessão";
     document.title = `${baseTitle} ${currentSessionId ? `- ${currentSessionId}` : ''}`;
 }
@@ -133,12 +132,12 @@ function displayQuestion(question) {
     currentQuestion = question;
     questionAreaElement.textContent = `${gameTranslations['label_area'] || 'Área'}: ${gameTranslations[`area_${question.area.toLowerCase()}`] || question.area}`;
     currentQuestionDisplayElement.textContent = question.question;
-    optionsContainerElement.innerHTML = ''; // Limpa opções anteriores
-    feedbackContainer.innerHTML = ''; // Limpa feedback anterior
-    nextCardButton.classList.add('hidden'); // Esconde o botão "Próxima Carta"
-    answerButton.classList.remove('hidden'); // Mostra o botão "Verificar Resposta"
-    answerButton.disabled = false; // Habilita o botão de resposta
-    selectedOption = null; // Reseta a opção selecionada
+    optionsContainerElement.innerHTML = ''; 
+    feedbackContainer.innerHTML = ''; 
+    nextCardButton.classList.add('hidden'); 
+    answerButton.classList.remove('hidden'); 
+    answerButton.disabled = false; 
+    selectedOption = null; 
 
     question.options.forEach((option, index) => {
         const button = document.createElement('button');
@@ -146,7 +145,6 @@ function displayQuestion(question) {
         button.textContent = option;
         button.dataset.index = index;
         button.addEventListener('click', () => {
-            // Remove 'selected' de todos os botões e adiciona ao clicado
             document.querySelectorAll('.option-button').forEach(btn => btn.classList.remove('selected'));
             button.classList.add('selected');
             selectedOption = option;
@@ -155,8 +153,8 @@ function displayQuestion(question) {
         optionsContainerElement.appendChild(button);
     });
 
-    gameAreaSelectorElement.classList.add('hidden'); // Oculta o seletor de área
-    gameCardElement.classList.remove('hidden'); // Mostra o card da pergunta
+    gameAreaSelectorElement.classList.add('hidden'); 
+    gameCardElement.classList.remove('hidden'); 
 }
 
 // Função para verificar a resposta
@@ -166,16 +164,15 @@ function checkAnswer() {
         return;
     }
 
-    // Desabilita todos os botões de opção
     document.querySelectorAll('.option-button').forEach(button => {
         button.disabled = true;
         if (button.textContent === currentQuestion.correctAnswer) {
-            button.classList.add('correct-answer-highlight'); // Adiciona classe para destacar a resposta correta
+            button.classList.add('correct-answer-highlight'); 
         }
     });
 
-    answerButton.disabled = true; // Desabilita o botão de verificar
-    nextCardButton.classList.remove('hidden'); // Mostra o botão "Próxima Carta"
+    answerButton.disabled = true; 
+    nextCardButton.classList.remove('hidden'); 
 
     if (selectedOption === currentQuestion.correctAnswer) {
         feedbackContainer.innerHTML = `<div class="feedback correct">${gameTranslations['feedback_correct'] || "Parabéns! Resposta Correta!"}</div>`;
@@ -189,9 +186,7 @@ function checkAnswer() {
 
 // Inicia o jogo ou exibe o seletor de área
 async function startGame(area = null) {
-    // Esconde o overlay de carregamento
     loadingOverlay.classList.add('hidden');
-    // Torna o container do jogo visível
     gameContainer.classList.add('visible');
 
     if (allQuestions.length === 0) {
@@ -203,7 +198,6 @@ async function startGame(area = null) {
     if (questionToShow) {
         displayQuestion(questionToShow);
     } else {
-        // Se não houver perguntas na área selecionada, volta para o seletor de área
         gameCardElement.classList.add('hidden');
         gameAreaSelectorElement.classList.remove('hidden');
         showMessage(`Nenhuma carta encontrada para a área "${gameTranslations[`area_${area.toLowerCase()}`] || area}". Por favor, escolha outra área ou "Carta Aleatória".`, 'info');
@@ -240,23 +234,21 @@ async function removePlayerFromSession(sessionId, userId) {
 function addEventListeners() {
     answerButton.addEventListener('click', checkAnswer);
     nextCardButton.addEventListener('click', () => {
-        gameCardElement.classList.add('hidden'); // Esconde o card
-        gameAreaSelectorElement.classList.remove('hidden'); // Mostra o seletor de área
-        feedbackContainer.innerHTML = ''; // Limpa o feedback
+        gameCardElement.classList.add('hidden'); 
+        gameAreaSelectorElement.classList.remove('hidden'); 
+        feedbackContainer.innerHTML = ''; 
     });
 
-    // Adiciona listener para os botões de seleção de área
     document.querySelectorAll('.area-select-button').forEach(button => {
         button.addEventListener('click', () => {
             const area = button.dataset.area;
-            startGame(area); // Inicia o jogo com a área selecionada
+            startGame(area); 
         });
     });
 
-    randomCardButton.addEventListener('click', () => startGame()); // Carta aleatória
+    randomCardButton.addEventListener('click', () => startGame()); 
 
     backToHomeButton.addEventListener('click', async () => {
-        // Remove o listener de players antes de sair
         if (sessionPlayersUnsubscribe) {
             sessionPlayersUnsubscribe();
             console.log("Listener de jogadores desinscrito.");
@@ -270,11 +262,11 @@ function addEventListeners() {
 
 // Função para atualizar a lista de jogadores na UI
 function updatePlayerList(players) {
-    playerListElement.innerHTML = ''; // Limpa a lista atual
+    playerListElement.innerHTML = ''; 
     if (players && players.length > 0) {
         players.forEach(player => {
             const li = document.createElement('li');
-            li.textContent = player.userId; // Exibe o ID completo do usuário
+            li.textContent = player.userId; 
             playerListElement.appendChild(li);
         });
     } else {
@@ -287,7 +279,6 @@ function updatePlayerList(players) {
 
 // Inicializa a lógica do jogo
 async function initGameLogic() {
-    // Analisa a URL para obter o ID da sessão e o idioma
     const urlParams = new URLSearchParams(window.location.search);
     currentSessionId = urlParams.get('session');
     let langFromUrl = urlParams.get('lang');
@@ -305,11 +296,9 @@ async function initGameLogic() {
     console.log(`ID da Sessão: ${currentSessionId}`);
     console.log(`Idioma da URL: ${langFromUrl}`);
 
-    // Carrega as traduções com base no idioma da URL, se disponível, senão usa o padrão
     await loadGameTranslations(langFromUrl || AppConfig.defaultLanguage);
     console.log(`Idioma do jogo definido para: ${currentLanguage}`);
 
-    // Configura o listener de jogadores da sessão
     if (window.db && window.firestore) {
         const sessionDocRef = window.firestore.doc(window.db, `artifacts/${window.appId}/public/data/sessions`, currentSessionId);
         sessionPlayersUnsubscribe = window.firestore.onSnapshot(sessionDocRef, (docSnap) => {
@@ -319,7 +308,6 @@ async function initGameLogic() {
                 updatePlayerList(players);
             } else {
                 console.log("Sessão não encontrada ou removida.");
-                // Opcional: redirecionar ou mostrar mensagem se a sessão for removida
             }
         }, (error) => {
             console.error("Erro ao ouvir por jogadores da sessão:", error);
@@ -329,33 +317,25 @@ async function initGameLogic() {
         console.error("Firebase Firestore não está inicializado para listeners de jogadores.");
     }
 
-    // Carrega todas as perguntas ANTES de tentar iniciar o jogo
     await loadQuestions();
 
-    // Adiciona os event listeners depois que as traduções e perguntas são carregadas
     addEventListeners();
 
-    // Inicia o jogo mostrando o seletor de área (ou diretamente uma carta, se houver lógica para isso)
-    gameCardElement.classList.add('hidden'); // Garante que o card esteja oculto no início
-    gameAreaSelectorElement.classList.remove('hidden'); // Mostra o seletor de área
+    gameCardElement.classList.add('hidden'); 
+    gameAreaSelectorElement.classList.remove('hidden'); 
 }
 
-// Listener principal DOMContentLoaded que AGUARDA a inicialização do Firebase
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("DOMContentLoaded disparado em gameLogic.js. Verificando AppConfig.defaultLanguage...");
     
-    // Aguarda que a promessa de inicialização do Firebase seja resolvida
     await window.firebaseInitializedPromise;
     console.log("Firebase inicializado. Iniciando a lógica do jogo...");
     
-    // Agora que Firebase e AppConfig (via window.AppConfig) estão prontos, inicia a lógica principal do jogo
     await initGameLogic();
 });
 
-// Opcional: Lidar com o usuário saindo (por exemplo, fechando a aba)
 window.addEventListener('beforeunload', async () => {
     if (currentSessionId && window.currentUserId && window.db) {
-        // Desinscreve o listener de jogadores para evitar vazamento de memória ou chamadas desnecessárias
         if (sessionPlayersUnsubscribe) {
             sessionPlayersUnsubscribe();
             console.log("Listener de jogadores desinscrito em beforeunload.");
