@@ -96,8 +96,10 @@ body {
     padding: 2.5rem;
     border-radius: 1rem;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    max-width: 400px; /* Reduz a largura máxima do container principal */
-    width: 90%;
+    /* Reduz ainda mais a largura máxima para se ajustar melhor a telas de celular */
+    max-width: 320px; /* Largura máxima para visualização em celular */
+    width: 90%; /* Ocupa 90% da largura da viewport */
+    margin: 20px auto; /* Centraliza e adiciona margem vertical para responsividade */
     text-align: center;
     display: flex; 
     flex-direction: column; 
@@ -105,9 +107,15 @@ body {
     position: relative; 
 }
 
-/* Reduz a largura máxima dos input-group para 280px e centraliza */
+/* Define uma largura customizada para os contêineres menores (Novo Jogo e Acessar Jogo) */
+/* Isso garante que ambos tenham a mesma largura e sejam responsivos */
+.w-custom-small-container {
+    max-width: 280px; /* Largura máxima para os contêineres menores */
+    width: 90%; /* Ocupa 90% da largura do pai (.container) */
+}
+
+/* Garante que os input-group estejam centralizados usando flexbox no container pai se necessário, ou mx-auto */
 .input-group {
-    max-width: 280px; /* Largura máxima para as caixas de Novo Jogo e Acessar Jogo */
     margin-left: auto; 
     margin-right: auto; 
 }
