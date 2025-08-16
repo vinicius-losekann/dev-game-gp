@@ -79,7 +79,7 @@ const translations = {
         area_risks: "Riesgos",
         area_acquisitions: "Adquisiciones",
         area_stakeholders: "Interesados",
-        button_random_card: "Tarjeta Aleatoria",
+        button_random_card: "Tarjeta Aleatória",
         button_check_answer: "Verificar Respuesta",
         button_next_card: "Siguiente Tarjeta",
         feedback_correct: "¡Felicidades! ¡Respuesta Correcta!",
@@ -95,7 +95,9 @@ const translations = {
     }
 };
 
-// Elementos do DOM
+// Elementos do DOM (Verificar se existem antes de usar em updateUITexts para evitar null errors)
+// Note: Declarar essas variáveis aqui permite que sejam acessadas por todas as funções.
+// Elas só terão o valor 'null' ou o elemento real depois do DOMContentLoaded.
 const sessionIdDisplay = document.getElementById('sessionIdDisplay');
 const backToHomeButton = document.getElementById('backToHomeButton');
 
@@ -136,54 +138,60 @@ function getLanguageFromSessionIdString(sessionId) {
 
 // Função para atualizar os textos da UI com base no idioma
 function updateUITexts() {
-    const currentLangTranslations = translations[currentLanguage];
-    if (!currentLangTranslations) {
-        console.warn(`Traduções para o idioma '${currentLanguage}' não encontradas. Usando 'pt-BR' como fallback.`);
-        currentLanguage = 'pt-BR';
+    // Garante que currentLanguage tem um valor válido
+    if (!currentLanguage || !translations[currentLanguage]) {
+        console.warn(`Idioma '${currentLanguage}' inválido ou traduções não carregadas. Usando 'pt-BR' como fallback.`);
+        currentLanguage = 'pt-BR'; // Define fallback
         if (!translations[currentLanguage]) {
             console.error("Erro fatal: Fallback para 'pt-BR' também falhou. Certifique-se de que 'pt-BR' está definido.");
-            return;
+            return; // Sai se nem o fallback for válido
         }
     }
+    const currentLangTranslations = translations[currentLanguage];
 
     // Atualiza o título da página
-    document.title = translations[currentLanguage].game_page_base_title;
+    if (document.title) document.title = currentLangTranslations.game_page_base_title;
 
     // Atualiza textos com data-lang-key
     document.querySelectorAll('[data-lang-key]').forEach(element => {
         const key = element.getAttribute('data-lang-key');
-        if (translations[currentLanguage] && translations[currentLanguage][key]) {
-            element.textContent = translations[currentLanguage][key];
+        if (currentLangTranslations[key]) {
+            element.textContent = currentLangTranslations[key];
         }
     });
 
-    // Atualiza elementos específicos que não usam data-lang-key mas precisam de tradução
-    if (document.getElementById('labelSession')) document.getElementById('labelSession').textContent = translations[currentLanguage].label_session;
-    if (document.getElementById('labelBackToHome')) document.getElementById('labelBackToHome').textContent = translations[currentLanguage].label_back_to_home;
-    if (document.getElementById('labelChooseArea')) document.getElementById('labelChooseArea').textContent = translations[currentLanguage].label_choose_area;
+    // Atualiza elementos específicos que não usam data-lang-key
+    if (sessionIdDisplay) sessionIdDisplay.textContent = currentSessionId || 'N/A'; // Atualiza ID da sessão
+    if (document.getElementById('labelSession')) document.getElementById('labelSession').textContent = currentLangTranslations.label_session;
+    if (document.getElementById('labelBackToHome')) document.getElementById('labelBackToHome').textContent = currentLangTranslations.label_back_to_home;
+    if (document.getElementById('labelChooseArea')) document.getElementById('labelChooseArea').textContent = currentLangTranslations.label_choose_area;
 
     if (currentQuestion) {
-        questionArea.textContent = currentQuestion.area; 
-        questionText.textContent = currentQuestion.questionText;
+        if (questionArea) questionArea.textContent = currentQuestion.area; 
+        if (questionText) questionText.textContent = currentQuestion.questionText;
 
-        optionsContainer.innerHTML = '';
-        const options = currentQuestion.options;
-        for (const key in options) {
-            const optionButton = document.createElement('button');
-            optionButton.className = 'option-button bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-3 px-5 rounded-lg text-left w-full shadow';
-            optionButton.innerHTML = `<span class="font-bold mr-2">${key})</span> ${options[key]}`;
-            optionButton.setAttribute('data-option', key);
-            optionButton.addEventListener('click', () => {
-                document.querySelectorAll('.option-button').forEach(btn => { btn.classList.remove('selected'); });
-                optionButton.classList.add('selected');
-                selectedOption = key;
-                submitAnswerButton.disabled = false;
-                submitAnswerButton.classList.remove('opacity-50', 'cursor-not-allowed');
-            });
-            optionsContainer.appendChild(optionButton);
+        if (optionsContainer) {
+            optionsContainer.innerHTML = '';
+            const options = currentQuestion.options;
+            for (const key in options) {
+                const optionButton = document.createElement('button');
+                optionButton.className = 'option-button bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-3 px-5 rounded-lg text-left w-full shadow';
+                optionButton.innerHTML = `<span class="font-bold mr-2">${key})</span> ${options[key]}`;
+                optionButton.setAttribute('data-option', key);
+                optionButton.addEventListener('click', () => {
+                    document.querySelectorAll('.option-button').forEach(btn => { btn.classList.remove('selected'); });
+                    optionButton.classList.add('selected');
+                    selectedOption = key;
+                    if (submitAnswerButton) {
+                        submitAnswerButton.disabled = false;
+                        submitAnswerButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                    }
+                });
+                optionsContainer.appendChild(optionButton);
+            }
         }
         
-        if (feedbackContainer.innerHTML) {
+        if (feedbackContainer && feedbackContainer.innerHTML) { // Verifica se há feedback para atualizar
             const isCorrect = (selectedOption === currentQuestion.correctAnswer);
             feedbackContainer.innerHTML = ''; 
             const feedbackDiv = document.createElement('div');
@@ -192,17 +200,24 @@ function updateUITexts() {
 
             if (isCorrect) {
                 feedbackDiv.className = 'feedback correct';
-                feedbackDiv.textContent = translations[currentLanguage].feedback_correct;
+                feedbackDiv.textContent = currentLangTranslations.feedback_correct;
             } else {
                 feedbackDiv.className = 'feedback incorrect';
-                feedbackDiv.textContent = translations[currentLanguage].feedback_incorrect_prefix + `${currentQuestion.correctAnswer}).`;
+                feedbackDiv.textContent = currentLangTranslations.feedback_incorrect_prefix + `${currentQuestion.correctAnswer}).`;
             }
-            explanationDiv.textContent = translations[currentLanguage].explanation_prefix + currentQuestion.explanation;
+            explanationDiv.textContent = currentLangTranslations.explanation_prefix + currentQuestion.explanation;
 
             feedbackContainer.appendChild(feedbackDiv);
             feedbackContainer.appendChild(explanationDiv);
         }
     }
+}
+
+// Nova função para carregar traduções da UI
+async function loadUITranslations(lang) {
+    currentLanguage = lang;
+    document.documentElement.lang = currentLanguage;
+    updateUITexts(); // Atualiza a UI imediatamente com o idioma carregado
 }
 
 // Função para carregar as perguntas do Firestore com base no idioma
@@ -212,9 +227,13 @@ async function loadQuestions(lang) {
             throw new Error("Objetos Firebase não inicializados.");
         }
 
+        // Usando window.firestore para todas as operações do Firestore
         const questionsCollectionRef = window.firestore.collection(window.db, `artifacts/${window.appId}/public/data/questions`);
         
-        const querySnapshot = await window.firestore.getDocs(window.firestore.query(questionsCollectionRef, window.firestore.where('language', '==', lang)));
+        // Usando window.firestore.query e window.firestore.where
+        const querySnapshot = await window.firestore.getDocs(
+            window.firestore.query(questionsCollectionRef, window.firestore.where('language', '==', lang))
+        );
         
         allQuestions = querySnapshot.docs.map(docSnapshot => ({
             id: docSnapshot.id,
@@ -223,16 +242,17 @@ async function loadQuestions(lang) {
 
         console.log(`Perguntas em ${lang} carregadas com sucesso do Firestore da coleção 'questions':`, allQuestions.length);
 
+        // Habilitar botões se existirem
         areaSelectButtons.forEach(button => button.disabled = false);
-        randomAreaButtonSelector.disabled = false;
+        if (randomAreaButtonSelector) randomAreaButtonSelector.disabled = false;
 
     } catch (error) {
         console.error('Falha ao carregar as perguntas do Firestore:', error);
-        if (areaSelector) { // Verifica se o elemento existe antes de tentar manipular
+        if (areaSelector) { 
             areaSelector.innerHTML = `<p class="text-red-600">${translations[currentLanguage].error_loading_questions}: ${error.message}</p>`;
         }
         areaSelectButtons.forEach(button => button.disabled = true);
-        randomAreaButtonSelector.disabled = true;
+        if (randomAreaButtonSelector) randomAreaButtonSelector.disabled = true;
     }
 }
 
@@ -262,7 +282,6 @@ async function displayNextQuestion(areaFilter = null) {
 
     if (unansweredQuestions.length === 0) {
         alert(translations[currentLanguage].no_more_questions);
-        // Atualiza o status da sessão para "completed" se não houver mais perguntas
         await updateSessionState(currentSessionId, { status: "completed" });
         return;
     }
@@ -280,7 +299,7 @@ async function displayNextQuestion(areaFilter = null) {
             correctAnswer: questionToAsk.correct,
             explanation: questionToAsk.explanation,
             askedByPlayerId: window.currentUserId,
-            timestampAsked: window.firestore.serverTimestamp()
+            timestampAsked: window.firestore.serverTimestamp() // Usando window.firestore.serverTimestamp
         }
     });
 }
@@ -289,138 +308,44 @@ async function displayNextQuestion(areaFilter = null) {
 function displayQuestionInUI(question) {
     currentQuestion = question;
     selectedOption = null;
-    submitAnswerButton.disabled = false;
-    submitAnswerButton.classList.remove('opacity-50', 'cursor-not-allowed');
-    nextCardButton.classList.add('hidden');
+    if (submitAnswerButton) {
+        submitAnswerButton.disabled = false;
+        submitAnswerButton.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+    if (nextCardButton) nextCardButton.classList.add('hidden');
 
-    questionArea.textContent = question.area;
-    questionText.textContent = question.questionText;
-    optionsContainer.innerHTML = '';
-    feedbackContainer.innerHTML = '';
+    if (questionArea) questionArea.textContent = question.area;
+    if (questionText) questionText.textContent = question.questionText;
+    if (optionsContainer) optionsContainer.innerHTML = '';
+    if (feedbackContainer) feedbackContainer.innerHTML = '';
 
     const options = question.options;
 
-    for (const key in options) {
-        const optionButton = document.createElement('button');
-        optionButton.className = 'option-button bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-3 px-5 rounded-lg text-left w-full shadow';
-        optionButton.innerHTML = `<span class="font-bold mr-2">${key})</span> ${options[key]}`;
-        optionButton.setAttribute('data-option', key);
+    if (optionsContainer) {
+        for (const key in options) {
+            const optionButton = document.createElement('button');
+            optionButton.className = 'option-button bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-3 px-5 rounded-lg text-left w-full shadow';
+            optionButton.innerHTML = `<span class="font-bold mr-2">${key})</span> ${options[key]}`;
+            optionButton.setAttribute('data-option', key);
 
-        optionButton.addEventListener('click', () => {
-            document.querySelectorAll('.option-button').forEach(btn => {
-                btn.classList.remove('selected');
+            optionButton.addEventListener('click', () => {
+                document.querySelectorAll('.option-button').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+                optionButton.classList.add('selected');
+                selectedOption = key;
+                if (submitAnswerButton) {
+                    submitAnswerButton.disabled = false;
+                    submitAnswerButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
             });
-            optionButton.classList.add('selected');
-            selectedOption = key;
-            submitAnswerButton.disabled = false;
-            submitAnswerButton.classList.remove('opacity-50', 'cursor-not-allowed');
-        });
-        optionsContainer.appendChild(optionButton);
-    }
-
-    areaSelector.classList.add('hidden');
-    gameCard.classList.remove('hidden');
-}
-
-// Event Listeners
-submitAnswerButton.addEventListener('click', async () => {
-    if (!currentQuestion || !selectedOption) return;
-
-    document.querySelectorAll('.option-button').forEach(btn => { btn.disabled = true; });
-    submitAnswerButton.disabled = true;
-    submitAnswerButton.classList.add('opacity-50', 'cursor-not-allowed');
-
-    feedbackContainer.innerHTML = '';
-    const feedbackDiv = document.createElement('div');
-    const explanationDiv = document.createElement('div');
-    explanationDiv.className = 'explanation text-left';
-
-    const isCorrect = (selectedOption === currentQuestion.correctAnswer);
-
-    if (isCorrect) {
-        feedbackDiv.className = 'feedback correct';
-        feedbackDiv.textContent = translations[currentLanguage].feedback_correct;
-    } else {
-        feedbackDiv.className = 'feedback incorrect';
-        feedbackDiv.textContent = translations[currentLanguage].feedback_incorrect_prefix + `${currentQuestion.correctAnswer}).`;
-    }
-    explanationDiv.textContent = translations[currentLanguage].explanation_prefix + currentQuestion.explanation;
-
-    feedbackContainer.appendChild(feedbackDiv);
-    feedbackContainer.appendChild(explanationDiv);
-
-    const appId = window.appId;
-    const db = window.db;
-    const firestore = window.firestore;
-
-    const answeredQuestionDocRef = firestore.doc(db, `artifacts/${appId}/public/data/sessions/${currentSessionId}/answeredQuestions`, currentQuestion.originalId);
-
-    try {
-        await firestore.setDoc(answeredQuestionDocRef, {
-            originalQuestionId: currentQuestion.originalId,
-            area: currentQuestion.area,
-            answeredCorrectlyBy: isCorrect ? firestore.arrayUnion(window.currentUserId) : firestore.arrayRemove(window.currentUserId),
-            answeredByAnyPlayer: true,
-            timestampAnswered: firestore.serverTimestamp()
-        }, { merge: true });
-        console.log(`Pergunta ${currentQuestion.originalId} marcada como respondida no Firestore.`);
-
-        const playerDocRef = firestore.doc(db, `artifacts/${appId}/public/data/sessions/${currentSessionId}/players`, window.currentUserId);
-        if (isCorrect) {
-            await firestore.updateDoc(playerDocRef, {
-                score: (playersInSessionCache[window.currentUserId]?.score || 0) + 1,
-                lastActive: firestore.serverTimestamp()
-            });
-            console.log(`Pontuação de ${window.currentUserId} atualizada.`);
-        } else {
-            await firestore.updateDoc(playerDocRef, {
-                lastActive: firestore.serverTimestamp()
-            });
+            optionsContainer.appendChild(optionButton);
         }
-
-    } catch (error) {
-        console.error("Erro ao atualizar pergunta respondida ou pontuação no Firestore:", error);
     }
-    
-    nextCardButton.classList.remove('hidden');
-});
 
-areaSelectButtons.forEach(button => {
-    button.addEventListener('click', () => {
-        const areaName = button.getAttribute('data-area'); 
-        displayNextQuestion(areaName);
-    });
-});
-
-randomAreaButtonSelector.addEventListener('click', () => {
-    if (allQuestions.length === 0) {
-        console.warn(translations[currentLanguage].error_loading_questions);
-        return;
-    }
-    displayNextQuestion();
-});
-
-nextCardButton.addEventListener('click', async () => {
-    await updateSessionState(currentSessionId, { currentQuestion: null });
-
-    gameCard.classList.add('hidden');
-    areaSelector.classList.remove('hidden');
-    feedbackContainer.innerHTML = '';
-    nextCardButton.classList.add('hidden');
-    currentQuestion = null;
-});
-
-backToHomeButton.addEventListener('click', async () => {
-    console.log('Botão "Voltar para o Início" clicado!');
-    if (unsubscribeSession) { unsubscribeSession(); }
-    if (unsubscribeAnsweredQuestions) { unsubscribeAnsweredQuestions(); }
-    if (unsubscribePlayers) { unsubscribePlayers(); }
-
-    if (currentSessionId && window.currentUserId) {
-        await removePlayerFromSession(currentSessionId, window.currentUserId);
-    }
-    window.location.href = 'index.html';
-});
+    if (areaSelector) areaSelector.classList.add('hidden');
+    if (gameCard) gameCard.classList.remove('hidden');
+}
 
 // ==============================================
 // FUNÇÕES DE GERENCIAMENTO DE SESSÃO NO FIRESTORE
@@ -443,13 +368,13 @@ async function addOrUpdatePlayerToSession(sessionId, userId, userName = `Jogador
             uid: userId,
             name: userName, 
             score: playerInitialScore,
-            lastActive: firestore.serverTimestamp(),
+            lastActive: firestore.serverTimestamp(), // Usando firestore.serverTimestamp
             status: "connected"
         }, { merge: true }); 
         console.log(`Jogador ${userId} adicionado/atualizado na sessão ${sessionId}.`);
 
         await firestore.updateDoc(firestore.doc(db, `artifacts/${appId}/public/data/sessions`, sessionId), {
-            currentPlayers: firestore.arrayUnion(userId)
+            currentPlayers: firestore.arrayUnion(userId) // Usando firestore.arrayUnion
         });
     } catch (error) {
         console.error("Erro ao adicionar/atualizar jogador na sessão:", error);
@@ -465,12 +390,12 @@ async function removePlayerFromSession(sessionId, userId) {
     try {
         await firestore.updateDoc(playerDocRef, {
             status: "disconnected",
-            lastActive: firestore.serverTimestamp()
+            lastActive: firestore.serverTimestamp() // Usando firestore.serverTimestamp
         });
         console.log(`Jogador ${userId} marcado como desconectado na sessão ${sessionId}.`);
 
         await firestore.updateDoc(firestore.doc(db, `artifacts/${appId}/public/data/sessions`, sessionId), {
-            currentPlayers: firestore.arrayRemove(userId)
+            currentPlayers: firestore.arrayRemove(userId) // Usando firestore.arrayRemove
         });
     } catch (error) {
         console.error("Erro ao remover jogador da sessão:", error);
@@ -502,15 +427,15 @@ function listenToSessionChanges(sessionId) {
             console.log("Mudanças na sessão (principal):", sessionData);
             
             if (sessionData.currentQuestion) {
-                if (sessionData.currentQuestion.id !== currentQuestion?.id || gameCard.classList.contains('hidden')) {
+                if (sessionData.currentQuestion.id !== currentQuestion?.id || (gameCard && gameCard.classList.contains('hidden'))) {
                     console.log("Nova pergunta ativa detectada ou carta precisa ser exibida:", sessionData.currentQuestion.questionText);
                     displayQuestionInUI(sessionData.currentQuestion);
                 }
             } else {
-                gameCard.classList.add('hidden');
-                areaSelector.classList.remove('hidden');
-                feedbackContainer.innerHTML = '';
-                nextCardButton.classList.add('hidden');
+                if (gameCard) gameCard.classList.add('hidden');
+                if (areaSelector) areaSelector.classList.remove('hidden');
+                if (feedbackContainer) feedbackContainer.innerHTML = '';
+                if (nextCardButton) nextCardButton.classList.add('hidden');
                 currentQuestion = null;
             }
 
@@ -540,23 +465,23 @@ function listenToSessionChanges(sessionId) {
     });
 }
 
+
 // ===========================================
 // FUNÇÃO PRINCIPAL DE INICIALIZAÇÃO DO JOGO
-// Chamada por game.html depois que o Firebase está pronto
+// Esta função é chamada SOMENTE após o Firebase estar pronto
 // ===========================================
-window.initGame = async () => {
+async function initGameLogic() {
     const params = getQueryParams();
     currentSessionId = params.session;
     let langFromUrl = params.lang; 
 
     if (currentSessionId) {
-        sessionIdDisplay.textContent = currentSessionId;
+        if (sessionIdDisplay) sessionIdDisplay.textContent = currentSessionId;
 
         let determinedLanguage = getLanguageFromSessionIdString(currentSessionId);
 
         if (!determinedLanguage) {
             console.error(`Não foi possível determinar o idioma a partir do ID da sessão '${currentSessionId}'. Redirecionando.`);
-            // Precisamos garantir que as traduções estejam carregadas para o alert
             await loadUITranslations(AppConfig.defaultLanguage); 
             alert(translations[AppConfig.defaultLanguage].no_session_id_message); 
             window.location.href = 'index.html?error=invalid_session_id_format';
@@ -570,12 +495,11 @@ window.initGame = async () => {
         currentLanguage = determinedLanguage;
         document.documentElement.lang = currentLanguage;
 
-        // Carrega as traduções da UI para o idioma determinado
-        await loadUITranslations(currentLanguage);
+        await loadUITranslations(currentLanguage); // Carrega e aplica traduções iniciais
 
         const appId = window.appId;
         const db = window.db; 
-        const firestore = window.firestore; // Instância firestore com métodos expostos
+        const firestore = window.firestore; 
         currentSessionDocRef = firestore.doc(db, `artifacts/${appId}/public/data/sessions`, currentSessionId);
 
         try {
@@ -596,8 +520,8 @@ window.initGame = async () => {
                 if (sessionData.currentQuestion) {
                     displayQuestionInUI(sessionData.currentQuestion);
                 } else {
-                    areaSelector.classList.remove('hidden');
-                    gameCard.classList.add('hidden');
+                    if (areaSelector) areaSelector.classList.remove('hidden');
+                    if (gameCard) gameCard.classList.add('hidden');
                 }
 
             } else {
@@ -614,7 +538,7 @@ window.initGame = async () => {
         }
 
     } else {
-        sessionIdDisplay.textContent = 'N/A';
+        if (sessionIdDisplay) sessionIdDisplay.textContent = 'N/A';
         await loadUITranslations(AppConfig.defaultLanguage); 
         console.error(translations[AppConfig.defaultLanguage].error_no_session_id);
         alert(translations[AppConfig.defaultLanguage].no_session_id_message);
@@ -627,17 +551,122 @@ window.initGame = async () => {
             await removePlayerFromSession(currentSessionId, window.currentUserId);
         }
     });
-};
 
-// ===========================================
-// Nova função para carregar traduções da UI para `updateUITexts`
-// Isso é necessário para que os alerts e mensagens de erro iniciais usem o idioma correto
-// ===========================================
-async function loadUITranslations(lang) {
-    // Para simplificar, estamos usando o objeto `translations` hardcoded.
-    // Se você estivesse carregando traduções de um arquivo JSON externo, faria o fetch aqui.
-    // Por enquanto, apenas garante que `currentLanguage` está definido e chama `updateUITexts`
-    currentLanguage = lang;
-    document.documentElement.lang = currentLanguage;
-    updateUITexts(); // Atualiza a UI imediatamente com o idioma carregado
+    // Anexar event listeners aos botões aqui, uma vez que o DOM está garantido carregado e elementos existem
+    if (submitAnswerButton) {
+        submitAnswerButton.addEventListener('click', async () => {
+            if (!currentQuestion || !selectedOption) return;
+
+            document.querySelectorAll('.option-button').forEach(btn => { btn.disabled = true; });
+            submitAnswerButton.disabled = true;
+            submitAnswerButton.classList.add('opacity-50', 'cursor-not-allowed');
+
+            feedbackContainer.innerHTML = '';
+            const feedbackDiv = document.createElement('div');
+            const explanationDiv = document.createElement('div');
+            explanationDiv.className = 'explanation text-left';
+
+            const isCorrect = (selectedOption === currentQuestion.correctAnswer);
+
+            if (isCorrect) {
+                feedbackDiv.className = 'feedback correct';
+                feedbackDiv.textContent = translations[currentLanguage].feedback_correct;
+            } else {
+                feedbackDiv.className = 'feedback incorrect';
+                feedbackDiv.textContent = translations[currentLanguage].feedback_incorrect_prefix + `${currentQuestion.correctAnswer}).`;
+            }
+            explanationDiv.textContent = translations[currentLanguage].explanation_prefix + currentQuestion.explanation;
+
+            feedbackContainer.appendChild(feedbackDiv);
+            feedbackContainer.appendChild(explanationDiv);
+
+            const appId = window.appId;
+            const db = window.db;
+            const firestore = window.firestore;
+
+            const answeredQuestionDocRef = firestore.doc(db, `artifacts/${appId}/public/data/sessions/${currentSessionId}/answeredQuestions`, currentQuestion.originalId);
+
+            try {
+                await firestore.setDoc(answeredQuestionDocRef, {
+                    originalQuestionId: currentQuestion.originalId,
+                    area: currentQuestion.area,
+                    answeredCorrectlyBy: isCorrect ? firestore.arrayUnion(window.currentUserId) : firestore.arrayRemove(window.currentUserId),
+                    answeredByAnyPlayer: true,
+                    timestampAnswered: firestore.serverTimestamp()
+                }, { merge: true });
+                console.log(`Pergunta ${currentQuestion.originalId} marcada como respondida no Firestore.`);
+
+                const playerDocRef = firestore.doc(db, `artifacts/${appId}/public/data/sessions/${currentSessionId}/players`, window.currentUserId);
+                if (isCorrect) {
+                    await firestore.updateDoc(playerDocRef, {
+                        score: (playersInSessionCache[window.currentUserId]?.score || 0) + 1,
+                        lastActive: firestore.serverTimestamp()
+                    });
+                    console.log(`Pontuação de ${window.currentUserId} atualizada.`);
+                } else {
+                    await firestore.updateDoc(playerDocRef, {
+                        lastActive: firestore.serverTimestamp()
+                    });
+                }
+
+            } catch (error) {
+                console.error("Erro ao atualizar pergunta respondida ou pontuação no Firestore:", error);
+            }
+            
+            if (nextCardButton) nextCardButton.classList.remove('hidden');
+        });
+    }
+
+    areaSelectButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const areaName = button.getAttribute('data-area'); 
+            displayNextQuestion(areaName);
+        });
+    });
+
+    if (randomAreaButtonSelector) {
+        randomAreaButtonSelector.addEventListener('click', () => {
+            if (allQuestions.length === 0) {
+                console.warn(translations[currentLanguage].error_loading_questions);
+                return;
+            }
+            displayNextQuestion();
+        });
+    }
+
+    if (nextCardButton) {
+        nextCardButton.addEventListener('click', async () => {
+            await updateSessionState(currentSessionId, { currentQuestion: null });
+
+            if (gameCard) gameCard.classList.add('hidden');
+            if (areaSelector) areaSelector.classList.remove('hidden');
+            if (feedbackContainer) feedbackContainer.innerHTML = '';
+            if (nextCardButton) nextCardButton.classList.add('hidden');
+            currentQuestion = null;
+        });
+    }
+
+    if (backToHomeButton) {
+        backToHomeButton.addEventListener('click', async () => {
+            console.log('Botão "Voltar para o Início" clicado!');
+            if (unsubscribeSession) { unsubscribeSession(); }
+            if (unsubscribeAnsweredQuestions) { unsubscribeAnsweredQuestions(); }
+            if (unsubscribePlayers) { unsubscribePlayers(); }
+
+            if (currentSessionId && window.currentUserId) {
+                await removePlayerFromSession(currentSessionId, window.currentUserId);
+            }
+            window.location.href = 'index.html';
+        });
+    }
 }
+
+
+// Listener principal DOMContentLoaded que AGUARDA a inicialização do Firebase
+document.addEventListener('DOMContentLoaded', async () => {
+    // Aguarda que a promessa de inicialização do Firebase seja resolvida
+    await window.firebaseInitializedPromise;
+    console.log("Firebase inicializado. Iniciando a lógica do jogo...");
+    // Agora que Firebase está pronto, inicia a lógica principal do jogo
+    await initGameLogic();
+});
