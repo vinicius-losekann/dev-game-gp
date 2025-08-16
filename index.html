@@ -5,115 +5,116 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-lang-key="main_page_title">Jogo de Gerenciamento de Projetos</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Importa seu arquivo de estilo CSS personalizado -->
+    <link rel="stylesheet" href="css/style.css"> 
 </head>
 <body>
     <div id="main-content-container" class="container">
-        <h1 id="mainTitle" data-lang-key="main_title">Jogo de Gerenciamento de Projetos</h1>
-        <p id="descriptionText" class="description-text" data-lang-key="description_text">
+        <h1 data-lang-key="main_title">Jogo de Gerenciamento de Projetos</h1>
+        <p class="text-gray-700 mb-6 leading-relaxed" data-lang-key="description_text">
             Domine as habilidades essenciais de gerenciamento de projetos neste jogo interativo! Aprenda sobre **planejamento**, **execução**, **monitoramento de progresso** e **resolução de desafios** em cenários simulados para se tornar um gestor de projetos de sucesso. Cada decisão importa!
         </p>
 
-        <div class="select-group">
-            <label for="languageSelect" id="languageSelectTitle" data-lang-key="language_select_title">Selecione o Idioma:</label>
-            <!-- Div onde os botões de idioma serão gerados dinamicamente pelo JavaScript -->
-            <div id="languageSelectorButtonsContainer" class="language-selector-buttons">
-                <!-- Botões de idioma serão inseridos aqui -->
+        <!-- Seção de Seleção de Idioma -->
+        <div class="select-group mb-6">
+            <h2 class="text-xl font-semibold mb-3" data-lang-key="language_select_title">Selecione o Idioma:</h2>
+            <!-- Contêiner para os botões de idioma gerados dinamicamente pelo JS -->
+            <div id="languageSelectorButtonsContainer" class="flex justify-center gap-4 flex-wrap">
+                <!-- Botões de idioma serão inseridos aqui pelo JavaScript -->
             </div>
         </div>
 
-        <div class="input-group">
-            <label for="sessionIdInput" data-lang-key="access_game_title">Acessar Jogo Existente:</label>
-            <input type="text" id="sessionIdInput" class="game-input" data-lang-key="input_session_placeholder" placeholder="Ex: 1234PTBR">
+        <!-- Mensagem de feedback do sistema -->
+        <!-- ID CORRIGIDO: de 'errorMessage' para 'messageBox' para corresponder ao JS -->
+        <div id="messageBox" class="message-box hidden mb-4" role="alert"></div>
+
+        <!-- Botão para Iniciar Novo Jogo -->
+        <button id="newGameButton" class="game-button bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg mb-4 w-full" data-lang-key="button_new_game">
+            Iniciar Novo Jogo
+        </button>
+
+        <h2 class="text-xl font-semibold mb-4" data-lang-key="access_game_title">Acessar Jogo Existente</h2>
+        <div class="input-group mb-6">
+            <input type="text" id="sessionIdInput" placeholder="Ex: 1234PTBR" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-400 focus:border-transparent text-center text-lg" data-lang-key="input_session_placeholder">
         </div>
-        <div class="flex-buttons">
-            <button id="createSessionButton" class="game-button bg-blue-500 hover:bg-blue-700 text-white font-bold rounded-lg shadow-lg">
-                <span data-lang-key="button_new_game">Iniciar Novo Jogo</span>
-            </button>
-            <button id="joinSessionButton" class="game-button bg-green-500 hover:bg-green-700 text-white font-bold rounded-lg shadow-lg" disabled>
-                <span data-lang-key="button_access_game">Acessar Jogo</span>
-            </button>
+        <button id="accessGameButton" class="game-button bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg w-full" data-lang-key="button_access_game">
+            Acessar Jogo
+        </button>
+
+        <!-- Informações da sessão (ID, etc.) -->
+        <div id="sessionInfo" class="mt-6 p-4 bg-blue-100 text-blue-800 border border-blue-200 rounded-lg text-sm hidden">
+            <!-- Conteúdo dinâmico será inserido aqui pelo JS -->
         </div>
-        <!-- O elemento messageBox deve estar presente no DOM -->
-        <div id="messageBox" class="message-box hidden"></div>
-        <div id="sessionInfo" class="session-info hidden"></div>
     </div>
-    <div class="version">Versão: 1.0.2</div>
 
-    <!-- Inclua o arquivo de configuração PRIMEIRO e sem type="module" -->
+    <!-- Versão do aplicativo - Posicionada no canto inferior direito -->
+    <div class="version-text">
+        Versão 1.0.2
+    </div>
+
+    <!-- Firebase SDK - Adicionado primeiro -->
+    <script type="module" src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"></script>
+
+    <!-- Seus scripts JS - Carregados após o Firebase -->
     <script src="js/config.js"></script>
-
-    <!-- Firebase SDKs - Importação e inicialização no escopo global para acesso por outros módulos -->
+    <!-- Adicionar utils.js se ele tiver alguma função de inicialização ou configuração global -->
+    <script src="js/utils.js"></script> 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, updateDoc, arrayUnion, arrayRemove, serverTimestamp, onSnapshot, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayRemove, arrayUnion, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Variáveis globais para as instâncias do Firebase
-        let app;
-        let auth;
-        let db;
-        let firestore;
-        let currentUserId = null;
+        // Garante que Firebase Config e App ID estejam disponíveis globalmente
+        const firebaseConfig = window.firebaseConfig;
+        const appId = window.appId;
+        const initialAuthToken = window.initialAuthToken;
 
-        // Promessa para garantir que o Firebase está inicializado e autenticado.
-        // É importante que o window.firebaseInitializedPromise seja resolvido para que
-        // os outros scripts (como index.js ou gameLogic.js) saibam quando o Firebase está pronto.
+        // Inicializa o Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // Promessa para rastrear a inicialização do Firebase Auth e Firestore
         window.firebaseInitializedPromise = new Promise(async (resolve) => {
-            try {
-                // As variáveis window.firebaseConfig e window.initialAuthToken
-                // já devem estar disponíveis aqui, carregadas por config.js.
-                if (window.firebaseConfig && Object.keys(window.firebaseConfig).length > 0) {
-                    app = initializeApp(window.firebaseConfig);
-                    auth = getAuth(app);
-                    db = getFirestore(app);
-                    // Agrupa as funções do Firestore em um objeto para fácil acesso.
-                    firestore = {
-                        doc: doc,
-                        setDoc: setDoc,
-                        getDoc: getDoc,
-                        collection: collection,
-                        updateDoc: updateDoc,
-                        arrayUnion: arrayUnion,
-                        arrayRemove: arrayRemove,
-                        serverTimestamp: serverTimestamp,
-                        onSnapshot: onSnapshot,
-                        query: query,
-                        where: where,
-                        getDocs: getDocs
-                    };
-
-                    // Expõe as instâncias e o objeto firestore para acesso global por outros scripts.
-                    window.app = app;
-                    window.auth = auth;
-                    window.db = db;
-                    window.firestore = firestore;
-
-                    // Autenticação: tenta com token customizado se disponível, senão anonimamente.
-                    if (window.initialAuthToken) {
-                        await signInWithCustomToken(auth, window.initialAuthToken);
-                        console.log("Firebase: Autenticado com token personalizado.");
-                    } else {
-                        await signInAnonymously(auth);
-                        console.log("Firebase: Autenticado anonimamente.");
-                    }
-
-                    currentUserId = auth.currentUser.uid;
-                    window.currentUserId = currentUserId;
-                    console.log(`Firebase: App inicializado e autenticado. ID do Usuário: ${currentUserId}`);
-                    resolve();
-                } else {
-                    console.error("Firebase: Configuração não encontrada ou inválida. Pulando a inicialização do Firebase.");
-                    resolve();
+            if (initialAuthToken) {
+                try {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                    console.log("Autenticado com token personalizado.");
+                } catch (error) {
+                    console.warn("Erro ao autenticar com token personalizado, tentando anonimamente:", error);
+                    await signInAnonymously(auth);
                 }
-            } catch (error) {
-                console.error("Erro na inicialização ou autenticação do Firebase:", error);
-                resolve();
+            } else {
+                await signInAnonymously(auth);
+                console.log("Autenticado anonimamente.");
+            }
+
+            // Define o userId globalmente após a autenticação
+            window.currentUserId = auth.currentUser?.uid || `anon-${crypto.randomUUID()}`;
+            console.log("UserID definido:", window.currentUserId);
+
+            // Expõe instâncias de Firebase para outros scripts
+            window.db = db;
+            window.firestore = { doc, getDoc, setDoc, updateDoc, arrayRemove, arrayUnion, serverTimestamp }; // Exporta funções específicas
+            window.auth = auth; // Expõe a instância de autenticação
+
+            // Notifica que o Firebase está pronto
+            resolve();
+        });
+
+        // Opcional: listener para mudanças de estado de autenticação
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                console.log("onAuthStateChanged: Usuário logado:", user.uid);
+            } else {
+                console.log("onAuthStateChanged: Usuário deslogado.");
             }
         });
     </script>
-    <!-- Inclua o script da lógica da página inicial (index.js) como um módulo -->
-    <script type="module" src="js/index.js"></script>
+    <!-- Carrega o script principal do jogo (index.js) com type="module" se ele importar outras coisas -->
+    <script src="js/index.js" type="module"></script>
 </body>
 </html>
