@@ -129,9 +129,6 @@ async function createNewSession() {
         return;
     }
 
-    // Não usa showMessage aqui, pois a mensagem será tratada por sessionInfo
-    // showMessage(pageTranslations.creating_session_message || "Criando nova sessão...", 'info');
-
     let newSessionId = generateSessionId();
     const sessionDocRef = window.firestore.doc(window.db, `artifacts/${window.appId}/public/data/sessions`, newSessionId);
 
@@ -212,7 +209,8 @@ async function accessExistingSession() {
         return;
     }
 
-    showMessage(pageTranslations.accessing_session_message || `Acessando sessão ${enteredSessionId}...`, 'info');
+    // Não usa showMessage aqui, pois o redirecionamento será imediato ou erro tratado
+    // showMessage(pageTranslations.accessing_session_message || `Acessando sessão ${enteredSessionId}...`, 'info');
 
     const sessionDocRef = window.firestore.doc(window.db, `artifacts/${window.appId}/public/data/sessions`, enteredSessionId);
 
@@ -242,8 +240,6 @@ async function accessExistingSession() {
                 }
             }
 
-            // Não usa showMessage aqui, o redirecionamento será imediato
-            // showMessage(pageTranslations.joining_session_message || `Entrando na sessão ${enteredSessionId}...`, 'success');
             console.log(`Entrando na sessão ${enteredSessionId}.`);
             // Redireciona para a página do jogo com o ID da sessão e o idioma da sessão
             window.location.href = `game.html?session=${enteredSessionId}&lang=${sessionLanguage}&playerName=${encodeURIComponent(enteredPlayerName)}`;
