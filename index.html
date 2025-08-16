@@ -1,3 +1,4 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -27,35 +28,36 @@
             </div>
         </div>
 
-        <!-- Seção de Novo Jogo -->
+        <!-- Seção de Novo Jogo - Simplificada -->
         <div class="input-group mb-6 p-4 border border-blue-200 rounded-lg bg-blue-50">
             <h2 class="text-xl font-semibold mb-3 text-blue-800" data-lang-key="new_game_title">Iniciar Novo Jogo</h2>
-            <input type="text" id="playerNameInput" placeholder="Seu nome de identificação (Ex: João)" class="input-field mb-4 p-3 border border-gray-300 rounded-md w-full focus:ring-blue-500 focus:border-blue-500" data-lang-key="input_player_name_placeholder">
+            <!-- Campo de nome de jogador removido daqui -->
             <button id="newGameButton" class="game-button bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg w-full" data-lang-key="button_new_game">
                 Iniciar Novo Jogo
             </button>
         </div>
 
-        <!-- Seção de Acessar Jogo Existente -->
-        <div class="input-group mb-6 p-4 border border-purple-200 rounded-lg bg-purple-50">
-            <h2 class="text-xl font-semibold mb-3 text-purple-800" data-lang-key="access_game_title">Acessar Jogo Existente</h2>
-            <input type="text" id="sessionIdInput" placeholder="Digite o ID da Sessão (Ex: 1234)" class="input-field mb-4 p-3 border border-gray-300 rounded-md w-full focus:ring-purple-500 focus:border-purple-500" data-lang-key="input_session_placeholder">
-            <input type="text" id="accessPlayerNameInput" placeholder="Seu nome de identificação (Ex: João)" class="input-field mb-4 p-3 border border-gray-300 rounded-md w-full focus:ring-blue-500 focus:border-blue-500" data-lang-key="input_player_name_placeholder">
-            <button id="accessGameButton" class="game-button bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg w-full" data-lang-key="button_access_game">
-                Acessar Jogo
-            </button>
-        </div>
-
-        <!-- Mensagens de Feedback -->
+        <!-- Mensagens de Feedback e Acesso a Sessão (agora incluindo o caso de nova sessão) -->
         <div id="messageBox" class="message-box hidden px-4 py-3 rounded-lg text-sm mb-4"></div>
         <div id="sessionInfo" class="session-info hidden bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded relative mt-4">
             <p><strong data-lang-key="session_created_message">Sessão criada! Seu ID é: </strong> <span id="displayCreatedSessionId" class="font-bold text-lg"></span></p>
-            <p class="mt-2 text-sm" data-lang-key="session_id_prompt">Insira este ID para acessar seu jogo.</p>
-            <button id="copySessionIdButton" class="game-button mt-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg shadow-md">
+            <p class="mt-2 text-sm mb-4" data-lang-key="session_id_prompt">Insira este ID no campo abaixo, seu nome e clique em "Acessar Jogo".</p>
+            
+            <button id="copySessionIdButton" class="game-button mt-2 mb-4 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg shadow-md">
                 <span data-lang-key="button_copy_id">Copiar ID</span>
             </button>
-        </div>
 
+            <!-- Campo de sessão e nome para acessar (existente ou recém-criado) -->
+            <div class="input-group mt-4">
+                <h2 class="text-xl font-semibold mb-3 text-purple-800" data-lang-key="access_game_title">Acessar Jogo Existente</h2>
+                <input type="text" id="sessionIdInput" placeholder="Digite o ID da Sessão (Ex: 1234)" class="input-field mb-4 p-3 border border-gray-300 rounded-md w-full focus:ring-purple-500 focus:border-purple-500" data-lang-key="input_session_placeholder">
+                <input type="text" id="accessPlayerNameInput" placeholder="Seu nome de identificação (Ex: João)" class="input-field mb-4 p-3 border border-gray-300 rounded-md w-full focus:ring-blue-500 focus:border-blue-500" data-lang-key="input_player_name_placeholder">
+                <button id="accessGameButton" class="game-button bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg w-full" data-lang-key="button_access_game">
+                    Acessar Jogo
+                </button>
+            </div>
+        </div>
+        
         <!-- Rodapé com Versão -->
         <div class="version-footer" data-lang-key="app_version">Versão 1.0.0</div>
     </div>
