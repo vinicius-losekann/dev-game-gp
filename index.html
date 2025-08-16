@@ -23,42 +23,41 @@
         </p>
 
         <!-- Seção de Seleção de Idioma -->
-        <div class="select-group mb-6">
-            <h2 class="text-xl font-semibold mb-3" data-lang-key="language_select_title">Selecione o Idioma:</h2>
-            <!-- Contêiner para os botões de seleção de idioma, serão preenchidos via JS -->
+        <div class="select-group mb-6 p-6 bg-white rounded-lg shadow-lg">
+            <h2 class="text-xl font-semibold mb-3 text-gray-800" data-lang-key="language_select_title">Selecione o Idioma:</h2>
             <div id="languageSelectorButtons" class="flex flex-wrap gap-4 justify-center">
                 <!-- Botões de idioma serão injetados aqui pelo JavaScript -->
             </div>
         </div>
 
-        <!-- Campo de Nome de Usuário (agora único para ambas as ações) -->
-        <div class="input-group mb-6">
-            <h2 class="text-xl font-semibold mb-3" data-lang-key="input_username_placeholder"></h2>
-            <input type="text" id="usernameInput" placeholder="Digite seu Nome de Usuário"
-                   class="input-field text-center py-3 px-4 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-800"
-                   data-lang-key="input_username_placeholder">
-        </div>
-
-
-        <!-- Seção Iniciar Novo Jogo -->
-        <div class="action-group mb-8">
-            <h2 class="text-xl font-semibold mb-3" data-lang-key="new_game_title">Iniciar Novo Jogo</h2>
-            <button id="newGameButton" class="game-button bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg">
-                <span data-lang-key="button_new_game">Criar Nova Sessão</span>
-            </button>
-        </div>
-
-        <!-- Seção Acessar Jogo Existente -->
-        <div class="action-group mb-8">
-            <h2 class="text-xl font-semibold mb-3" data-lang-key="access_game_title">Acessar Jogo Existente</h2>
-            <div class="input-group mb-4">
-                <input type="text" id="sessionIdInput" placeholder="Digite o ID da Sessão (Ex: 1234PTBR)"
-                       class="input-field text-center py-3 px-4 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800"
-                       data-lang-key="input_session_placeholder">
+        <!-- Seção de Ações Principais -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl mx-auto">
+            <!-- Card para Criar Nova Sessão -->
+            <div class="action-card bg-white p-8 rounded-lg shadow-lg flex flex-col items-center justify-center text-center">
+                <h2 class="text-2xl font-bold mb-4 text-teal-700" data-lang-key="new_game_title">Iniciar Novo Jogo</h2>
+                <button id="newGameButton" class="game-button bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105">
+                    <span data-lang-key="button_new_game">Criar Nova Sessão</span>
+                </button>
             </div>
-            <button id="accessGameButton" class="game-button bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg">
-                <span data-lang-key="button_access_game">Acessar Sessão</span>
-            </button>
+
+            <!-- Card para Acessar Jogo Existente e Campo de Usuário -->
+            <div class="action-card bg-white p-8 rounded-lg shadow-lg flex flex-col items-center justify-center text-center">
+                <h2 class="text-2xl font-bold mb-4 text-blue-700" data-lang-key="access_game_title">Acessar Jogo Existente</h2>
+                <div class="input-group w-full mb-4">
+                    <label for="usernameInput" class="sr-only" data-lang-key="input_username_placeholder">Digite seu Nome de Usuário</label>
+                    <input type="text" id="usernameInput" placeholder="Digite seu Nome de Usuário"
+                           class="input-field text-center w-full py-3 px-4 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-800 mb-4"
+                           data-lang-key="input_username_placeholder">
+
+                    <label for="sessionIdInput" class="sr-only" data-lang-key="input_session_placeholder">Digite o ID da Sessão</label>
+                    <input type="text" id="sessionIdInput" placeholder="Digite o ID da Sessão (Ex: 1234PTBR)"
+                           class="input-field text-center w-full py-3 px-4 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800"
+                           data-lang-key="input_session_placeholder">
+                </div>
+                <button id="accessGameButton" class="game-button bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105">
+                    <span data-lang-key="button_access_game">Acessar Sessão</span>
+                </button>
+            </div>
         </div>
 
         <!-- Área de Mensagens para o Usuário -->
