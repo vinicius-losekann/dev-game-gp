@@ -1,43 +1,35 @@
-// config.js
+// js/config.js
 
 // Configurações do Firebase (suas credenciais)
-// Estas são as credenciais do seu projeto Firebase.
 const firebaseConfig = {
     apiKey: "AIzaSyDdiedj1Smjzn9CDqShdhG5Y0_Sa18xyWI",
     authDomain: "jogo-gerencia-de-projetos.firebaseapp.com",
     projectId: "jogo-gerencia-de-projetos",
     storageBucket: "jogo-gerencia-de-projetos.firebasestorage.app",
     messagingSenderId: "356867532123",
-    appId: "1:356867532123:web:0657d84635a5849df2667e",
+    appId: "1:356867532123:web:0657d84635a584999f2667e", // Verifique se este appId é o correto do seu projeto Firebase
     measurementId: "G-M5QYQ36Q9P"
 };
 
-// Configurações globais do aplicativo, como o idioma padrão.
+// Objeto de configuração da aplicação
 const AppConfig = {
     // Define o idioma padrão da aplicação.
-    // Pode ser 'pt-BR', 'en-US', 'es-ES' ou qualquer outro idioma que você suporte.
-    defaultLanguage: 'pt-BR', // Usado como fallback se nenhum idioma for detectado.
+    defaultLanguage: 'pt-BR',
 };
 
-// Expõe as configurações do Firebase globalmente para que outros scripts possam acessá-las.
-// O "window.firebaseConfig" torna este objeto disponível em todo o navegador.
+// Expõe as configurações para que outros scripts possam acessá-las globalmente
 window.firebaseConfig = firebaseConfig;
+window.AppConfig = AppConfig; // Expor AppConfig globalmente
 
-// Define o ID do aplicativo (appId).
-// Ele tenta usar o '__app_id' injetado pelo ambiente do Canvas (que é o mais correto).
-// Se '__app_id' não estiver definido, ele usa o 'appId' das suas próprias credenciais Firebase.
+// Usa o appId das suas credenciais como o appId do seu aplicativo
+// Ou mantém o __app_id se estiver sendo injetado por um ambiente específico
 window.appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.appId;
 
-// O 'initialAuthToken' é um token de autenticação fornecido pelo ambiente do Canvas.
-// Ele será usado para autenticar o usuário ao iniciar o aplicativo.
+// O token de autenticação inicial, se fornecido pelo ambiente
 window.initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-// Expõe as configurações do aplicativo globalmente.
-window.AppConfig = AppConfig;
-
-// Log para o console para confirmar que as configurações foram carregadas.
+// Mensagens de log para confirmar que as configurações foram carregadas
 console.log("Config.js carregado:");
 console.log("App ID (usado):", window.appId);
 console.log("Firebase Config (disponível):", window.firebaseConfig);
-console.log("Initial Auth Token:", window.initialAuthToken ? "Disponível" : "Não disponível");
-console.log("AppConfig.defaultLanguage:", window.AppConfig.defaultLanguage);
+console.log("AppConfig (disponível):", window.AppConfig);
