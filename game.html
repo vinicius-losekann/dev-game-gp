@@ -8,62 +8,114 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Incluindo estilos personalizados -->
     <link rel="stylesheet" href="css/style.css">
+    <!-- Incluindo Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // Variáveis globais para Firebase, que serão preenchidas no DOMContentLoaded
+        window.firebaseApp = null;
+        window.db = null;
+        window.auth = null;
+        window.currentUserId = null; // Adicionado para armazenar o UID do usuário
+        window.serverTimestamp = serverTimestamp; // Expondo serverTimestamp globalmente
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'; // Fallback para dev local
+            const manualFirebaseConfig = { 
+                apiKey: "", // Se não estiver no Canvas, preencha com sua API Key
+                authDomain: "YOUR_AUTH_DOMAIN.firebaseapp.com", // Substitua
+                projectId: "YOUR_PROJECT_ID", // Substitua
+                storageBucket: "YOUR_STORAGE_BUCKET.appspot.com",
+                messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+                appId: "YOUR_APP_ID_FROM_FIREBASE_SETTINGS",
+                measurementId: "YOUR_MEASUREMENT_ID"
+            };
+
+            const finalFirebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : manualFirebaseConfig;
+            const finalAppId = typeof __app_id !== 'undefined' ? __app_id : 'gameGP'; // Use 'gameGP' como fallback específico
+
+            try {
+                window.firebaseApp = initializeApp(finalFirebaseConfig);
+                window.auth = getAuth(window.firebaseApp);
+                window.db = getFirestore(window.firebaseApp);
+                window.appId = finalAppId; // Torna o appId globalmente acessível
+
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(window.auth, __initial_auth_token);
+                    console.log("Firebase: Autenticado com token customizado em game.html.");
+                } else {
+                    await signInAnonymously(window.auth);
+                    console.log("Firebase: Autenticado anonimamente em game.html.");
+                }
+                window.currentUserId = window.auth.currentUser?.uid || 'anonymous-user';
+                console.log("Firebase: App inicializado e autenticado em game.html. ID do Usuário:", window.currentUserId);
+
+            } catch (error) {
+                console.error("Erro ao inicializar Firebase ou autenticar em game.html:", error);
+                window.location.href = 'index.html?error=firebase_init_failed';
+            }
+        });
+    </script>
 </head>
-<body class="p-4">
+<body class="p-4 flex flex-col min-h-screen">
     <div class="w-full max-w-5xl flex justify-between items-center mb-6">
         <h1 class="text-3xl font-extrabold text-teal-700">
             <span id="labelSession">Sessão</span>: <span id="sessionIdDisplay" class="text-green-600"></span>
         </h1>
-        <!-- Botões de idioma removidos daqui, agora estão em index.html -->
         <button id="backToHomeButton" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg shadow">
             <span id="labelBackToHome">Voltar para o Início</span>
         </button>
     </div>
 
-    <!-- Seletor de Área (Visível no início da sessão) -->
-    <div id="areaSelector" class="game-area-selector hidden">
-        <h2 id="labelChooseArea" class="text-3xl font-bold text-gray-800 mb-6">Escolha a Área da Próxima Carta:</h2>
-        <!-- Contêiner dos botões: flex-col para vertical, items-center para centralizar, gap-3 para espaçamento -->
-        <!-- O max-width e mx-auto agora estão no .game-area-selector no CSS -->
-        <div class="mt-8 flex flex-col items-center gap-3">
-            <!-- Cada botão: w-full para largura total, e max-w-sm para limitar a largura individual -->
-            <!-- data-area agora usa IDs agnósticos de idioma -->
-            <button data-area="integration" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_integration">Integração</span></button>
-            <button data-area="scope" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_scope">Escopo</span></button>
-            <button data-area="schedule" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_schedule">Cronograma</span></button>
-            <button data-area="cost" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_cost">Custos</span></button>
-            <button data-area="quality" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_quality">Qualidade</span></button>
-            <button data-area="resources" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_resources">Recursos</span></button>
-            <button data-area="communications" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_communications">Comunicações</span></button>
-            <button data-area="risks" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_risks">Riscos</span></button>
-            <button data-area="acquisitions" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_acquisitions">Aquisições</span></button>
-            <button data-area="stakeholders" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_stakeholders">Partes Interessadas</span></button>
-            <button id="randomAreaButtonSelector" class="area-select-button bg-gray-600 hover:bg-gray-700 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="button_random_card">Carta Aleatória</span></button>
+    <!-- Novo div para envolver o conteúdo principal e aplicar flex-grow -->
+    <div class="flex-grow flex items-center justify-center p-4"> 
+        <!-- Seletor de Área (Visível no início da sessão) -->
+        <div id="areaSelector" class="game-area-selector hidden">
+            <h2 id="labelChooseArea" class="text-3xl font-bold text-gray-800 mb-6">Escolha a Área da Próxima Carta:</h2>
+            <div class="mt-8 flex flex-col items-center gap-3">
+                <!-- ATENÇÃO: Verifique os valores data-area para corresponder ao campo 'area' nas suas perguntas no Firestore -->
+                <button data-area="Cronograma" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_schedule">Cronograma</span></button>
+                <button data-area="Escopo" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_scope">Escopo</span></button>
+                <button data-area="Qualidade" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_quality">Qualidade</span></button>
+                <!-- Remova os comentários e adicione mais botões data-area aqui se tiver outras áreas de conhecimento -->
+                <!--
+                <button data-area="Integração" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_integration">Integração</span></button>
+                <button data-area="Custos" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_cost">Custos</span></button>
+                <button data-area="Recursos" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_resources">Recursos</span></button>
+                <button data-area="Comunicações" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_communications">Comunicações</span></button>
+                <button data-area="Riscos" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_risks">Riscos</span></button>
+                <button data-area="Aquisições" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_acquisitions">Aquisições</span></button>
+                <button data-area="Partes Interessadas" class="area-select-button bg-teal-500 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="area_stakeholders">Partes Interessadas</span></button>
+                -->
+                <button id="randomAreaButtonSelector" class="area-select-button bg-gray-600 hover:bg-gray-700 text-white py-3 px-6 text-base shadow-md w-full max-w-sm"><span data-lang-key="button_random_card">Carta Aleatória</span></button>
+            </div>
+        </div>
+
+        <!-- Carta do Jogo (Inicialmente oculta) -->
+        <div id="gameCard" class="card hidden">
+            <div class="card-content">
+                <h2 id="questionArea" class="text-3xl font-extrabold text-teal-700 mb-4"></h2>
+                <p id="questionText" class="text-xl text-gray-800 mb-6 leading-relaxed"></p>
+                <div id="optionsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <!-- As opções de resposta serão carregadas aqui -->
+                </div>
+                <button id="submitAnswerButton" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-lg opacity-50 cursor-not-allowed" disabled>
+                    <span data-lang-key="button_check_answer">Verificar Resposta</span>
+                </button>
+                <div id="feedbackContainer" class="mt-6">
+                    <!-- Feedback e explicação serão exibidos aqui -->
+                </div>
+                <button id="nextCardButton" class="hidden mt-4 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg text-lg">
+                    <span data-lang-key="button_next_card">Próxima Carta</span>
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- Carta do Jogo (Inicialmente oculta) -->
-    <div id="gameCard" class="card hidden">
-        <div class="card-content">
-            <h2 id="questionArea" class="text-3xl font-extrabold text-teal-700 mb-4"></h2>
-            <p id="questionText" class="text-xl text-gray-800 mb-6 leading-relaxed"></p>
-            <div id="optionsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <!-- As opções de resposta serão carregadas aqui -->
-            </div>
-            <button id="submitAnswerButton" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-lg opacity-50 cursor-not-allowed" disabled>
-                <span data-lang-key="button_check_answer">Verificar Resposta</span>
-            </button>
-            <div id="feedbackContainer" class="mt-6">
-                <!-- Feedback e explicação serão exibidos aqui -->
-            </div>
-            <button id="nextCardButton" class="hidden mt-4 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg text-lg">
-                <span data-lang-key="button_next_card">Próxima Carta</span>
-            </button>
-        </div>
-    </div>
-
-    <!-- Indicador de Versão -->
-    <div id="app-version" class="fixed bottom-2 left-2 text-gray-400 text-xs z-50">
+    <!-- Indicador de Versão (agora no final do fluxo, empurrado pelo flex-grow) -->
+    <div id="app-version" class="mt-auto text-gray-400 text-xs p-4 text-center w-full">
         Versão: 1.0.0
     </div>
 
