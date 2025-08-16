@@ -107,19 +107,18 @@
             </div>
         </div>
 
-        <!-- Campo para nome de usuário -->
-        <div class="mb-8 input-group p-6 bg-yellow-50 rounded-xl shadow-lg border border-yellow-100 max-w-md mx-auto">
-            <label for="usernameInput" class="block text-gray-700 text-lg font-semibold mb-3 text-center" data-lang-key="label_username">Seu Nome de Usuário:</label>
-            <input type="text" id="usernameInput" placeholder="Digite seu nome"
-                   class="input-field p-3 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-teal-500 text-center" required>
-        </div>
-
-        <!-- Seção de Novo Jogo -->
+        <!-- Seção de Novo Jogo (Card 1) -->
         <div class="action-card mb-8 p-8 bg-gradient-to-br from-teal-50 to-teal-100 rounded-xl shadow-2xl border border-teal-200 max-w-md mx-auto">
             <h2 class="text-2xl font-bold text-teal-700 mb-4 text-center" data-lang-key="new_game_title">Iniciar Novo Jogo</h2>
             <p class="text-gray-600 mb-6 text-center leading-snug" data-lang-key="new_game_description">
                 Crie uma nova sessão de jogo para começar do zero ou convidar amigos.
             </p>
+            <!-- Campo para nome de usuário para novo jogo -->
+            <div class="input-group mb-4 w-full">
+                <label for="newGameUsernameInput" class="block text-gray-700 text-lg font-semibold mb-3 text-center" data-lang-key="label_username">Seu Nome de Usuário:</label>
+                <input type="text" id="newGameUsernameInput" placeholder="Digite seu nome"
+                       class="input-field p-3 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-teal-500 text-center" required>
+            </div>
             <button id="newGameButton" class="game-button bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out w-full transform hover:scale-105">
                 <span data-lang-key="button_new_game">Iniciar Novo Jogo</span>
             </button>
@@ -132,13 +131,21 @@
             </div>
         </div>
 
-        <!-- Seção de Acessar Jogo Existente -->
+        <!-- Seção de Acessar Jogo Existente (Card 2) -->
         <div class="action-card p-8 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-2xl border border-blue-200 max-w-md mx-auto">
             <h2 class="text-2xl font-bold text-blue-700 mb-4 text-center" data-lang-key="access_game_title">Acessar Jogo Existente</h2>
             <p class="text-gray-600 mb-6 text-center leading-snug" data-lang-key="access_game_description">
                 Entre em uma sessão de jogo existente usando um ID de sessão.
             </p>
-            <div class="input-group mb-4">
+            <!-- Campo para nome de usuário para jogo existente -->
+            <div class="input-group mb-4 w-full">
+                <label for="existingGameUsernameInput" class="block text-gray-700 text-lg font-semibold mb-3 text-center" data-lang-key="label_username">Seu Nome de Usuário:</label>
+                <input type="text" id="existingGameUsernameInput" placeholder="Digite seu nome"
+                       class="input-field p-3 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-center" required>
+            </div>
+            <!-- Campo para ID da sessão existente -->
+            <div class="input-group mb-6 w-full">
+                <label for="sessionIdInput" class="block text-gray-700 text-lg font-semibold mb-3 text-center" data-lang-key="label_session_id">ID da Sessão:</label>
                 <input type="text" id="sessionIdInput" placeholder="Digite o ID da Sessão (Ex: 1234PTBR)"
                        class="input-field p-3 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-center" required>
             </div>
