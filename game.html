@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html> 
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,63 +8,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Incluindo estilos personalizados -->
     <link rel="stylesheet" href="css/style.css">
-    <!-- Incluindo Firebase SDKs -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, getDoc, serverTimestamp, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
-
-        // Variáveis globais para Firebase, que serão preenchidas no DOMContentLoaded
-        window.firebaseApp = null;
-        window.db = null;
-        window.auth = null;
-        window.currentUserId = null; 
-        window.serverTimestamp = serverTimestamp;
-        window.arrayUnion = arrayUnion; // Expondo arrayUnion
-        window.arrayRemove = arrayRemove; // Expondo arrayRemove
-
-        // Promessa que será resolvida quando o Firebase estiver completamente inicializado e autenticado
-        window.firebaseReadyPromise = new Promise(resolve => {
-            document.addEventListener('DOMContentLoaded', async () => {
-                const firebaseConfig = {
-                    apiKey: "AIzaSyDdiedj1Smjzn9CDqShdhG5Y0_Sa18xyWI",
-                    authDomain: "jogo-gerencia-de-projetos.firebaseapp.com",
-                    projectId: "jogo-gerencia-de-projetos",
-                    storageBucket: "jogo-gerencia-de-projetos.firebasestorage.app",
-                    messagingSenderId: "356867532123",
-                    appId: "1:356867532123:web:0657d84635a5849df2667e",
-                    measurementId: "G-M5QYQ36Q9P"
-                };
-
-                const finalAppId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId; 
-
-                try {
-                    window.firebaseApp = initializeApp(firebaseConfig);
-                    // const analytics = getAnalytics(window.firebaseApp); // Inicializa Analytics, se necessário
-                    window.auth = getAuth(window.firebaseApp);
-                    window.db = getFirestore(window.firebaseApp);
-                    window.appId = finalAppId;
-
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(window.auth, __initial_auth_token);
-                        console.log("Firebase: Autenticado com token customizado em game.html.");
-                    } else {
-                        await signInAnonymously(window.auth);
-                        console.log("Firebase: Autenticado anonimamente em game.html.");
-                    }
-                    window.currentUserId = window.auth.currentUser?.uid || 'anonymous-user';
-                    console.log("Firebase: App inicializado e autenticado em game.html. ID do Usuário:", window.currentUserId);
-                    resolve(); // Resolve a promessa indicando que Firebase está pronto
-
-                } catch (error) {
-                    console.error("Erro ao inicializar Firebase ou autenticar em game.html:", error);
-                    // Redireciona para a página inicial com mensagem de erro se o Firebase falhar
-                    window.location.href = 'index.html?error=firebase_init_failed';
-                }
-            });
-        });
-    </script>
 </head>
 <body class="p-4 flex flex-col min-h-screen">
     <div class="w-full max-w-5xl flex justify-between items-center mb-6">
@@ -120,9 +63,85 @@
         Versão: 1.0.0
     </div>
 
-    <!-- Incluindo arquivo de configuração PRIMEIRO -->
+    <!-- INICIALIZAÇÃO DO FIREBASE (DEVE VIR ANTES DOS SEUS SCRIPTS JS) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { 
+            getFirestore, collection, doc, getDoc, setDoc, updateDoc, 
+            onSnapshot, serverTimestamp, arrayUnion, arrayRemove 
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        // import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js"; // Descomente se precisar de Analytics
+
+        // Configurações do Firebase (use as suas, se forem diferentes)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDdiedj1Smjzn9CDqShdhG5Y0_Sa18xyWI",
+            authDomain: "jogo-gerencia-de-projetos.firebaseapp.com",
+            projectId: "jogo-gerencia-de-projetos",
+            storageBucket: "jogo-gerencia-de-projetos.firebasestorage.app",
+            messagingSenderId: "356867532123",
+            appId: "1:356867532123:web:0657d84635a5849df2667e",
+            measurementId: "G-M5QYQ36Q9P"
+        };
+
+        // Use o __app_id fornecido pelo ambiente, se existir, senão use o projectId
+        const finalAppId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId; 
+
+        // Expõe instâncias e funções do Firebase globalmente
+        window.firebaseApp = initializeApp(firebaseConfig);
+        // window.analytics = getAnalytics(window.firebaseApp); // Inicializa Analytics, se precisar
+        window.auth = getAuth(window.firebaseApp);
+        window.db = getFirestore(window.firebaseApp);
+        window.appId = finalAppId;
+
+        // Expõe funções Firestore para uso mais direto no game.js
+        window.firestore = {
+            collection: collection,
+            doc: doc,
+            getDoc: getDoc,
+            setDoc: setDoc,
+            updateDoc: updateDoc,
+            onSnapshot: onSnapshot,
+            serverTimestamp: serverTimestamp,
+            arrayUnion: arrayUnion,
+            arrayRemove: arrayRemove
+        };
+
+        // Função para autenticar e iniciar o jogo
+        async function authenticateAndInitGame() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(window.auth, __initial_auth_token);
+                    console.log("Firebase: Autenticado com token customizado em game.html.");
+                } else {
+                    await signInAnonymously(window.auth);
+                    console.log("Firebase: Autenticado anonimamente em game.html.");
+                }
+                window.currentUserId = window.auth.currentUser?.uid || 'anonymous-user';
+                console.log("Firebase: App inicializado e autenticado em game.html. ID do Usuário:", window.currentUserId);
+
+                // CHAMA A FUNÇÃO DE INICIALIZAÇÃO DO SEU GAME.JS AQUI!
+                if (typeof window.initGame === 'function') {
+                    await window.initGame();
+                } else {
+                    console.error("Erro: window.initGame() não está definido. Verifique se game.js foi carregado corretamente.");
+                }
+
+            } catch (error) {
+                console.error("Erro ao inicializar Firebase ou autenticar em game.html:", error);
+                // Redireciona para a página inicial com mensagem de erro se o Firebase falhar
+                alert("Erro ao iniciar o jogo. Por favor, tente novamente.");
+                window.location.href = 'index.html?error=firebase_init_failed';
+            }
+        }
+
+        // Garante que o DOM esteja completamente carregado antes de tentar autenticar e iniciar o jogo
+        document.addEventListener('DOMContentLoaded', authenticateAndInitGame);
+
+    </script>
+
+    <!-- Seus scripts JS devem vir DEPOIS da inicialização do Firebase -->
     <script src="js/config.js"></script>
-    <!-- Incluindo JavaScript externo do jogo DEPOIS -->
     <script src="js/game.js"></script>
 </body>
 </html>
