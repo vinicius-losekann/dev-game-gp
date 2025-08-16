@@ -12,17 +12,18 @@ let firestore;
 let currentUserId;
 let currentSessionId;
 let currentSessionLanguage;
+let currentUserName; // NOVO: Variável para armazenar o nome do usuário
 
 // Variável para armazenar a função de desinscrição do listener do Firestore
-let sessionPlayersUnsubscribe = null; // GARANTIDO QUE ESTÁ INICIALIZADO
+let sessionPlayersUnsubscribe = null; 
 
 // Elementos DOM - Declarações para serem atribuídas em initGameLogic
 let displaySessionIdElement;
 let playerListElement;
 let gameAreaSelectorElement;
 let gameCardElement;
-let questionAreaElement; // H2 de área da pergunta
-let currentQuestionDisplayElement; // P da pergunta
+let questionAreaElement; 
+let currentQuestionDisplayElement; 
 let optionsContainerElement;
 let answerButton;
 let nextCardButton;
@@ -37,7 +38,7 @@ let gameContainer;
 function showMessage(message, type = 'info') {
     if (messageBox) {
         messageBox.textContent = message;
-        messageBox.className = `message-box ${type}`; // Resetar classes e adicionar a nova
+        messageBox.className = `message-box ${type}`; 
         messageBox.classList.remove('hidden');
     } else {
         console.warn('Elemento messageBox não encontrado.');
@@ -55,7 +56,6 @@ function hideMessage() {
 async function loadGameTranslations(lang) {
     let success = false;
     try {
-        // CORREÇÃO: Usando caminho absoluto a partir da raiz do repositório
         const response = await fetch(`/dev-game-gp/translations/game_translations.json`);
         if (!response.ok) {
             throw new Error(`Erro de rede ou arquivo não encontrado: ${response.status} ${response.statusText}`);
@@ -65,7 +65,7 @@ async function loadGameTranslations(lang) {
         if (!allTranslations[lang]) {
             console.warn(`Idioma '${lang}' não encontrado no arquivo de traduções do jogo. Usando pt-BR como fallback.`);
             gameTranslations = allTranslations['pt-BR']; 
-            currentLanguage = 'pt-BR'; // Define o idioma atual como o fallback
+            currentLanguage = 'pt-BR'; 
         } else {
             gameTranslations = allTranslations[lang];
             currentLanguage = lang; 
@@ -84,14 +84,12 @@ async function loadGameTranslations(lang) {
 
 // Função para aplicar as traduções na página do jogo
 function applyGameTranslations() {
-    // Aplica a tradução ao título da página
     const pageTitleElement = document.querySelector('title');
     if (pageTitleElement) {
         const baseTitle = gameTranslations['game_page_base_title'] || "Jogo de Gerenciamento de Projetos - Sessão";
         pageTitleElement.textContent = `${baseTitle} ${currentSessionId ? `- ${currentSessionId}` : ''}`;
     }
 
-    // Aplica traduções aos elementos com data-lang-key
     document.querySelectorAll('[data-lang-key]').forEach(element => {
         const key = element.dataset.langKey;
         if (gameTranslations[key]) {
@@ -99,8 +97,6 @@ function applyGameTranslations() {
         }
     });
 
-    // Traduzir botões de área (se existirem e tiverem data-area-key)
-    // gameAreaSelectorElement é o container dos botões de área
     if (gameAreaSelectorElement) { 
         gameAreaSelectorElement.querySelectorAll('.area-select-button').forEach(button => {
             const area = button.getAttribute('data-area'); 
@@ -111,7 +107,6 @@ function applyGameTranslations() {
     }
 }
 
-
 // Função para carregar perguntas do Firestore
 async function loadQuestions() {
     if (!db || !firestore) {
@@ -120,16 +115,24 @@ async function loadQuestions() {
         return [];
     }
     try {
+        console.log("DEBUG: Tentando carregar perguntas da coleção:", `artifacts/${window.appId}/public/data/questions`);
+        console.log("DEBUG: Filtrando perguntas pelo idioma:", currentLanguage);
+
         const questionsCollection = firestore.collection(db, `artifacts/${window.appId}/public/data/questions`);
-        // Adiciona um filtro pela linguagem para carregar apenas as perguntas relevantes
         const q = firestore.query(questionsCollection, firestore.where("language", "==", currentLanguage));
         const querySnapshot = await firestore.getDocs(q);
+        
         allQuestions = [];
+        if (querySnapshot.empty) {
+            console.warn("DEBUG: QuerySnapshot está vazio. Nenhuma pergunta encontrada para o idioma:", currentLanguage);
+            showMessage(gameTranslations['no_questions_for_language'] || `Nenhuma pergunta encontrada para o idioma "${currentLanguage}".`, 'info');
+        }
+
         querySnapshot.forEach((doc) => {
             allQuestions.push(doc.data());
         });
-        console.log("Perguntas carregadas:", allQuestions.length);
-        return allQuestions; // Retorna as perguntas carregadas
+        console.log("DEBUG: Perguntas carregadas. Total:", allQuestions.length, "Perguntas:", allQuestions);
+        return allQuestions; 
     } catch (error) {
         console.error("Erro ao carregar perguntas do Firestore:", error);
         showMessage(gameTranslations['error_loading_questions'] || "Erro ao carregar as perguntas. Por favor, recarregue a página.", 'error');
@@ -141,7 +144,7 @@ async function loadQuestions() {
 function getRandomQuestion(area = null) {
     let availableQuestions = allQuestions;
     if (area) {
-        availableQuestions = allQuestions.filter(q => q.area.toLowerCase() === area.toLowerCase()); // Case-insensitive
+        availableQuestions = availableQuestions.filter(q => q.area.toLowerCase() === area.toLowerCase()); 
     }
 
     if (availableQuestions.length === 0) {
@@ -221,8 +224,8 @@ function checkAnswer() {
 
 // Inicia o jogo ou exibe o seletor de área
 async function startGameLogicFlow(area = null) { 
-    loadingOverlay.classList.add('hidden'); // Esconde o overlay de carregamento
-    gameContainer.classList.remove('hidden'); // Mostra o container do jogo
+    loadingOverlay.classList.add('hidden'); 
+    gameContainer.classList.remove('hidden'); 
 
     if (allQuestions.length === 0) {
         showMessage(gameTranslations['error_loading_questions'] || "Erro: Nenhuma pergunta carregada. Recarregue a página.", 'error');
@@ -233,7 +236,6 @@ async function startGameLogicFlow(area = null) {
     if (questionToShow) {
         displayQuestion(questionToShow);
     } else {
-        // Se não houver perguntas na área selecionada, volta para o seletor de área
         gameCardElement.classList.add('hidden');
         gameAreaSelectorElement.classList.remove('hidden');
         showMessage(gameTranslations.no_more_questions || `Nenhuma carta encontrada para a área "${gameTranslations[`area_${area.toLowerCase()}`] || area}". Por favor, escolha outra área ou "Carta Aleatória".`, 'info');
@@ -258,7 +260,7 @@ async function removePlayerFromSession(sessionId, userId) {
                 await firestore.updateDoc(sessionDocRef, {
                     currentPlayers: firestore.arrayRemove(playerToRemove)
                 });
-                console.log(`Usuário ${userId} removido da sessão.`);
+                console.log(`Usuário ${userId} (${currentUserName}) removido da sessão.`);
             }
         }
     } catch (error) {
@@ -267,7 +269,7 @@ async function removePlayerFromSession(sessionId, userId) {
 }
 
 // Função para adicionar o jogador à sessão no Firestore (usado ao entrar na game.html)
-async function addPlayerToSession(sessionId, userId) {
+async function addPlayerToSession(sessionId, userId, userName) {
     if (!db || !firestore || !userId) {
         console.error("Firebase não inicializado ou userId ausente ao tentar adicionar jogador à sessão.");
         return;
@@ -281,17 +283,22 @@ async function addPlayerToSession(sessionId, userId) {
             const playerExists = players.some(player => player.userId === userId);
 
             if (!playerExists) {
-                // CORREÇÃO AQUI: Usando new Date() em vez de firestore.serverTimestamp()
                 await firestore.updateDoc(sessionDocRef, {
-                    currentPlayers: firestore.arrayUnion({ userId: userId, joinedAt: new Date() }) 
+                    currentPlayers: firestore.arrayUnion({ userId: userId, name: userName, joinedAt: new Date() }) 
                 });
-                console.log(`Usuário ${userId} adicionado à sessão.`);
+                console.log(`Usuário ${userId} (${userName}) adicionado à sessão.`);
             } else {
-                console.log(`Usuário ${userId} já está na sessão.`);
+                console.log(`Usuário ${userId} (${userName}) já está na sessão.`);
+                // Atualizar o nome do jogador se ele mudou (mantém a identificação na sessão consistente)
+                const playerIndex = players.findIndex(player => player.userId === userId);
+                if (playerIndex > -1 && players[playerIndex].name !== userName) {
+                    players[playerIndex].name = userName;
+                    await firestore.updateDoc(sessionDocRef, { currentPlayers: players });
+                    console.log(`Nome do usuário ${userId} atualizado para ${userName}.`);
+                }
             }
         } else {
             console.warn(`Sessão ${sessionId} não encontrada ao tentar adicionar jogador.`);
-            // Opcional: Redirecionar ou mostrar erro ao usuário se a sessão não existir
         }
     } catch (error) {
         console.error("Erro ao adicionar usuário à sessão:", error);
@@ -307,15 +314,14 @@ function addEventListeners() {
         feedbackContainer.innerHTML = ''; 
     });
 
-    // Adiciona listener para os botões de seleção de área
     document.querySelectorAll('.area-select-button').forEach(button => {
         button.addEventListener('click', () => {
             const area = button.dataset.area;
-            startGameLogicFlow(area); // Inicia o jogo com a área selecionada
+            startGameLogicFlow(area); 
         });
     });
 
-    randomCardButton.addEventListener('click', () => startGameLogicFlow()); // Carta aleatória
+    randomCardButton.addEventListener('click', () => startGameLogicFlow()); 
 
     backToHomeButton.addEventListener('click', async () => {
         if (sessionPlayersUnsubscribe) {
@@ -331,12 +337,13 @@ function addEventListeners() {
 
 // Função para atualizar a lista de jogadores na UI
 function updatePlayerList(players) {
-    if (playerListElement) { // Garante que o elemento existe
+    if (playerListElement) { 
         playerListElement.innerHTML = ''; 
         if (players && players.length > 0) {
             players.forEach(player => {
                 const li = document.createElement('li');
-                li.textContent = player.userId; 
+                // Exibe o nome do usuário, com fallback para o userId se o nome não estiver disponível
+                li.textContent = player.name || player.userId; 
                 playerListElement.appendChild(li);
             });
         } else {
@@ -382,7 +389,7 @@ async function initGameLogic() {
     const urlParams = new URLSearchParams(window.location.search);
     currentSessionId = urlParams.get('session');
     let langFromUrl = urlParams.get('lang');
-
+    currentUserName = decodeURIComponent(urlParams.get('playerName') || 'Jogador Anônimo'); // NOVO: Obter nome do jogador
 
     if (!currentSessionId) {
         showMessage(gameTranslations['error_no_session_id'] || "Nenhum ID de sessão encontrado. Redirecionando para a página inicial.", 'error');
@@ -393,27 +400,26 @@ async function initGameLogic() {
         return;
     }
 
-    if (displaySessionIdElement) { // Verifica se o elemento existe antes de usar
+    if (displaySessionIdElement) { 
         displaySessionIdElement.textContent = currentSessionId;
     }
     console.log(`ID da Sessão: ${currentSessionId}`);
     console.log(`Idioma da URL: ${langFromUrl}`);
+    console.log(`Nome do Jogador: ${currentUserName}`); // NOVO LOG
 
     const translationsLoaded = await loadGameTranslations(langFromUrl || AppConfig.defaultLanguage);
     if (!translationsLoaded) {
         console.error("Falha ao carregar traduções. Não é possível prosseguir com o jogo.");
-        // Opcional: redirecionar ou mostrar uma mensagem de erro fatal aqui
         return;
     }
     console.log(`Idioma do jogo definido para: ${currentLanguage}`);
 
-    // Adiciona o jogador à sessão no Firestore
-    await addPlayerToSession(currentSessionId, currentUserId);
+    // Adiciona o jogador à sessão no Firestore, passando o nome
+    await addPlayerToSession(currentSessionId, currentUserId, currentUserName);
 
 
-    if (db && firestore && typeof firestore.onSnapshot === 'function') { // Verifica explicitamente se onSnapshot é uma função
+    if (db && firestore && typeof firestore.onSnapshot === 'function') { 
         const sessionDocRef = firestore.doc(db, `artifacts/${window.appId}/public/data/sessions`, currentSessionId);
-        // A linha 466 (aproximadamente) está aqui, onde sessionPlayersUnsubscribe é atribuído.
         sessionPlayersUnsubscribe = firestore.onSnapshot(sessionDocRef, (docSnap) => {
             if (docSnap.exists()) {
                 const sessionData = docSnap.data();
@@ -421,7 +427,6 @@ async function initGameLogic() {
                 updatePlayerList(players);
             } else {
                 console.log("Sessão não encontrada ou removida.");
-                // Opcional: redirecionar ou mostrar mensagem se a sessão for removida
                 showMessage(gameTranslations.session_deleted_message || "Sesión finalizada o no encontrada. Redireccionando.", 'error');
                 setTimeout(() => {
                     window.location.href = 'index.html';
@@ -437,23 +442,22 @@ async function initGameLogic() {
         showMessage("Erro ao inicializar listeners de sessão. Alguns recursos podem não funcionar.", 'error');
     }
 
-    // Carrega as perguntas e então inicia o fluxo do jogo
     await loadQuestions();
-    addEventListeners(); // Adiciona os listeners depois que o DOM está pronto e elementos referenciados
-    startGameLogicFlow(); // Inicia o fluxo do jogo exibindo o seletor de área ou uma pergunta
+    addEventListeners(); 
+    startGameLogicFlow(); 
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("DOMContentLoaded disparado em gameLogic.js. Verificando AppConfig.defaultLanguage...");
     
-    await window.firebaseInitializedPromise; // Aguarda o Firebase ser completamente inicializado
+    await window.firebaseInitializedPromise; 
     console.log("Firebase inicializado. Iniciando a lógica do jogo...");
     
-    await initGameLogic(); // Inicia a lógica principal do jogo
+    await initGameLogic(); 
 });
 
 window.addEventListener('beforeunload', async () => {
-    if (currentSessionId && currentUserId && db) { // Usa as variáveis locais currentUserId e db
+    if (currentSessionId && currentUserId && db) { 
         if (sessionPlayersUnsubscribe) {
             sessionPlayersUnsubscribe();
             console.log("Listener de jogadores desinscrito em beforeunload.");
