@@ -29,7 +29,7 @@
         </div>
 
         <!-- Seção de Novo Jogo -->
-        <div class="input-group mb-6 p-4 border border-blue-200 rounded-lg bg-blue-50">
+        <div class="input-group mb-6 p-4 border border-blue-200 rounded-lg bg-blue-50 max-w-sm mx-auto">
             <h2 class="text-xl font-semibold mb-3 text-blue-800" data-lang-key="new_game_title">Iniciar Novo Jogo</h2>
             <button id="newGameButton" class="game-button bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg w-full max-w-xs mx-auto">
                 <span data-lang-key="button_new_game">Iniciar Novo Jogo</span>
@@ -37,11 +37,10 @@
         </div>
 
         <!-- Seção de Acesso a Jogo Existente ou Recém-Criado -->
-        <div class="input-group mb-6 p-4 border border-purple-200 rounded-lg bg-purple-50">
+        <div class="input-group mb-6 p-4 border border-purple-200 rounded-lg bg-purple-50 max-w-sm mx-auto">
             <h2 class="text-xl font-semibold mb-3 text-purple-800" data-lang-key="access_game_title">Acessar Jogo Existente</h2>
             
             <!-- Mensagem de feedback e ID da sessão criada (visível após "Iniciar Novo Jogo") -->
-            <!-- Alterado para classe 'session-message-success' para fundo verde -->
             <div id="sessionInfo" class="session-message-success hidden px-4 py-3 rounded-lg relative mb-4">
                 <p><strong data-lang-key="session_created_message">Sessão criada! Seu ID é: </strong> <span id="displayCreatedSessionId" class="font-bold text-lg"></span></p>
                 <p class="mt-2 text-sm" data-lang-key="session_id_prompt">Insira seu nome e clique em "Acessar Jogo".</p>
