@@ -1,3 +1,4 @@
+/* css/style.css */
 /* Estilos personalizados que complementam o Tailwind */
 body {
     font-family: "Inter", sans-serif; /* Usando a fonte Inter */
@@ -31,50 +32,79 @@ body {
     box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
 }
 .game-button:active {
-    transform: translateY(1px);
+    transform: translateY(0);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Estilos para os botões de seleção de idioma */
-.language-button {
+/* Estilos específicos para os botões de idioma */
+.lang-button {
     background-color: #cbd5e1; /* gray-300 */
-    color: #475569; /* slate-600 */
-    padding: 0.75rem 1.5rem;
-    border-radius: 9999px; /* Full rounded */
+    color: #475569; /* gray-700 */
     font-weight: 600;
-    cursor: pointer;
+    border: 2px solid transparent;
     transition: all 0.2s ease-in-out;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    border: 1px solid transparent; /* Adiciona borda transparente */
+    min-width: 150px; /* Garante largura mínima para todos os botões */
 }
 
-.language-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+.lang-button:hover {
     background-color: #e2e8f0; /* gray-200 */
+    color: #2d3748; /* gray-800 */
 }
 
-.language-button.selected {
-    border: 2px solid #10b981; /* green-500 */
-    background-color: #ecfdf5; /* green-50 */
-    color: #065f46; /* green-800 */
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3); /* Anel de foco verde */
+/* Estilo para o botão de idioma selecionado */
+.lang-button.selected {
+    background-color: #2563eb; /* blue-700 */
+    color: #ffffff;
+    border-color: #1d4ed8; /* blue-800 */
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.4); /* Sombra azul mais proeminente */
+    transform: translateY(-2px); /* Leve elevação */
 }
 
-/* Estilos para a caixa de mensagem de feedback */
+/* Estilos para campos de input */
+.input-field {
+    border: 1px solid #d1d5db; /* gray-300 */
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    width: 100%;
+    box-sizing: border-box; /* Garante que padding não aumente a largura total */
+    font-size: 1rem;
+    color: #374151; /* gray-700 */
+}
+
+.input-field:focus {
+    outline: none;
+    border-color: #2563eb; /* blue-600 */
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); /* blue-500 com opacidade */
+}
+
+/* Estilos para contêineres e seções */
+.container {
+    background-color: #ffffff;
+    padding: 2.5rem;
+    border-radius: 1rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    width: 90%;
+    text-align: center;
+    display: flex; /* Adicionado para game.html para flex-direction column */
+    flex-direction: column; /* Adicionado para game.html para empilhar elementos */
+    gap: 1.5rem; /* Espaçamento entre seções */
+    position: relative; /* Para o posicionamento do footer */
+}
+
+/* Estilos para caixas de mensagem (feedback) */
 .message-box {
     padding: 1rem;
     border-radius: 0.5rem;
     margin-bottom: 1rem;
-    font-weight: 600;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    font-weight: 500;
     text-align: center;
 }
 
 .message-box.info {
-    background-color: #e0f2fe; /* blue-100 */
-    color: #1e40af; /* blue-800 */
-    border: 1px solid #93c5fd; /* blue-300 */
+    background-color: #e0f2fe; /* light blue-100 */
+    color: #0c4a6e; /* dark blue-800 */
+    border: 1px solid #7dd3fc; /* blue-300 */
 }
 
 .message-box.success {
@@ -89,22 +119,136 @@ body {
     border: 1px solid #f87171; /* red-300 */
 }
 
-/* Esconder a caixa de mensagem quando necessário */
-.message-box.hidden {
-    display: none;
+/* Estilos para o overlay de carregamento */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    color: #333;
+    z-index: 1000;
+    transition: opacity 0.5s ease-in-out;
 }
 
-/* Estilos para os botões de opção em game.html */
+.loading-overlay.hidden {
+    opacity: 0;
+    pointer-events: none; /* Permite interações abaixo do overlay */
+}
+
+/* Estilos para a página do jogo (game.html) */
+#gameContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    /* Adicionar aqui os estilos do container que foram movidos do .container geral */
+    background-color: #ffffff;
+    padding: 2.5rem;
+    border-radius: 1rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    max-width: 900px; /* Aumenta a largura máxima para o jogo */
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+/* Estilos para a lista de jogadores */
+#playerList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+#playerList li {
+    background-color: #e0e7ff; /* indigo-100 */
+    color: #3730a3; /* indigo-800 */
+    padding: 0.5rem 1rem;
+    border-radius: 9999px; /* pill shape */
+    font-size: 0.9rem;
+    font-weight: 500;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Estilos da área de seleção de cartas */
+#gameAreaSelector {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); /* Responsivo */
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.area-select-button {
+    background-color: #4f46e5; /* indigo-600 */
+    color: white;
+    font-weight: 700;
+    padding: 1.25rem 1rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease-in-out;
+    text-align: center;
+    cursor: pointer;
+    border: none;
+}
+
+.area-select-button:hover {
+    background-color: #4338ca; /* indigo-700 */
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Estilos do card da pergunta */
+#gameCard {
+    background-color: #f8fafc; /* blueGray-50 */
+    border: 1px solid #e2e8f0; /* blueGray-200 */
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+#questionArea {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #4a5568; /* gray-700 */
+    margin-bottom: 1rem;
+}
+
+#currentQuestionDisplay {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2d3748; /* gray-800 */
+    margin-bottom: 2rem;
+    line-height: 1.5;
+}
+
+#optionsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
 .option-button {
     background-color: #ffffff;
-    border: 1px solid #e2e8f0; /* gray-200 */
-    padding: 1rem;
-    border-radius: 0.5rem;
-    cursor: pointer;
+    border: 1px solid #cbd5e1; /* gray-300 */
+    padding: 1rem 1.5rem;
+    border-radius: 0.625rem;
     text-align: left;
+    font-size: 1rem;
+    cursor: pointer;
     transition: all 0.2s ease-in-out;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    color: #2d3748; /* gray-800 */
 }
+
 .option-button:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -133,23 +277,32 @@ body {
     border: 1px solid #f87171; /* red-300 */
 }
 .explanation {
-    margin-top: 1rem; /* Mais espaço acima */
+    margin-top: 1rem; /* Mais espaço */
+    background-color: #eff6ff; /* blue-50 */
+    border-left: 4px solid #3b82f6; /* blue-500 */
     padding: 1rem;
-    background-color: #f0f9ff; /* blue-50 */
-    border: 1px solid #bfdbfe; /* blue-200 */
     border-radius: 0.5rem;
-    font-size: 0.95rem; /* Um pouco menor */
-    line-height: 1.5;
-    color: #475569; /* slate-700 */
+    color: #1e40af; /* blue-800 */
+    font-style: italic;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-/* Estilos para o texto da versão */
-.version-text {
-    position: absolute; /* Posição absoluta em relação ao body */
-    bottom: 10px;      /* 10px do fundo */
-    right: 10px;       /* 10px da direita */
-    font-size: 0.8rem; /* Tamanho da fonte menor */
-    color: #64748b;    /* cor cinza para o texto */
-    z-index: 10;       /* Garante que fique acima de outros elementos se houver sobreposição */
+.correct-answer-highlight {
+    border: 2px solid #10b981 !important; /* green-500, força a borda */
+    background-color: #d1fae5 !important; /* green-100, força o fundo */
 }
 
+.hidden {
+    display: none !important;
+}
+
+.version-footer {
+    position: absolute;
+    bottom: 10px;
+    width: 100%;
+    text-align: center;
+    font-size: 0.8rem;
+    color: #718096; /* gray-500 */
+    left: 0; /* Alinha com a borda esquerda do pai posicionado */
+    padding-bottom: 10px; /* Evita que o texto encoste no fundo */
+}
