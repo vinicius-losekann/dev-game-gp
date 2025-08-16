@@ -13,6 +13,9 @@ let currentUserId;
 let currentSessionId;
 let currentSessionLanguage;
 
+// Variável para armazenar a função de desinscrição do listener do Firestore
+let sessionPlayersUnsubscribe = null; // GARANTIDO QUE ESTÁ INICIALIZADO
+
 // Elementos DOM - Declarações para serem atribuídas em initGameLogic
 let displaySessionIdElement;
 let playerListElement;
@@ -369,6 +372,13 @@ async function initGameLogic() {
     firestore = window.firestore;
     currentUserId = window.currentUserId;
 
+    console.log("DEBUG - Dentro de initGameLogic:");
+    console.log("DEBUG - db (local):", db);
+    console.log("DEBUG - firestore (local):", firestore);
+    console.log("DEBUG - currentUserId (local):", currentUserId);
+    console.log("DEBUG - typeof firestore.onSnapshot:", typeof firestore.onSnapshot);
+
+
     const urlParams = new URLSearchParams(window.location.search);
     currentSessionId = urlParams.get('session');
     let langFromUrl = urlParams.get('lang');
@@ -401,8 +411,9 @@ async function initGameLogic() {
     await addPlayerToSession(currentSessionId, currentUserId);
 
 
-    if (db && firestore) { // Usa as variáveis locais db e firestore
+    if (db && firestore && typeof firestore.onSnapshot === 'function') { // Verifica explicitamente se onSnapshot é uma função
         const sessionDocRef = firestore.doc(db, `artifacts/${window.appId}/public/data/sessions`, currentSessionId);
+        // A linha 466 (aproximadamente) está aqui, onde sessionPlayersUnsubscribe é atribuído.
         sessionPlayersUnsubscribe = firestore.onSnapshot(sessionDocRef, (docSnap) => {
             if (docSnap.exists()) {
                 const sessionData = docSnap.data();
@@ -411,7 +422,7 @@ async function initGameLogic() {
             } else {
                 console.log("Sessão não encontrada ou removida.");
                 // Opcional: redirecionar ou mostrar mensagem se a sessão for removida
-                showMessage(gameTranslations.session_deleted_message || "Sessão finalizada ou não encontrada. Redirecionando.", 'error');
+                showMessage(gameTranslations.session_deleted_message || "Sesión finalizada o no encontrada. Redireccionando.", 'error');
                 setTimeout(() => {
                     window.location.href = 'index.html';
                 }, 3000);
@@ -420,8 +431,10 @@ async function initGameLogic() {
             console.error("Erro ao ouvir por jogadores da sessão:", error);
             showMessage("Erro ao carregar jogadores da sessão.", 'error');
         });
+        console.log("DEBUG: onSnapshot listener configurado com sucesso.");
     } else {
-        console.error("Firebase Firestore não está inicializado para listeners de jogadores.");
+        console.error("Firebase Firestore não está inicializado para listeners de jogadores ou onSnapshot não é uma função.");
+        showMessage("Erro ao inicializar listeners de sessão. Alguns recursos podem não funcionar.", 'error');
     }
 
     // Carrega as perguntas e então inicia o fluxo do jogo
