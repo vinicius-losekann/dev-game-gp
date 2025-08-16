@@ -1,4 +1,3 @@
-/* css/style.css */
 /* Estilos personalizados que complementam o Tailwind */
 body {
     font-family: "Inter", sans-serif; /* Usando a fonte Inter */
@@ -14,14 +13,34 @@ body {
     padding-bottom: 40px; /* Adiciona padding na parte inferior para o texto da versão */
     position: relative; /* Necessário para posicionamento absoluto de elementos filhos */
 }
+
 /* Estilos para o contêiner principal na index.html para evitar o FOUC */
+/* Removendo 'invisible' por 'hidden' para melhor controle via JS */
 #main-content-container {
     opacity: 0;
-    visibility: hidden;
+    visibility: hidden; /* Use 'hidden' em vez de 'invisible' se o display não for block/flex */
     transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
     /* Certifique-se de que o contêiner principal tenha um padding suficiente para não ser coberto */
     padding-bottom: 2rem;
+    display: flex; /* Garante que ele se comporte como um flex container quando visível */
+    flex-direction: column; /* Organiza os itens em coluna */
+    align-items: center; /* Centraliza os itens horizontalmente */
+    justify-content: center; /* Centraliza os itens verticalmente, se houver espaço */
+    width: 100%; /* Ocupa a largura total do pai */
+    max-width: 500px; /* Mantém a largura máxima como antes */
+    padding: 2.5rem; /* Padding interno */
+    border-radius: 1rem; /* Bordas arredondadas */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Sombra */
+    background-color: #ffffff; /* Fundo branco */
 }
+
+/* Classe para tornar o contêiner visível */
+#main-content-container.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+
 /* Estilos para os botões com um efeito visual agradável */
 .game-button {
     transition: all 0.2s ease-in-out;
@@ -34,264 +53,203 @@ body {
 }
 
 .game-button:active {
-    transform: translateY(0);
+    transform: translateY(1px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Estilos específicos para os botões de idioma */
-.lang-button {
+/* Estilos para botões de idioma */
+.language-button {
+    @apply px-4 py-2 rounded-lg font-semibold; /* Tailwind para padding, borda, fonte */
+    transition: background-color 0.2s, color 0.2s, transform 0.2s;
     background-color: #cbd5e1; /* gray-300 */
-    color: #475569; /* gray-700 */
-    font-weight: 600;
-    border: 2px solid transparent;
-    transition: all 0.2s ease-in-out;
-    width: 150px; /* Mantém largura fixa para todos os botões de idioma */
+    color: #475569; /* slate-600 */
+    margin: 0.5rem;
+    min-width: 120px; /* Garante que os botões tenham uma largura mínima */
 }
 
-.lang-button:hover {
-    background-color: #e2e8f0; /* gray-200 */
-    color: #2d3748; /* gray-800 */
+.language-button:hover {
+    background-color: #94a3b8; /* gray-400 */
+    color: #f8fafc; /* slate-50 */
+    transform: scale(1.05); /* Pequeno aumento no tamanho */
 }
 
-/* Estilo para o botão de idioma selecionado */
-.lang-button.selected {
-    background-color: #2563eb; /* blue-700 */
+.language-button.selected {
+    background-color: #16a34a; /* green-600 */
     color: #ffffff;
-    border-color: #1d4ed8; /* blue-800 */
-    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.4); /* Sombra azul mais proeminente */
-    transform: translateY(-2px); /* Leve elevação */
+    box-shadow: 0 4px 10px rgba(22, 163, 74, 0.4); /* Sombra mais pronunciada para o selecionado */
+    transform: scale(1.1); /* Mais destaque */
 }
 
-/* Estilos para campos de input */
-.input-field {
-    border: 1px solid #d1d5db; /* gray-300 */
-    padding: 0.75rem 1rem;
-    border-radius: 0.5rem;
-    width: 100%; /* Ocupa 100% da largura do input-group */
-    box-sizing: border-box; /* Garante que padding não aumente a largura total */
-    font-size: 1rem;
-    color: #374151; /* gray-700 */
-    display: block;
-}
-
-/* Ajusta os botões dentro das seções para terem a mesma largura máxima dos inputs */
-.input-group button {
-    width: 100%; /* Botões ocupam 100% da largura do input-group */
-    margin-left: auto; /* Centraliza o botão */
-    margin-right: auto; /* Centraliza o botão */
-}
-
-
-.input-field:focus {
-    outline: none;
-    border-color: #2563eb; /* blue-600 */
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); /* blue-500 com opacidade */
-}
-
-/* Estilos para contêineres e seções */
-.container {
-    background-color: #ffffff;
-    padding: 2rem; /* Mantém o padding interno */
-    border-radius: 1rem;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-
-    /* ***** MUDANÇAS PRINCIPAIS AQUI: LARGURA PERCENTUAL E MAX-WIDTH ***** */
-    width: 60%; /* Voltando para 60% para um container mais estreito */
-    max-width: 500px; /* Limite superior para a largura, para não ficar gigante em telas grandes */
-    min-width: 300px; /* Garante que não fique muito estreito em telas pequenas */
-    /* ************************************************************************* */
-
-    margin: 20px auto; /* Centraliza e adiciona margem vertical */
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    position: relative;
-    box-sizing: border-box; /* Inclui padding e border no cálculo da largura */
-}
-
-/* Define uma largura para os contêineres menores (Novo Jogo e Acessar Jogo) */
-/* Eles serão 100% da largura do pai (o .container branco), com um max-width */
-.input-group {
-    background-color: #ffffff; /* Garante que eles tenham seu próprio fundo */
-    padding: 1.5rem; /* Padding interno */
-    border-radius: 0.75rem; /* Bordas arredondadas */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); /* Sombra sutil */
-
-    width: 100%; /* Ocupa 100% do .container principal */
-    max-width: 360px; /* Um pouco menor para ficar proporcional ao container principal */
-    margin-left: auto; /* Centraliza dentro do .container principal */
-    margin-right: auto; /* Centraliza dentro do .container principal */
-    box-sizing: border-box; /* Inclui padding e border no cálculo da largura */
-}
-
-/* Estilos para caixas de mensagem (feedback) */
+/* Estilos para a caixa de mensagens */
 .message-box {
     padding: 1rem;
+    margin-top: 1rem;
     border-radius: 0.5rem;
-    margin-bottom: 1rem;
     font-weight: 500;
     text-align: center;
+    transition: all 0.3s ease-in-out;
 }
 
 .message-box.info {
-    background-color: #e0f2fe; /* light blue-100 */
-    color: #0c4a6e; /* dark blue-800 */
-    border: 1px solid #7dd3fc; /* blue-300 */
+    background-color: #e0f2fe; /* light blue */
+    color: #0c4a6e; /* dark blue */
+    border: 1px solid #7dd3fc; /* blue border */
 }
 
 .message-box.success {
-    background-color: #d1fae5; /* green-100 */
-    color: #065f46; /* green-800 */
-    border: 1px solid #34d399; /* green-300 */
+    background-color: #d1fae5; /* light green */
+    color: #065f46; /* dark green */
+    border: 1px solid #34d399; /* green border */
 }
 
 .message-box.error {
-    background-color: #fee2e2; /* red-100 */
-    color: #991b1b; /* red-800 */
-    border: 1px solid #f87171; /* red-300 */
+    background-color: #fee2e2; /* light red */
+    color: #991b1b; /* dark red */
+    border: 1px solid #f87171; /* red border */
 }
 
-/* Estilo para a mensagem de sessão criada (verde) */
-.session-message-success {
-    background-color: #d1fae5; /* green-100 */
-    color: #065f46; /* green-800 */
-    border: 1px solid #34d399; /* green-300 */
-    padding: 1rem;
-    border-radius: 0.5rem;
-    margin-bottom: 1rem;
-    font-weight: 500;
-    text-align: center;
-}
-
-/* Estilos para o overlay de carregamento */
-.loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(255, 255, 255, 0.9);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 1.5rem;
-    color: #333;
-    z-index: 1000;
-    transition: opacity 0.5s ease-in-out;
-}
-
-.loading-overlay.hidden {
+.message-box.hidden {
     opacity: 0;
-    pointer-events: none; /* Permite interações abaixo do overlay */
-}
-
-/* Estilos para a página do jogo (game.html) */
-#gameContainer {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    /* Adicionar aqui os estilos do container que foram movidos do .container geral */
-    background-color: #ffffff;
-    padding: 2.5rem;
-    border-radius: 1rem;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    max-width: 900px; /* Aumenta a largura máxima para o jogo */
-    width: 100%;
-    text-align: center;
-    box-sizing: border-box;
-}
-
-/* Estilos para a lista de jogadores */
-#playerList {
-    list-style: none;
+    visibility: hidden;
+    height: 0;
     padding: 0;
     margin: 0;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.5rem;
-}
-
-#playerList li {
-    background-color: #e0e7ff; /* indigo-100 */
-    color: #3730a3; /* indigo-800 */
-    padding: 0.5rem 1rem;
-    border-radius: 9999px; /* pill shape */
-    font-size: 0.9rem;
-    font-weight: 500;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-/* Estilos da área de seleção de cartas */
-#gameAreaSelector {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); /* Responsivo */
-    gap: 1rem;
-    margin-top: 1rem;
-}
-
-.area-select-button {
-    background-color: #4f46e5; /* indigo-600 */
-    color: white;
-    font-weight: 700;
-    padding: 1.25rem 1rem;
-    border-radius: 0.75rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s ease-in-out;
-    text-align: center;
-    cursor: pointer;
     border: none;
 }
 
-.area-select-button:hover {
-    background-color: #4338ca; /* indigo-700 */
-    transform: translateY(-3px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+/* Estilos para a página do jogo (game.html) */
+.player-list-container {
+    background-color: #f8fafc; /* Cor de fundo suave */
+    border-radius: 0.75rem; /* Bordas mais arredondadas */
+    padding: 1.25rem; /* Padding interno */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Sombra mais suave */
+    border: 1px solid #e2e8f0; /* Borda sutil */
+    margin-top: 1.5rem;
 }
 
-/* Estilos do card da pergunta */
-#gameCard {
-    background-color: #f8fafc; /* blueGray-50 */
-    border: 1px solid #e2e8f0; /* blueGray-200 */
-    border-radius: 1rem;
-    padding: 2rem;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-}
-
-#questionArea {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: #4a5568; /* gray-700 */
+.player-list-container h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #297063; /* Cor mais escura para o título */
     margin-bottom: 1rem;
 }
 
-#currentQuestionDisplay {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #2d3748; /* gray-800 */
-    margin-bottom: 2rem;
-    line-height: 1.5;
+#playerList li {
+    background-color: #ffffff; /* Fundo branco para cada jogador */
+    border: 1px solid #e2e8f0; /* Borda sutil */
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 500;
+    color: #475569; /* slate-600 */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-#optionsContainer {
+#playerList li:last-child {
+    margin-bottom: 0;
+}
+
+#playerList li.current-user {
+    background-color: #ecfdf5; /* green-50 */
+    border-color: #10b981; /* green-500 */
+    color: #065f46; /* green-800 */
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+    transform: translateY(-2px);
+}
+
+.area-button {
+    @apply px-6 py-3 text-lg font-semibold rounded-lg shadow-md;
+    transition: all 0.2s ease-in-out;
+    background-image: linear-gradient(to right, #6ee7b7 0%, #34d399 100%); /* green-300 a green-500 */
+    color: white;
+    border: none;
+    cursor: pointer;
+    margin: 0.5rem;
+    min-width: 180px;
+}
+
+.area-button:hover {
+    background-image: linear-gradient(to right, #34d399 0%, #10b981 100%); /* green-500 a green-600 */
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4);
+}
+
+.area-button:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 5px rgba(16, 185, 129, 0.2);
+}
+
+.random-card-button {
+    @apply px-6 py-3 text-lg font-semibold rounded-lg shadow-md;
+    background-color: #60a5fa; /* blue-400 */
+    color: white;
+    transition: all 0.2s ease-in-out;
+    border: none;
+    cursor: pointer;
+    margin-top: 1rem;
+}
+
+.random-card-button:hover {
+    background-color: #3b82f6; /* blue-500 */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
+}
+
+.question-card {
+    background-color: #f0fdf4; /* green-50 */
+    border: 2px solid #a7f3d0; /* green-200 */
+    padding: 2.5rem;
+    border-radius: 1rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+    text-align: left;
+    transition: all 0.5s ease-in-out; /* Transição para fade in */
+}
+
+.question-card.hidden {
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none; /* Impede interações quando oculto */
+}
+
+.question-card.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto; /* Permite interações quando visível */
+}
+
+.question-area-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #065f46; /* green-800 */
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.question-text {
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+    color: #1f2937; /* gray-800 */
+    line-height: 1.6;
+}
+
+.options-container {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    margin-bottom: 1.5rem;
 }
 
 .option-button {
-    background-color: #ffffff;
-    border: 1px solid #cbd5e1; /* gray-300 */
-    padding: 1rem 1.5rem;
-    border-radius: 0.625rem;
-    text-align: left;
-    font-size: 1rem;
-    cursor: pointer;
+    @apply w-full py-3 px-4 rounded-lg border-2 text-left font-medium;
+    background-color: #f1f5f9; /* slate-100 */
+    border-color: #cbd5e1; /* slate-300 */
+    color: #334155; /* slate-700 */
     transition: all 0.2s ease-in-out;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    color: #2d3748; /* gray-800 */
+    cursor: pointer;
 }
 
 .option-button:hover {
@@ -299,11 +257,13 @@ body {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     background-color: #e2e8f0;
 }
+
 .option-button.selected {
     border: 2px solid #10b981; /* green-500 */
     background-color: #ecfdf5; /* green-50 */
     box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3); /* Anel de foco verde */
 }
+
 .feedback {
     padding: 1rem;
     border-radius: 0.5rem;
@@ -311,43 +271,131 @@ body {
     font-weight: 600; /* Mais negrito */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
+
 .feedback.correct {
     background-color: #d1fae5; /* green-100 */
     color: #065f46; /* green-800 */
     border: 1px solid #34d399; /* green-300 */
 }
+
 .feedback.incorrect {
     background-color: #fee2e2; /* red-100 */
     color: #991b1b; /* red-800 */
     border: 1px solid #f87171; /* red-300 */
 }
+
 .explanation {
-    margin-top: 1rem; /* Mais espaço */
-    background-color: #eff6ff; /* blue-50 */
-    border-left: 4px solid #3b82f6; /* blue-500 */
+    margin-top: 1rem; /* Mais espaço acima da explicação */
+    font-style: italic; /* Texto em itálico para a explicação */
+    color: #4b5563; /* Cor mais escura para melhor legibilidade */
+    line-height: 1.5; /* Altura da linha para melhor leitura */
+    background-color: #f9fafb; /* Fundo levemente diferente */
     padding: 1rem;
     border-radius: 0.5rem;
-    color: #1e40af; /* blue-800 */
-    font-style: italic;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px dashed #d1d5db; /* Borda tracejada */
 }
 
-.correct-answer-highlight {
-    border: 2px solid #10b981 !important; /* green-500, força a borda */
-    background-color: #d1fae5 !important; /* green-100, força o fundo */
+.button-group {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2rem;
 }
 
-.hidden {
-    display: none !important;
+.game-control-button {
+    @apply px-6 py-3 text-lg font-semibold rounded-lg shadow-md;
+    transition: all 0.2s ease-in-out;
+    border: none;
+    cursor: pointer;
 }
 
-.version-footer {
-    position: absolute;
-    bottom: 10px;
+.game-control-button.check {
+    background-image: linear-gradient(to right, #38b2ac 0%, #319795 100%); /* teal-400 a teal-600 */
+    color: white;
+}
+
+.game-control-button.check:hover {
+    background-image: linear-gradient(to right, #319795 0%, #2c7a7b 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(56, 178, 172, 0.4);
+}
+
+.game-control-button.next {
+    background-image: linear-gradient(to right, #6366f1 0%, #4f46e5 100%); /* indigo-500 a indigo-600 */
+    color: white;
+}
+
+.game-control-button.next:hover {
+    background-image: linear-gradient(to right, #4f46e5 0%, #4338ca 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(99, 102, 241, 0.4);
+}
+
+/* Estilos para o overlay de carregamento */
+.loading-overlay {
+    position: fixed; /* Fixa o overlay na tela */
+    top: 0;
+    left: 0;
     width: 100%;
-    text-align: center;
-    font-size: 0.8rem;
-    color: #718096; /* gray-500 */
-    left: 0; /* Alinha com a borda esquerda do pai posicionado */
-    padding-bottom: 10px; /* Evita que o texto encoste no fundo */
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.9); /* Fundo semi-transparente branco */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    color: #2c3e50; /* Cor do texto de carregamento */
+    z-index: 1000; /* Garante que fique acima de outros elementos */
+    transition: opacity 0.5s ease-in-out; /* Transição para esconder */
+    flex-direction: column; /* Para empilhar o texto e o spinner, se houver */
+    gap: 1rem;
+}
+
+.loading-overlay.hidden {
+    opacity: 0;
+    pointer-events: none; /* Permite clicar através do overlay quando hidden */
+    visibility: hidden; /* Oculta completamente após a transição */
+}
+
+/* Spinner simples (opcional, pode ser adicionado no HTML se desejar) */
+.loading-spinner {
+    border: 4px solid #f3f3f3; /* Light grey */
+    border-top: 4px solid #3498db; /* Blue */
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Estilos de responsividade */
+@media (max-width: 768px) {
+    .container {
+        padding: 1.5rem;
+    }
+
+    h1 {
+        font-size: 2rem;
+    }
+
+    .area-button, .random-card-button {
+        width: 100%;
+        margin: 0.5rem 0;
+    }
+
+    .language-button {
+        width: 100%;
+        margin: 0.5rem 0;
+    }
+
+    .button-group {
+        flex-direction: column;
+    }
+
+    .game-control-button {
+        width: 100%;
+    }
 }
