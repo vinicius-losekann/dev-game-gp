@@ -1,3 +1,4 @@
+<!-- js/gameLogic.js -->
 // js/gameLogic.js
 
 let allQuestions = [];
@@ -12,7 +13,7 @@ let firestore;
 let currentUserId;
 let currentSessionId;
 let currentSessionLanguage;
-let currentUserName; // NOVO: Variável para armazenar o nome do usuário
+let currentUserName; // Variável para armazenar o nome do usuário
 
 // Variável para armazenar a função de desinscrição do listener do Firestore
 let sessionPlayersUnsubscribe = null; 
@@ -289,7 +290,6 @@ async function addPlayerToSession(sessionId, userId, userName) {
                 console.log(`Usuário ${userId} (${userName}) adicionado à sessão.`);
             } else {
                 console.log(`Usuário ${userId} (${userName}) já está na sessão.`);
-                // Atualizar o nome do jogador se ele mudou (mantém a identificação na sessão consistente)
                 const playerIndex = players.findIndex(player => player.userId === userId);
                 if (playerIndex > -1 && players[playerIndex].name !== userName) {
                     players[playerIndex].name = userName;
@@ -342,7 +342,6 @@ function updatePlayerList(players) {
         if (players && players.length > 0) {
             players.forEach(player => {
                 const li = document.createElement('li');
-                // Exibe o nome do usuário, com fallback para o userId se o nome não estiver disponível
                 li.textContent = player.name || player.userId; 
                 playerListElement.appendChild(li);
             });
@@ -389,7 +388,7 @@ async function initGameLogic() {
     const urlParams = new URLSearchParams(window.location.search);
     currentSessionId = urlParams.get('session');
     let langFromUrl = urlParams.get('lang');
-    currentUserName = decodeURIComponent(urlParams.get('playerName') || 'Jogador Anônimo'); // NOVO: Obter nome do jogador
+    currentUserName = decodeURIComponent(urlParams.get('playerName') || 'Jogador Anônimo'); 
 
     if (!currentSessionId) {
         showMessage(gameTranslations['error_no_session_id'] || "Nenhum ID de sessão encontrado. Redirecionando para a página inicial.", 'error');
@@ -405,7 +404,7 @@ async function initGameLogic() {
     }
     console.log(`ID da Sessão: ${currentSessionId}`);
     console.log(`Idioma da URL: ${langFromUrl}`);
-    console.log(`Nome do Jogador: ${currentUserName}`); // NOVO LOG
+    console.log(`Nome do Jogador: ${currentUserName}`); 
 
     const translationsLoaded = await loadGameTranslations(langFromUrl || AppConfig.defaultLanguage);
     if (!translationsLoaded) {
