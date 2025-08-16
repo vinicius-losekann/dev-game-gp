@@ -187,6 +187,8 @@
         let currentUserId = null;
         let currentSessionId = null;
         let currentSessionLanguage = null;
+        let availableQuestions = []; // Array para armazenar perguntas carregadas
+        let currentQuestionIndex = 0; // Índice da pergunta atual
 
         // Promessa para garantir que o Firebase está inicializado e autenticado
         window.firebaseInitializedPromise = new Promise(async (resolve) => {
@@ -266,6 +268,41 @@
         displaySessionId.textContent = currentSessionId;
         displayLanguage.textContent = currentSessionLanguage;
 
+        // Função para carregar perguntas do Firestore
+        async function loadQuestions() {
+            try {
+                const questionsColRef = firestore.collection(db, `artifacts/${window.appId}/public/data/questions`);
+                const q = firestore.query(questionsColRef, firestore.where('language', '==', currentSessionLanguage));
+                const querySnapshot = await firestore.getDocs(q);
+
+                availableQuestions = []; // Limpa perguntas anteriores
+                querySnapshot.forEach((doc) => {
+                    availableQuestions.push(doc.data());
+                });
+
+                if (availableQuestions.length > 0) {
+                    currentQuestionIndex = 0; // Começa da primeira pergunta
+                    displayQuestion(availableQuestions[currentQuestionIndex]);
+                    answerButton.disabled = false;
+                    showMessage('Perguntas carregadas com sucesso!', 'success');
+                } else {
+                    currentQuestionDisplay.textContent = 'Nenhuma pergunta disponível para este idioma.';
+                    answerButton.disabled = true;
+                    showMessage('Nenhuma pergunta encontrada. Por favor, adicione perguntas ao Firestore.', 'info');
+                }
+            } catch (error) {
+                console.error("Erro ao carregar perguntas:", error);
+                showMessage(`Erro ao carregar perguntas: ${error.message}`, 'error');
+                currentQuestionDisplay.textContent = 'Erro ao carregar perguntas.';
+                answerButton.disabled = true;
+            }
+        }
+
+        // Função para exibir uma pergunta
+        function displayQuestion(question) {
+            currentQuestionDisplay.textContent = question.text;
+        }
+
         // Função principal para iniciar o jogo após o Firebase estar pronto
         async function startGame() {
             await window.firebaseInitializedPromise;
@@ -302,14 +339,15 @@
                         playerList.appendChild(li);
                     }
 
-                    // Atualiza a pergunta atual
-                    if (sessionData.currentQuestion) {
-                        currentQuestionDisplay.textContent = sessionData.currentQuestion;
-                        answerButton.disabled = false;
-                    } else {
-                        currentQuestionDisplay.textContent = 'Aguardando a próxima pergunta...';
-                        answerButton.disabled = true;
-                    }
+                    // A pergunta atual será gerenciada pela lógica de carregamento de perguntas agora
+                    // Removemos a atualização da pergunta daqui para evitar conflito com loadQuestions()
+                    // if (sessionData.currentQuestion) {
+                    //     currentQuestionDisplay.textContent = sessionData.currentQuestion;
+                    //     answerButton.disabled = false;
+                    // } else {
+                    //     currentQuestionDisplay.textContent = 'Aguardando a próxima pergunta...';
+                    //     answerButton.disabled = true;
+                    // }
                 } else {
                     showMessage('Sessão não encontrada ou encerrada.', 'error');
                     console.error("Sessão não encontrada no Firestore.");
@@ -330,7 +368,6 @@
                     const playerExists = players.some(player => player.userId === currentUserId);
 
                     if (!playerExists) {
-                        // CORREÇÃO: Usar new Date() em vez de serverTimestamp() dentro de arrayUnion
                         await firestore.updateDoc(sessionDocRef, {
                             currentPlayers: firestore.arrayUnion({
                                 userId: currentUserId,
@@ -345,12 +382,22 @@
                 }
             };
 
-            addPlayerToSession();
+            await addPlayerToSession(); // Espera o jogador ser adicionado antes de carregar perguntas
 
-            // Adiciona um listener para o botão de resposta (exemplo)
+            // Carrega as perguntas assim que o jogo inicia e o Firebase estiver pronto
+            await loadQuestions();
+
+
+            // Adiciona um listener para o botão de resposta
             answerButton.addEventListener('click', () => {
-                showMessage('Você respondeu à pergunta! (Funcionalidade a ser implementada)', 'info');
-                // Aqui você adicionaria a lógica para enviar a resposta ao Firestore
+                if (availableQuestions.length > 0) {
+                    showMessage('Você respondeu à pergunta! Próxima pergunta...', 'info');
+                    currentQuestionIndex = (currentQuestionIndex + 1) % availableQuestions.length; // Avança para a próxima pergunta (loop)
+                    displayQuestion(availableQuestions[currentQuestionIndex]);
+                } else {
+                    showMessage('Não há mais perguntas para responder.', 'info');
+                    answerButton.disabled = true;
+                }
             });
         }
 
@@ -362,7 +409,7 @@
             if (currentSessionId && currentUserId && db) {
                 const sessionDocRef = firestore.doc(db, `artifacts/${window.appId}/public/data/sessions`, currentSessionId);
                 try {
-                    // CORREÇÃO: Para arrayRemove, precisamos do objeto exato (com o timestamp correto)
+                    // Para arrayRemove, precisamos do objeto exato (com o timestamp correto)
                     const docSnap = await firestore.getDoc(sessionDocRef);
                     if (docSnap.exists()) {
                         const sessionData = docSnap.data();
@@ -381,7 +428,6 @@
                 }
             }
         });
-
     </script>
 
     <!-- Seu script principal do jogo (game.js) se tiver um, deve vir DEPOIS de toda a inicialização do Firebase -->
