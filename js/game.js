@@ -1,6 +1,6 @@
 // js/game.js
 
-// Variável para armazenar todas as perguntas carregadas do JSON
+// Variável para armazenar todas as perguntas carregadas do Firestore
 let allQuestions = [];
 let currentQuestion = null;
 let selectedOption = null;
@@ -8,7 +8,6 @@ let selectedOption = null;
 let currentLanguage = AppConfig.defaultLanguage; 
 
 // Objeto para armazenar as traduções de textos estáticos da UI em game.html
-// ESTE OBJETO SERÁ MOVIDO PARA UM ARQUIVO JSON EM UM PRÓXIMO PASSO!
 const translations = {
     "pt-BR": {
         game_page_base_title: "Jogo de Gerenciamento de Projetos - Sessão",
@@ -39,16 +38,16 @@ const translations = {
         label_session: "Session",
         label_back_to_home: "Back to Home",
         label_choose_area: "Choose the Area for the Next Card:",
-        area_integration: "Integration",
-        area_scope: "Scope",
-        area_schedule: "Schedule",
-        area_cost: "Costs",
-        area_quality: "Quality",
-        area_resources: "Resources",
-        area_communications: "Communications",
-        area_risks: "Risks",
-        area_acquisitions: "Acquisitions",
-        area_stakeholders: "Stakeholders",
+        area_integration: "Integration", // Tradução corrigida
+        area_scope: "Scope", // Tradução corrigida
+        area_schedule: "Schedule", // Tradução corrigida
+        area_cost: "Cost", // Tradução corrigida
+        area_quality: "Quality", // Tradução corrigida
+        area_resources: "Resource", // Tradução corrigida
+        area_communications: "Communications", // Tradução corrigida
+        area_risks: "Risk", // Tradução corrigida
+        area_acquisitions: "Procurement", // Tradução corrigida
+        area_stakeholders: "Stakeholder", // Tradução corrigida
         button_random_card: "Random Card",
         button_check_answer: "Check Answer",
         button_next_card: "Next Card",
@@ -63,16 +62,16 @@ const translations = {
         label_session: "Sesión",
         label_back_to_home: "Volver al Inicio",
         label_choose_area: "Elige el Área para la Siguiente Tarjeta:",
-        area_integration: "Integración",
-        area_scope: "Alcance",
-        area_schedule: "Cronograma",
-        area_cost: "Costos",
-        area_quality: "Calidad",
-        area_resources: "Recursos",
-        area_communications: "Comunicaciones",
-        area_risks: "Riesgos",
-        area_acquisitions: "Adquisiciones",
-        area_stakeholders: "Interesados",
+        area_integration: "Integración", // Tradução corrigida
+        area_scope: "Alcance", // Tradução corrigida
+        area_schedule: "Cronograma", // Tradução corrigida
+        area_cost: "Costos", // Tradução corrigida
+        area_quality: "Calidad", // Tradução corrigida
+        area_resources: "Recursos", // Tradução corrigida
+        area_communications: "Comunicaciones", // Tradução corrigida
+        area_risks: "Riesgos", // Tradução corrigida
+        area_acquisitions: "Adquisiciones", // Tradução corrigida
+        area_stakeholders: "Interesados", // Tradução corrigida
         button_random_card: "Tarjeta Aleatoria",
         button_check_answer: "Verificar Respuesta",
         button_next_card: "Siguiente Tarjeta",
@@ -129,38 +128,53 @@ function updateUITexts() {
     });
 }
 
-// Função para carregar as perguntas do arquivo JSON com base no idioma
+// Função para carregar as perguntas do Firestore com base no idioma
 async function loadQuestions(lang) {
-    let filename;
+    let collectionName;
+    // Mapeamento de códigos BCP 47 para nomes de coleção no Firestore
     switch (lang) {
         case 'pt-BR':
-            filename = 'data/questions/questions_pt-BR.json'; // Caminho atualizado
+            collectionName = 'questions_pt-BR';
             break;
         case 'en-US':
-            filename = 'data/questions/questions_en-US.json'; // Caminho atualizado
+            collectionName = 'questions_en-US'; 
             break;
         case 'es-ES':
-            filename = 'data/questions/questions_es-ES.json'; // Caminho atualizado
+            collectionName = 'questions_es-ES';
             break;
         default:
-            console.warn(`Idioma '${lang}' não reconhecido para carregar perguntas. Carregando questions_pt-BR.json como fallback.`);
-            filename = 'data/questions/questions_pt-BR.json'; // Caminho atualizado para fallback
+            console.warn(`Idioma '${lang}' não reconhecido para carregar perguntas. Carregando 'questions_pt-BR' como fallback.`);
+            collectionName = 'questions_pt-BR'; // Fallback para português do Brasil
     }
 
     try {
-        const response = await fetch(filename);
-        if (!response.ok) {
-            throw new Error(translations[currentLanguage].error_loading_questions + ` (${response.statusText})`);
+        // Verifica se window.db e window.appId estão disponíveis (vindos do script em game.html)
+        if (!window.db || !window.appId) {
+            throw new Error("Firebase Firestore ou App ID não inicializados. Verifique o script de inicialização em game.html.");
         }
-        allQuestions = await response.json();
-        console.log(`Perguntas em ${lang} carregadas com sucesso de ${filename}:`, allQuestions);
 
+        // Constrói o caminho da coleção no Firestore
+        // Caminho esperado: artifacts/{appId}/public/data/questions_{idioma}
+        const questionsCollectionRef = firebase.firestore.collection('artifacts').doc(window.appId).collection('public').doc('data').collection(collectionName);
+        
+        // Pega todos os documentos da coleção
+        const querySnapshot = await questionsCollectionRef.get();
+        
+        // Mapeia os documentos para o array allQuestions
+        allQuestions = querySnapshot.docs.map(docSnapshot => ({
+            id: docSnapshot.id,
+            ...docSnapshot.data()
+        }));
+
+        console.log(`Perguntas em ${lang} carregadas com sucesso do Firestore da coleção '${collectionName}':`, allQuestions);
+
+        // Habilita os botões de seleção de área após carregar as perguntas
         areaSelectButtons.forEach(button => button.disabled = false);
         randomAreaButtonSelector.disabled = false;
 
     } catch (error) {
-        console.error('Falha ao carregar as perguntas:', error);
-        areaSelector.innerHTML = `<p class="text-red-600">${error.message}</p>`;
+        console.error('Falha ao carregar as perguntas do Firestore:', error);
+        areaSelector.innerHTML = `<p class="text-red-600">${translations[currentLanguage].error_loading_questions}: ${error.message}</p>`;
         areaSelectButtons.forEach(button => button.disabled = true);
         randomAreaButtonSelector.disabled = true;
     }
@@ -171,7 +185,7 @@ function getQueryParams() {
     const urlParams = new URLSearchParams(window.location.search);
     return {
         session: urlParams.get('session'),
-        lang: urlParams.get('lang') || AppConfig.defaultLanguage
+        lang: urlParams.get('lang') || AppConfig.defaultLanguage // Padrão do config.js
     };
 }
 
@@ -183,13 +197,16 @@ function displayQuestion(question, hideAreaSelector = true) {
     submitAnswerButton.classList.add('opacity-50', 'cursor-not-allowed');
     nextCardButton.classList.add('hidden');
 
+    // As chaves no JSON (e agora no Firestore) já são diretas para o idioma carregado
     questionArea.textContent = question.area;
     questionText.textContent = question.question;
+    
     optionsContainer.innerHTML = '';
     feedbackContainer.innerHTML = '';
 
     const options = question.options;
 
+    // Cria os botões de opção
     for (const key in options) {
         const optionButton = document.createElement('button');
         optionButton.className = 'option-button bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-3 px-5 rounded-lg text-left w-full shadow';
@@ -247,7 +264,9 @@ submitAnswerButton.addEventListener('click', () => {
 // Event listeners para os botões de seleção de área (do seletor inicial)
 areaSelectButtons.forEach(button => {
     button.addEventListener('click', () => {
-        const areaId = button.getAttribute('data-area');
+        const areaId = button.getAttribute('data-area'); // Pega o ID da área (ex: "integration")
+        
+        // Filtra as perguntas com base no area_id
         const questionsInArea = allQuestions.filter(q => q.area_id === areaId);
 
         if (questionsInArea.length > 0) {
@@ -278,7 +297,6 @@ nextCardButton.addEventListener('click', () => {
 
 // Event listener para o botão de voltar para a home
 backToHomeButton.addEventListener('click', () => {
-    console.log('Botão "Voltar para o Início" clicado!');
     window.location.href = 'index.html';
 });
 
@@ -287,17 +305,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     const params = getQueryParams();
     const sessionId = params.session;
     currentLanguage = params.lang;
-    document.documentElement.lang = currentLanguage;
+    document.documentElement.lang = currentLanguage; // Define o atributo lang do HTML
 
     if (sessionId) {
         sessionIdDisplay.textContent = sessionId;
-        await loadQuestions(currentLanguage);
-        updateUITexts();
+        await loadQuestions(currentLanguage); // Chame loadQuestions com o idioma
+        updateUITexts(); // Atualiza todos os textos estáticos da UI
         areaSelector.classList.remove('hidden');
         gameCard.classList.add('hidden');
     } else {
         sessionIdDisplay.textContent = 'N/A';
-        console.error(translations[currentLanguage].error_no_session_id);
+        console.error(translations[currentLanguage].error_no_session_id); // Log para depuração
         window.location.href = 'index.html';
     }
 });
