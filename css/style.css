@@ -10,111 +10,333 @@ body {
     margin: 0;
     color: #333;
     background-image: linear-gradient(to top, #cfd9ed 0%, #e2e8f0 100%); /* Gradiente sutil */
-    position: relative; /* Adicionado para que .version com absolute seja relativo a body */
-    padding-bottom: 40px; /* Adicionado para dar espaço para o texto da versão no final da página */
+    padding: 20px; /* Adiciona padding geral para não colar nas bordas */
+    box-sizing: border-box; /* Garante que padding e border sejam incluídos no width/height */
 }
-/* Estilos para o contêiner principal na index.html para evitar o FOUC */
-#main-content-container {
-    opacity: 0;
-    visibility: hidden;
+
+/* Estilos para o contêiner principal na index.html e game.html */
+.container {
+    background-color: #ffffff;
+    padding: 2.5rem; /* Aumenta o padding */
+    border-radius: 1rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); /* Sombra mais pronunciada */
+    max-width: 900px; /* Aumenta a largura máxima para layouts maiores */
+    width: 100%;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem; /* Espaçamento entre os elementos do container */
+    opacity: 0; /* Inicialmente invisível */
+    visibility: hidden; /* Inicialmente não clicável */
     transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
 }
-/* Estilos para os botões com um efeito visual agradável */
+
+.container.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+h1 {
+    font-size: 2.5rem; /* Aumenta o tamanho do título */
+    font-weight: 800; /* Mais negrito */
+    margin-bottom: 1rem; /* Espaço menor, o gap do container ajuda */
+    color: #2c3e50; /* Um tom de azul escuro */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.05); /* Sombra sutil no texto */
+}
+
+/* Estilos para o texto de descrição */
+.description-text {
+    font-size: 1.15rem;
+    line-height: 1.6;
+    color: #555;
+    margin-bottom: 2rem; /* Mais espaço abaixo da descrição */
+}
+
+/* Estilos para os botões gerais com um efeito visual agradável */
 .game-button {
     transition: all 0.2s ease-in-out;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 0.8rem 1.8rem; /* Ajusta o padding dos botões */
+    font-size: 1.1rem; /* Tamanho da fonte dos botões */
+    border-radius: 0.6rem; /* Arredondamento */
+    font-weight: 600; /* Seminegrito */
 }
 .game-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+    transform: translateY(-3px); /* Efeito de elevação maior */
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2); /* Sombra maior no hover */
 }
 .game-button:active {
     transform: translateY(0);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
-/* Estilos para o campo de input */
-.game-input {
-    padding: 12px;
-    border-radius: 8px;
-    border: 1px solid #cbd5e0; /* light gray */
-    width: 100%;
-    max-width: 200px;
-    text-align: center;
+
+/* Estilos para o grupo de inputs e selects */
+.input-group, .select-group {
+    margin-bottom: 1.5rem; /* Espaçamento padrão */
+    text-align: left; /* Alinha o label à esquerda */
+    width: 100%; /* Ocupa a largura total disponível no container flex */
+}
+
+.input-group label, .select-group label {
+    display: block; /* Garante que o label ocupe sua própria linha */
+    margin-bottom: 0.6rem; /* Espaço abaixo do label */
     font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.game-input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 2px solid #cbd5e0; /* Cor da borda mais suave */
+    border-radius: 0.5rem;
+    font-size: 1rem;
     transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    box-sizing: border-box; /* Garante que padding e border sejam incluídos no width */
 }
 .game-input:focus {
     outline: none;
-    border-color: #38b2ac; /* teal */
-    box-shadow: 0 0 0 3px rgba(56, 178, 172, 0.4); /* teal focus ring */
+    border-color: #3b82f6; /* Cor de foco azul */
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25); /* Anel de foco azul */
 }
+
+/* Botões de idioma */
+.language-selector-buttons {
+    display: flex;
+    flex-wrap: wrap; /* Permite que os botões quebrem a linha em telas pequenas */
+    gap: 0.75rem; /* Espaçamento entre os botões */
+    justify-content: center;
+    margin-top: 0.5rem;
+}
+
 .language-button {
+    flex-grow: 1; /* Permite que os botões cresçam para preencher o espaço */
+    max-width: 180px; /* Limita o tamanho máximo dos botões */
+    padding: 0.7rem 1.2rem;
+    border: 2px solid #a7a7a7; /* Borda padrão */
+    border-radius: 0.5rem;
+    background-color: #f7fafc; /* Fundo claro */
+    color: #4a4a4a;
+    font-weight: 500;
     transition: all 0.2s ease-in-out;
-    border: 1px solid transparent;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
+
+.language-button:hover {
+    background-color: #e2e8f0;
+    border-color: #94a3b8;
+    transform: translateY(-1px);
+}
+
 .language-button.selected {
-    border-color: #38b2ac; /* teal */
-    box-shadow: 0 0 0 2px rgba(56, 178, 172, 0.4);
-    background-color: #e6fffa; /* light teal */
-}
-.session-info {
-    background-color: #f0fdf4; /* green-50 */
-    border: 1px solid #a7f3d0; /* green-200 */
+    border: 2px solid #10b981; /* green-500 */
+    background-color: #ecfdf5; /* green-50 */
     color: #065f46; /* green-800 */
-    padding: 1rem;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3); /* Anel de foco verde */
+    font-weight: 700;
+}
+
+
+/* Layout para os botões "Iniciar Novo Jogo" e "Acessar Jogo" */
+.flex-buttons {
+    display: flex;
+    flex-direction: column; /* Empilha os botões verticalmente em telas pequenas */
+    gap: 1rem; /* Espaçamento entre eles */
+    width: 100%;
+    margin-top: 1rem; /* Espaço acima do grupo de botões */
+}
+
+@media (min-width: 640px) { /* Em telas maiores que 640px */
+    .flex-buttons {
+        flex-direction: row; /* Coloca os botões lado a lado */
+        justify-content: center; /* Centraliza os botões */
+    }
+}
+
+/* Mensagens de feedback (sucesso/erro) */
+.message-box {
+    padding: 0.8rem 1.2rem;
     border-radius: 0.5rem;
     margin-top: 1rem;
     font-weight: 600;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    word-break: break-word; /* Garante que o texto quebre para caber na caixa */
 }
 
-/* Estilos específicos do game.html */
-.game-area-selector {
-    background-color: #ffffff;
-    border-radius: 1rem;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    padding: 1.5rem; /* Padding reduzido */
-    max-width: 24rem; /* Definido explicitamente para max-w-sm */
-    margin: 1.5rem auto 0 auto; /* Centraliza e mantém o espaçamento superior */
-    width: 100%; /* Permite ocupar a largura total em telas menores que max-width */
-    text-align: center;
+.message-box.info {
+    background-color: #e0f2fe; /* light blue-100 */
+    color: #0284c7; /* light blue-700 */
+    border: 1px solid #7dd3fc; /* light blue-300 */
 }
-.card {
-    background-color: #ffffff;
-    border-radius: 1.5rem; /* Mais arredondado */
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* Sombra mais pronunciada */
-    padding: 2rem; /* p-8 */
-    max-width: 2xl; /* Ligeiramente mais estreito para parecer mais com uma carta */
-    width: 100%;
-    margin-top: 1.5rem;
-    text-align: center;
-    border: 4px solid #14b8a6; /* Borda teal para destacar */
-    position: relative;
-    overflow: hidden; /* Para o pseudo-elemento */
+
+.message-box.success {
+    background-color: #d1fae5; /* green-100 */
+    color: #065f46; /* green-800 */
+    border: 1px solid #34d399; /* green-300 */
 }
-/* Pseudo-elemento para um efeito visual de jogo na carta */
-.card::before {
-    content: '';
+
+.message-box.error {
+    background-color: #fee2e2; /* red-100 */
+    color: #991b1b; /* red-800 */
+    border: 1px solid #f87171; /* red-300 */
+}
+
+/* Estilos para o contador de versão */
+.version {
     position: absolute;
-    top: -50px;
-    left: -50px;
-    width: 150px;
-    height: 150px;
-    background: radial-gradient(circle, rgba(20,184,166,0.3) 0%, rgba(20,184,166,0) 70%);
-    transform: rotate(45deg);
-    z-index: 0;
-    opacity: 0.7;
+    bottom: 10px;
+    right: 10px;
+    font-size: 0.8rem;
+    color: #999;
 }
-.card-content {
-    position: relative;
-    z-index: 1; /* Garante que o conteúdo fique acima do pseudo-elemento */
+
+/* Estilos específicos para game.html */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+    color: #333;
+    z-index: 1000;
+    font-weight: bold;
+    text-align: center;
 }
-.option-button {
+
+/* Oculta o overlay quando o jogo é carregado */
+.loading-overlay.hidden {
+    display: none;
+}
+
+.session-info {
+    background-color: #f0fdf4; /* green-50 */
+    border: 1px solid #dcfce7; /* green-100 */
+    padding: 1rem;
+    border-radius: 0.75rem;
+    margin-top: 1.5rem;
+    color: #166534; /* green-800 */
+    font-weight: 500;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    text-align: center;
+}
+
+.session-info h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    color: #104a2c;
+}
+
+.player-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.player-list li {
+    background-color: #dcfce7; /* green-100 */
+    color: #14532d; /* green-900 */
+    padding: 0.4rem 0.8rem;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: 1px solid #a7f3d0; /* green-200 */
+}
+
+.game-area-selector {
+    background-color: #f8fafc; /* blue-gray-50 */
+    border: 1px solid #e2e8f0; /* blue-gray-200 */
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    margin-top: 1.5rem;
+}
+
+.game-area-selector h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 1.25rem;
+}
+
+.area-select-button {
+    background-color: #3b82f6; /* blue-500 */
+    color: white;
+    font-weight: 600;
+    padding: 1rem;
+    border-radius: 0.75rem;
     transition: all 0.2s ease-in-out;
-    background-color: #f0f4f8; /* Um cinza claro sutil */
-    border: 1px solid #cbd5e0;
-    border-radius: 0.75rem; /* rounded-lg */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
-.option-button:hover {
+
+.area-select-button:hover {
+    background-color: #2563eb; /* blue-600 */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.area-select-button:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* Estilos para o card da pergunta */
+.card {
+    background-color: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    margin-top: 1.5rem;
+    text-align: left; /* Alinha o conteúdo do card à esquerda */
+}
+
+.card-content h2 {
+    font-size: 2rem;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.card-content p {
+    font-size: 1.15rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    color: #4a4a4a;
+}
+
+.options-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem; /* Espaçamento entre as opções */
+    margin-bottom: 1.5rem;
+}
+
+.option-button {
+    width: 100%;
+    padding: 0.9rem 1.2rem;
+    border: 2px solid #cbd5e0;
+    border-radius: 0.6rem;
+    background-color: #f7fafc;
+    color: #333;
+    font-size: 1rem;
+    text-align: left; /* Alinha o texto das opções à esquerda */
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.option-button:hover:not(.selected):not(.disabled) {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     background-color: #e2e8f0;
@@ -124,6 +346,12 @@ body {
     background-color: #ecfdf5; /* green-50 */
     box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3); /* Anel de foco verde */
 }
+
+.option-button.disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
 .feedback {
     padding: 1rem;
     border-radius: 0.5rem;
@@ -142,106 +370,43 @@ body {
     border: 1px solid #f87171; /* red-300 */
 }
 .explanation {
-    margin-top: 1rem; /* Mais espaço */
-    font-style: italic;
-    color: #4a5568; /* gray-700 */
-    line-height: 1.6; /* Melhor legibilidade */
-    text-align: left; /* Alinhar à esquerda para explicação */
-}
-.area-select-button {
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
-    border-radius: 0.5rem;
-}
-.area-select-button:hover {
-    background-color: #0e9f80; /* Um verde um pouco mais escuro ao passar o mouse */
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-.area-select-button:active {
-    transform: translateY(0);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-/* Mensagens de Box (global para ambas as páginas) */
-.message-box {
-    background-color: #e0f2f7;
-    border: 1px solid #a7d9ed;
-    color: #0056b3;
+    margin-top: 1rem; /* Mais espaçamento */
+    background-color: #e0f2fe; /* light-blue-100 */
+    border: 1px solid #90cdf4; /* light-blue-300 */
     padding: 1rem;
     border-radius: 0.5rem;
-    margin-top: 1.5rem;
-    text-align: center;
-    font-weight: 500;
-    margin-left: auto;
-    margin-right: auto;
-    width: fit-content;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-.message-box.error {
-    background-color: #f8d7da;
-    border-color: #f5c6cb;
-    color: #721c24;
-}
-.message-box.success {
-    background-color: #d4edda;
-    border-color: #c3e6cb;
-    color: #155724;
-}
-.message-box.warning {
-    background-color: #fff3cd;
-    border-color: #ffeeba;
-    color: #856404;
+    color: #2a6988; /* light-blue-800 */
+    font-size: 0.95rem;
+    line-height: 1.5;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-/* Overlay de Carregamento (para game.html) */
-.loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(255, 255, 255, 0.8);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    font-size: 1.5rem;
-    color: #2c3e50;
-}
-
-/* Estilo para o seletor de idioma (index.html) */
-.language-selector-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 0.5rem; /* Espaço entre os botões de idioma */
-    margin-bottom: 1.5rem;
-}
-.language-selector-buttons button {
-    padding: 0.5rem 1rem;
-    border: 1px solid #cbd5e0;
-    border-radius: 0.5rem;
-    background-color: #f7fafc;
-    color: #4a5568;
-    cursor: pointer;
-    font-weight: 500;
-    transition: all 0.2s ease;
-}
-.language-selector-buttons button.selected {
-    background-color: #e6fffa;
-    border-color: #38b2ac;
-    color: #2c7a7b;
-    box-shadow: 0 0 0 2px rgba(56, 178, 172, 0.4);
-}
-.language-selector-buttons button:hover:not(.selected) {
-    background-color: #edf2f7;
-}
-
-/* Versão do rodapé */
-.version {
-    position: absolute; /* Alterado de 'fixed' para 'absolute' */
-    bottom: 10px;
-    right: 10px;
-    font-size: 0.8em;
-    color: #777;
+/* Media Queries para responsividade */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 2rem;
+    }
+    .container {
+        padding: 1.5rem;
+        gap: 1rem;
+    }
+    .game-button {
+        padding: 0.7rem 1.5rem;
+        font-size: 1rem;
+    }
+    .input-group label, .select-group label {
+        font-size: 1rem;
+    }
+    .game-input {
+        padding: 0.7rem 0.9rem;
+    }
+    .card {
+        padding: 1.5rem;
+    }
+    .card-content h2 {
+        font-size: 1.75rem;
+    }
+    .card-content p {
+        font-size: 1rem;
+    }
 }
