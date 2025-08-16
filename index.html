@@ -26,7 +26,6 @@
         </div>
 
         <!-- Mensagem de feedback do sistema -->
-        <!-- ID CORRIGIDO: de 'errorMessage' para 'messageBox' para corresponder ao JS -->
         <div id="messageBox" class="message-box hidden mb-4" role="alert"></div>
 
         <!-- Botão para Iniciar Novo Jogo -->
@@ -58,10 +57,10 @@
     <script type="module" src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"></script>
 
-    <!-- Seus scripts JS - Carregados após o Firebase -->
+    <!-- Seus scripts JS - Carregados após o Firebase e com type="module" se usarem import/export -->
     <script src="js/config.js"></script>
-    <!-- Adicionar utils.js se ele tiver alguma função de inicialização ou configuração global -->
-    <script src="js/utils.js"></script> 
+    <!-- CORRIGIDO: Adicionado type="module" para utils.js -->
+    <script src="js/utils.js" type="module"></script> 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
