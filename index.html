@@ -14,7 +14,7 @@
     <div id="main-content-container" class="container">
         <h1 data-lang-key="main_title">Jogo de Gerenciamento de Projetos</h1>
         <!-- Ajustei o tamanho da fonte e line-height para o texto de descrição -->
-        <p class="text-gray-700 mb-6 leading-relaxed text-base md:text-lg" data-lang-key="description_text">
+        <p class="text-gray-700 mb-6 leading-relaxed text-sm md:text-base" data-lang-key="description_text">
             Domine as habilidades essenciais de gerenciamento de projetos neste jogo interativo! Aprenda sobre **planejamento**, **execução**, **monitoramento de progresso** e **resolução de desafios** em cenários simulados para se tornar um gestor de projetos de sucesso. Cada decisão importa!
         </p>
 
@@ -30,8 +30,8 @@
         </div>
 
         <!-- Seção de Novo Jogo -->
-        <!-- Adicionei max-w-sm e mx-auto para controlar a largura e centralizar -->
-        <div class="input-group mb-6 p-4 border border-blue-200 rounded-lg bg-blue-50 max-w-sm mx-auto">
+        <!-- Adicionei max-w-xs e mx-auto para controlar a largura e centralizar, usando uma classe de utilidade para largura customizada -->
+        <div class="input-group mb-6 p-4 border border-blue-200 rounded-lg bg-blue-50 mx-auto w-custom-small-container">
             <h2 class="text-xl font-semibold mb-3 text-blue-800" data-lang-key="new_game_title">Iniciar Novo Jogo</h2>
             <button id="newGameButton" class="game-button bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg w-full max-w-xs mx-auto">
                 <span data-lang-key="button_new_game">Iniciar Novo Jogo</span>
@@ -39,8 +39,8 @@
         </div>
 
         <!-- Seção de Acesso a Jogo Existente ou Recém-Criado -->
-        <!-- Adicionei max-w-sm e mx-auto para controlar a largura e centralizar, igual ao de Novo Jogo -->
-        <div class="input-group mb-6 p-4 border border-purple-200 rounded-lg bg-purple-50 max-w-sm mx-auto">
+        <!-- Adicionei max-w-xs e mx-auto para controlar a largura e centralizar, usando uma classe de utilidade para largura customizada -->
+        <div class="input-group mb-6 p-4 border border-purple-200 rounded-lg bg-purple-50 mx-auto w-custom-small-container">
             <h2 class="text-xl font-semibold mb-3 text-purple-800" data-lang-key="access_game_title">Acessar Jogo Existente</h2>
             
             <!-- Mensagem de feedback e ID da sessão criada (visível após "Iniciar Novo Jogo") -->
