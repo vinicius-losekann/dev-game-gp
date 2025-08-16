@@ -8,6 +8,42 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Estilos adicionais para o overlay e container para garantir que a visibilidade seja controlada pelo JS */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(240, 242, 245, 0.9); /* Cor de fundo com transparência */
+            display: flex; /* Começa como flex para centralizar o texto */
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            color: #333;
+            z-index: 1000; /* Garante que fique acima de tudo */
+        }
+
+        .container.hidden {
+            display: none; /* Inicia oculto com display: none */
+        }
+
+        .container {
+            /* Seus estilos existentes para o .container */
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            width: 100%;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            /* Removido opacity e visibility, pois display: none já lida com isso */
+        }
+    </style>
 </head>
 <body>
     <!-- Overlay de carregamento, inicialmente visível -->
@@ -15,8 +51,8 @@
         Carregando jogo...
     </div>
 
-    <!-- Container principal do jogo, inicialmente invisível e sem display: none -->
-    <div class="container" id="gameContainer">
+    <!-- Container principal do jogo, inicialmente oculto com display: none via classe 'hidden' -->
+    <div class="container hidden" id="gameContainer">
         <div class="w-full flex justify-between items-center mb-6">
             <h1 class="text-3xl font-extrabold text-teal-700">
                 <span id="labelSession" data-lang-key="label_session">Sessão</span>: <span id="displaySessionId" class="text-green-600">Carregando...</span>
