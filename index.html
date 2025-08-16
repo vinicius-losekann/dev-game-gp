@@ -21,6 +21,9 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        // Importando getAnalytics, embora não seja usado diretamente no escopo atual do jogo
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+
 
         // Variáveis globais para Firebase, que serão preenchidas no DOMContentLoaded
         window.firebaseApp = null;
@@ -30,25 +33,24 @@
         window.serverTimestamp = serverTimestamp; // Expondo serverTimestamp globalmente
 
         document.addEventListener('DOMContentLoaded', async () => {
-            // As variáveis __app_id e __firebase_config são fornecidas pelo ambiente Canvas.
-            // Se você não estiver no ambiente Canvas (ex: testando localmente),
-            // você precisará preencher 'appId' e 'firebaseConfig' manualmente com seus próprios valores.
-            const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'; // Fallback para dev local
-            const manualFirebaseConfig = { 
-                apiKey: "", // Se não estiver no Canvas, preencha com sua API Key
-                authDomain: "YOUR_AUTH_DOMAIN.firebaseapp.com", // Substitua
-                projectId: "YOUR_PROJECT_ID", // Substitua
-                storageBucket: "YOUR_STORAGE_BUCKET.appspot.com",
-                messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-                appId: "YOUR_APP_ID_FROM_FIREBASE_SETTINGS",
-                measurementId: "YOUR_MEASUREMENT_ID"
+            // A configuração Firebase fornecida pelo usuário
+            const firebaseConfig = {
+                apiKey: "AIzaSyDdiedj1Smjzn9CDqShdhG5Y0_Sa18xyWI",
+                authDomain: "jogo-gerencia-de-projetos.firebaseapp.com",
+                projectId: "jogo-gerencia-de-projetos",
+                storageBucket: "jogo-gerencia-de-projetos.firebasestorage.app",
+                messagingSenderId: "356867532123",
+                appId: "1:356867532123:web:0657d84635a5849df2667e",
+                measurementId: "G-M5QYQ36Q9P"
             };
 
-            const finalFirebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : manualFirebaseConfig;
-            const finalAppId = typeof __app_id !== 'undefined' ? __app_id : 'gameGP'; // Use 'gameGP' como fallback específico
+            // No ambiente Canvas, __app_id é fornecido; caso contrário, usamos o projectId como fallback.
+            const finalAppId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId; 
 
             try {
-                window.firebaseApp = initializeApp(finalFirebaseConfig);
+                window.firebaseApp = initializeApp(firebaseConfig);
+                // Inicializa Analytics, mas note que ele pode não funcionar em todos os ambientes iframe/sandbox.
+                // const analytics = getAnalytics(window.firebaseApp); 
                 window.auth = getAuth(window.firebaseApp);
                 window.db = getFirestore(window.firebaseApp);
                 window.appId = finalAppId; // Torna o appId globalmente acessível
@@ -67,11 +69,24 @@
 
                 console.log("Firebase: App inicializado e autenticado. ID do Usuário:", window.currentUserId);
 
+                // Torna o conteúdo principal visível apenas após a inicialização bem-sucedida do Firebase e autenticação
+                const mainContent = document.getElementById('main-content-container');
+                if (mainContent) {
+                    mainContent.style.opacity = '1';
+                    mainContent.style.visibility = 'visible';
+                }
+
             } catch (error) {
                 console.error("Erro ao inicializar Firebase ou autenticar:", error);
                 const mainContent = document.getElementById('main-content-container');
                 if (mainContent) {
-                    mainContent.innerHTML = `<p class="text-red-600 text-center">Erro crítico: Não foi possível conectar ao Firebase. Por favor, recarregue a página.</p>`;
+                    mainContent.innerHTML = `<p class="text-red-600 text-center text-lg font-semibold mt-8">Erro crítico: Não foi possível conectar ao Firebase. Por favor, recarregue a página e verifique:</p>
+                                             <ul class="list-disc list-inside text-left mx-auto max-w-sm mt-4 text-gray-700">
+                                                <li>Seu projeto Firebase está configurado corretamente.</li>
+                                                <li>Autenticação Anônima está habilitada.</li>
+                                                <li>Firestore Database está configurado.</li>
+                                                <li>Suas credenciais no HTML estão corretas.</li>
+                                             </ul>`;
                     mainContent.style.opacity = '1';
                     mainContent.style.visibility = 'visible';
                 }
