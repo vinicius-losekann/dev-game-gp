@@ -92,9 +92,12 @@ body {
     padding: 2rem; /* Reduzi o padding interno */
     border-radius: 1rem;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    /* Largura máxima para visualização em celular e para centralizar */
-    max-width: 300px; /* Definindo uma max-width menor para o container principal */
-    width: 90%; /* Ocupa 90% da largura da viewport, mas limitada pela max-width */
+    
+    /* ***** MUDANÇA PRINCIPAL AQUI: LARGURA FIXA PARA O CONTÊINER PRINCIPAL ***** */
+    width: 300px; /* Largura fixa para o contêiner principal */
+    max-width: 90%; /* Garante que em telas muito pequenas ele ainda se ajuste */
+    /* ************************************************************************* */
+
     margin: 20px auto; /* Centraliza e adiciona margem vertical */
     text-align: center;
     display: flex; 
@@ -112,8 +115,9 @@ body {
     border-radius: 0.75rem; /* Bordas arredondadas */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); /* Sombra sutil */
     
-    max-width: 260px; /* Largura máxima fixa para os input-groups, um pouco menor que o container principal */
-    width: 100%; /* Ocupa 100% da largura disponível dentro de sua max-width */
+    /* Largura relativa ao pai. Se o pai tem 300px, 100% será 300px */
+    width: 100%; 
+    max-width: 260px; /* Mantém um limite superior para os contêineres menores, para a "distância relativa" */
     margin-left: auto; 
     margin-right: auto; 
     box-sizing: border-box; /* Inclui padding e border no cálculo da largura */
