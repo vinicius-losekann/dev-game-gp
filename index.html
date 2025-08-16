@@ -6,10 +6,11 @@
     <title data-lang-key="main_page_title">Jogo de Gerenciamento de Projetos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css"> <!-- Caminho do CSS atualizado -->
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <div id="main-content-container" class="container hidden"> <!-- Adicionado hidden e id -->
+    <!-- Removida a classe 'hidden' aqui. A visibilidade será controlada via CSS (opacity e visibility). -->
+    <div id="main-content-container" class="container">
         <h1 id="mainTitle" data-lang-key="main_title">Jogo de Gerenciamento de Projetos</h1>
         <p id="descriptionText" class="mb-6 text-gray-700 leading-relaxed" data-lang-key="description_text">
             Domine as habilidades essenciais de gerenciamento de projetos neste jogo interativo! Aprenda sobre **planejamento**, **execução**, **monitoramento de progresso** e **resolução de desafios** em cenários simulados para se tornar um gestor de projetos de sucesso. Cada decisão importa!
@@ -37,12 +38,12 @@
             </button>
         </div>
         <div id="messageBox" class="message-box hidden"></div>
-        <div id="sessionInfo" class="session-info hidden"></div> <!-- Elemento para exibir o ID da sessão criada -->
+        <div id="sessionInfo" class="session-info hidden"></div>
     </div>
     <div class="version">Versão: 1.0.2</div>
 
-    <!-- Inclua o arquivo de configuração PRIMEIRO -->
-    <script src="js/config.js"></script> <!-- Caminho do Config.js atualizado -->
+    <!-- Inclua o arquivo de configuração PRIMEIRO e sem type="module" -->
+    <script src="js/config.js"></script>
 
     <!-- Firebase SDKs - Importação e inicialização no escopo global para acesso por outros módulos -->
     <script type="module">
@@ -73,22 +74,22 @@
                         doc: doc,
                         setDoc: setDoc,
                         getDoc: getDoc,
-                        collection: collection, // Adicionado para game.js
-                        updateDoc: updateDoc,   // Adicionado para game.js
-                        arrayUnion: arrayUnion, // Adicionado para game.js
-                        arrayRemove: arrayRemove, // Adicionado para game.js
+                        collection: collection,
+                        updateDoc: updateDoc,
+                        arrayUnion: arrayUnion,
+                        arrayRemove: arrayRemove,
                         serverTimestamp: serverTimestamp,
-                        onSnapshot: onSnapshot, // Adicionado para game.js
-                        query: query,           // Adicionado para game.js
-                        where: where,           // Adicionado para game.js
-                        getDocs: getDocs        // Adicionado para game.js
+                        onSnapshot: onSnapshot,
+                        query: query,
+                        where: where,
+                        getDocs: getDocs
                     };
 
                     // Expõe as instâncias e o objeto firestore para acesso global por outros scripts.
-                    window.app = app; // Adicionado app globalmente para consistência
+                    window.app = app;
                     window.auth = auth;
                     window.db = db;
-                    window.firestore = firestore; // Objeto com as funções do Firestore
+                    window.firestore = firestore;
 
                     // Autenticação: tenta com token customizado se disponível, senão anonimamente.
                     if (window.initialAuthToken) {
@@ -100,18 +101,16 @@
                     }
 
                     currentUserId = auth.currentUser.uid;
-                    window.currentUserId = currentUserId; // Expõe o ID do usuário globalmente.
+                    window.currentUserId = currentUserId;
                     console.log(`Firebase: App inicializado e autenticado. ID do Usuário: ${currentUserId}`);
-                    resolve(); // Resolve a promessa indicando que Firebase está pronto.
+                    resolve();
                 } else {
                     console.error("Firebase: Configuração não encontrada ou inválida. Pulando a inicialização do Firebase.");
-                    // Não chamamos showMessage aqui diretamente, pois index.js fará isso.
-                    resolve(); // Resolve mesmo com erro para não bloquear completamente o app.
+                    resolve();
                 }
             } catch (error) {
                 console.error("Erro na inicialização ou autenticação do Firebase:", error);
-                // Não chamamos showMessage aqui diretamente, pois index.js fará isso.
-                resolve(); // Resolve mesmo com erro.
+                resolve();
             }
         });
     </script>
