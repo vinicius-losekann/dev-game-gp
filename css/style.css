@@ -43,7 +43,7 @@ body {
     font-weight: 600;
     border: 2px solid transparent;
     transition: all 0.2s ease-in-out;
-    min-width: 150px; /* Garante largura mínima para todos os botões */
+    min-width: 120px; /* Reduzimos um pouco a largura mínima */
 }
 
 .lang-button:hover {
@@ -65,22 +65,18 @@ body {
     border: 1px solid #d1d5db; /* gray-300 */
     padding: 0.75rem 1rem;
     border-radius: 0.5rem;
-    max-width: 200px; /* Largura máxima reduzida para os inputs */
-    width: 100%;
+    width: 100%; /* Ocupa 100% da largura do input-group */
     box-sizing: border-box; /* Garante que padding não aumente a largura total */
     font-size: 1rem;
     color: #374151; /* gray-700 */
-    margin-left: auto; /* Centraliza o input */
-    margin-right: auto; /* Centraliza o input */
-    display: block; /* Garante que margin auto funcione */
+    display: block; 
 }
 
 /* Ajusta os botões dentro das seções para terem a mesma largura máxima dos inputs */
 .input-group button {
-    max-width: 200px; /* Define largura máxima para os botões dentro de input-group */
+    width: 100%; /* Botões ocupam 100% da largura do input-group */
     margin-left: auto; /* Centraliza o botão */
     margin-right: auto; /* Centraliza o botão */
-    width: 100%; /* Garante que o botão preencha a largura máxima definida */
 }
 
 
@@ -93,31 +89,34 @@ body {
 /* Estilos para contêineres e seções */
 .container {
     background-color: #ffffff;
-    padding: 2.5rem;
+    padding: 2rem; /* Reduzi o padding interno */
     border-radius: 1rem;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    /* Reduz ainda mais a largura máxima para se ajustar melhor a telas de celular */
-    max-width: 320px; /* Largura máxima para visualização em celular */
-    width: 90%; /* Ocupa 90% da largura da viewport */
-    margin: 20px auto; /* Centraliza e adiciona margem vertical para responsividade */
+    /* Largura máxima para visualização em celular e para centralizar */
+    max-width: 300px; /* Definindo uma max-width menor para o container principal */
+    width: 90%; /* Ocupa 90% da largura da viewport, mas limitada pela max-width */
+    margin: 20px auto; /* Centraliza e adiciona margem vertical */
     text-align: center;
     display: flex; 
     flex-direction: column; 
     gap: 1.5rem; 
     position: relative; 
+    box-sizing: border-box; /* Inclui padding e border no cálculo da largura */
 }
 
-/* Define uma largura customizada para os contêineres menores (Novo Jogo e Acessar Jogo) */
-/* Isso garante que ambos tenham a mesma largura e sejam responsivos */
-.w-custom-small-container {
-    max-width: 280px; /* Largura máxima para os contêineres menores */
-    width: 90%; /* Ocupa 90% da largura do pai (.container) */
-}
-
-/* Garante que os input-group estejam centralizados usando flexbox no container pai se necessário, ou mx-auto */
+/* Define uma largura para os contêineres menores (Novo Jogo e Acessar Jogo) */
+/* Eles serão um pouco menores que o container principal e responsivos */
 .input-group {
+    background-color: #ffffff; /* Garante que eles tenham seu próprio fundo */
+    padding: 1.5rem; /* Padding interno */
+    border-radius: 0.75rem; /* Bordas arredondadas */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); /* Sombra sutil */
+    
+    max-width: 260px; /* Largura máxima fixa para os input-groups, um pouco menor que o container principal */
+    width: 100%; /* Ocupa 100% da largura disponível dentro de sua max-width */
     margin-left: auto; 
     margin-right: auto; 
+    box-sizing: border-box; /* Inclui padding e border no cálculo da largura */
 }
 
 /* Estilos para caixas de mensagem (feedback) */
