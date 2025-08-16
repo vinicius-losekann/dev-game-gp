@@ -1,152 +1,311 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title></title> <!-- Título vazio, será definido via JS -->
-    <!-- Incluindo Tailwind CSS para estilização moderna e responsiva -->
+    <title>Jogo de Gerenciamento de Projetos</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Incluindo estilos personalizados -->
-    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Esconde o conteúdo principal instantaneamente para evitar o "flash" */
-        #main-content-container {
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+        h1 {
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: #2c3e50;
+        }
+        .input-group, .select-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #555;
+        }
+        input[type="text"], select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #ccc;
+            border-radius: 0.5rem;
+            box-sizing: border-box;
+            font-size: 1rem;
+            color: #333;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 0.85rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            width: 100%;
+            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.2);
+        }
+        button:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .message-box {
+            background-color: #e0f2f7;
+            border: 1px solid #a7d9ed;
+            color: #0056b3;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1.5rem;
+            text-align: center;
+            font-weight: 500;
+        }
+        .flex-buttons {
+            display: flex;
+            gap: 1rem; /* Espaço entre os botões */
+        }
+        .flex-buttons button {
+            flex: 1; /* Faz com que os botões ocupem o mesmo espaço */
+        }
+        .version {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-size: 0.8em;
+            color: #777;
         }
     </style>
-    <!-- Incluindo Firebase SDKs -->
+</head>
+<body>
+    <div class="container">
+        <h1>Bem-vindo ao Jogo</h1>
+        <div class="select-group">
+            <label for="languageSelect">Selecione o Idioma:</label>
+            <select id="languageSelect">
+                <option value="pt-BR">Português (Brasil)</option>
+                <option value="en-US">English (US)</option>
+                <option value="es-ES">Español (España)</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label for="sessionIdInput">Ou insira um ID de Sessão Existente:</label>
+            <input type="text" id="sessionIdInput" placeholder="Ex: 1234PTBR">
+        </div>
+        <div class="flex-buttons">
+            <button id="createSessionButton">Criar Nova Sessão</button>
+            <button id="joinSessionButton" disabled>Entrar na Sessão</button>
+        </div>
+        <div id="messageBox" class="message-box hidden"></div>
+    </div>
+    <div class="version">Versão: 1.0.0</div>
+
+    <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-        // Importando getAnalytics, embora não seja usado diretamente no escopo atual do jogo
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+        // Variáveis globais para Firebase, acessíveis em todo o escopo do módulo
+        let app;
+        let auth;
+        let db;
+        let firestore; // Referência ao objeto firestore para acesso a funções como doc, setDoc etc.
+        let currentUserId = null; // ID do usuário autenticado (anônimo ou via token)
 
-        // Variáveis globais para Firebase, que serão preenchidas no DOMContentLoaded
-        window.firebaseApp = null;
-        window.db = null;
-        window.auth = null;
-        window.currentUserId = null; // Adicionado para armazenar o UID do usuário
-        window.serverTimestamp = serverTimestamp; // Expondo serverTimestamp globalmente
+        // As variáveis __app_id, __firebase_config e __initial_auth_token
+        // são injetadas pelo ambiente Canvas. Verificamos se existem.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            // A configuração Firebase fornecida pelo usuário
-            const firebaseConfig = {
-                apiKey: "AIzaSyDdiedj1Smjzn9CDqShdhG5Y0_Sa18xyWI",
-                authDomain: "jogo-gerencia-de-projetos.firebaseapp.com",
-                projectId: "jogo-gerencia-de-projetos",
-                storageBucket: "jogo-gerencia-de-projetos.firebasestorage.app",
-                messagingSenderId: "356867532123",
-                appId: "1:356867532123:web:0657d84635a5849df2667e",
-                measurementId: "G-M5QYQ36Q9P"
-            };
-
-            // No ambiente Canvas, __app_id é fornecido; caso contrário, usamos o projectId como fallback.
-            const finalAppId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId; 
-
+        // Promessa para garantir que o Firebase está inicializado e autenticado
+        window.firebaseInitializedPromise = new Promise(async (resolve) => {
             try {
-                window.firebaseApp = initializeApp(firebaseConfig);
-                // Inicializa Analytics, mas note que ele pode não funcionar em todos os ambientes iframe/sandbox.
-                // const analytics = getAnalytics(window.firebaseApp); 
-                window.auth = getAuth(window.firebaseApp);
-                window.db = getFirestore(window.firebaseApp);
-                window.appId = finalAppId; // Torna o appId globalmente acessível
+                if (Object.keys(firebaseConfig).length > 0) {
+                    app = initializeApp(firebaseConfig);
+                    auth = getAuth(app);
+                    db = getFirestore(app);
+                    firestore = { // Criamos um objeto para agrupar as funções do firestore
+                        doc: doc,
+                        setDoc: setDoc,
+                        getDoc: getDoc,
+                        collection: (dbInstance, path) => getFirestore(dbInstance).collection(path) // Exemplo para collection
+                    };
 
-                // Autenticação: Tenta usar o token customizado (Canvas), caso contrário, faz login anônimo
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(window.auth, __initial_auth_token);
-                    console.log("Firebase: Autenticado com token customizado.");
+                    window.db = db; // Exporta para game.js
+                    window.appId = appId; // Exporta para game.js
+                    window.firestore = firestore; // Exporta o objeto firestore para game.js
+
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                        console.log("Firebase: Autenticado com token personalizado.");
+                    } else {
+                        await signInAnonymously(auth);
+                        console.log("Firebase: Autenticado anonimamente.");
+                    }
+
+                    currentUserId = auth.currentUser.uid;
+                    window.currentUserId = currentUserId; // Exporta para game.js
+                    console.log(`Firebase: App inicializado e autenticado. ID do Usuário: ${currentUserId}`);
+                    resolve(); // Resolve a promessa após a inicialização e autenticação
                 } else {
-                    await signInAnonymously(window.auth);
-                    console.log("Firebase: Autenticado anonimamente.");
+                    console.error("Firebase Configuração não encontrada. Pulando a inicialização do Firebase.");
+                    resolve(); // Resolve mesmo sem config para não bloquear o restante do app
                 }
-                
-                // O UID do usuário autenticado é usado como currentUserId
-                window.currentUserId = window.auth.currentUser?.uid || 'anonymous-user';
-
-                console.log("Firebase: App inicializado e autenticado. ID do Usuário:", window.currentUserId);
-
-                // Torna o conteúdo principal visível apenas após a inicialização bem-sucedida do Firebase e autenticação
-                const mainContent = document.getElementById('main-content-container');
-                if (mainContent) {
-                    mainContent.style.opacity = '1';
-                    mainContent.style.visibility = 'visible';
-                }
-
             } catch (error) {
-                console.error("Erro ao inicializar Firebase ou autenticar:", error);
-                const mainContent = document.getElementById('main-content-container');
-                if (mainContent) {
-                    mainContent.innerHTML = `<p class="text-red-600 text-center text-lg font-semibold mt-8">Erro crítico: Não foi possível conectar ao Firebase. Por favor, recarregue a página e verifique:</p>
-                                             <ul class="list-disc list-inside text-left mx-auto max-w-sm mt-4 text-gray-700">
-                                                <li>Seu projeto Firebase está configurado corretamente.</li>
-                                                <li>Autenticação Anônima está habilitada.</li>
-                                                <li>Firestore Database está configurado.</li>
-                                                <li>Suas credenciais no HTML estão corretas.</li>
-                                             </ul>`;
-                    mainContent.style.opacity = '1';
-                    mainContent.style.visibility = 'visible';
-                }
+                console.error("Erro na inicialização ou autenticação do Firebase:", error);
+                resolve(); // Resolve mesmo com erro para não bloquear o restante do app
             }
         });
+
+        const languageSelect = document.getElementById('languageSelect');
+        const sessionIdInput = document.getElementById('sessionIdInput');
+        const createSessionButton = document.getElementById('createSessionButton');
+        const joinSessionButton = document.getElementById('joinSessionButton');
+        const messageBox = document.getElementById('messageBox');
+
+        // Função para mostrar mensagens temporárias
+        function showMessage(message, type = 'info') {
+            messageBox.textContent = message;
+            messageBox.className = `message-box ${type}`; // Adiciona classes para estilo (info, error, success)
+            messageBox.classList.remove('hidden');
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+                messageBox.textContent = '';
+            }, 5000); // Esconde após 5 segundos
+        }
+
+        // Habilita/desabilita o botão "Entrar na Sessão" com base no input
+        sessionIdInput.addEventListener('input', () => {
+            joinSessionButton.disabled = sessionIdInput.value.trim() === '';
+        });
+
+        // Função para gerar um ID de sessão com sufixo de idioma
+        function generateSessionIdWithLanguage(languageCode) {
+            const randomPart = Math.floor(1000 + Math.random() * 9000); // 4 dígitos
+            const langSuffix = languageCode.replace('-', '').toUpperCase(); // Ex: pt-BR -> PTBR
+            return `${randomPart}${langSuffix}`;
+        }
+
+        // Event listener para o botão "Criar Nova Sessão"
+        createSessionButton.addEventListener('click', async () => {
+            createSessionButton.disabled = true;
+            joinSessionButton.disabled = true;
+            showMessage('Criando nova sessão...', 'info');
+
+            await window.firebaseInitializedPromise; // Garante que o Firebase está pronto
+
+            if (!db || !auth.currentUser) {
+                showMessage('Erro: Firebase não inicializado ou usuário não autenticado.', 'error');
+                createSessionButton.disabled = false;
+                joinSessionButton.disabled = sessionIdInput.value.trim() === '';
+                return;
+            }
+
+            const selectedLanguage = languageSelect.value;
+            const newSessionId = generateSessionIdWithLanguage(selectedLanguage);
+            const sessionDocRef = firestore.doc(db, `artifacts/${appId}/public/data/sessions`, newSessionId);
+
+            try {
+                // Tenta criar o documento da sessão
+                await firestore.setDoc(sessionDocRef, {
+                    createdAt: new Date(),
+                    hostUserId: auth.currentUser.uid,
+                    language: selectedLanguage, // Salva o idioma na sessão
+                    status: 'active', // 'active', 'completed', 'archived'
+                    currentPlayers: [],
+                    currentQuestion: null // Nenhuma pergunta ativa inicialmente
+                });
+                showMessage(`Sessão ${newSessionId} criada com sucesso! Redirecionando...`, 'success');
+                console.log(`Sessão ${newSessionId} criada no Firestore.`);
+                // Redireciona para a página do jogo com o novo ID da sessão e idioma
+                window.location.href = `game.html?session=${newSessionId}&lang=${selectedLanguage}`;
+
+            } catch (error) {
+                console.error("Erro ao criar sessão no Firestore:", error);
+                showMessage(`Erro ao criar sessão: ${error.message}`, 'error');
+                createSessionButton.disabled = false;
+                joinSessionButton.disabled = sessionIdInput.value.trim() === '';
+            }
+        });
+
+        // Event listener para o botão "Entrar na Sessão"
+        joinSessionButton.addEventListener('click', async () => {
+            const enteredSessionId = sessionIdInput.value.trim();
+            if (!enteredSessionId) {
+                showMessage('Por favor, insira um ID de sessão.', 'warning');
+                return;
+            }
+
+            createSessionButton.disabled = true;
+            joinSessionButton.disabled = true;
+            showMessage('Entrando na sessão...', 'info');
+
+            await window.firebaseInitializedPromise; // Garante que o Firebase está pronto
+
+            if (!db || !auth.currentUser) {
+                showMessage('Erro: Firebase não inicializado ou usuário não autenticado.', 'error');
+                createSessionButton.disabled = false;
+                joinSessionButton.disabled = sessionIdInput.value.trim() === '';
+                return;
+            }
+
+            const sessionDocRef = firestore.doc(db, `artifacts/${appId}/public/data/sessions`, enteredSessionId);
+
+            try {
+                const docSnap = await firestore.getDoc(sessionDocRef);
+                if (docSnap.exists()) {
+                    const sessionData = docSnap.data();
+                    const sessionLanguage = sessionData.language || 'pt-BR'; // Pega o idioma da sessão existente
+                    showMessage(`Entrando na sessão ${enteredSessionId}...`, 'success');
+                    console.log(`Entrando na sessão ${enteredSessionId}.`);
+                    // Redireciona para a página do jogo com o ID da sessão e o idioma da sessão
+                    window.location.href = `game.html?session=${enteredSessionId}&lang=${sessionLanguage}`;
+                } else {
+                    showMessage(`Sessão "${enteredSessionId}" não encontrada.`, 'error');
+                    createSessionButton.disabled = false;
+                    joinSessionButton.disabled = false;
+                }
+            } catch (error) {
+                console.error("Erro ao verificar sessão no Firestore:", error);
+                showMessage(`Erro ao verificar sessão: ${error.message}`, 'error');
+                createSessionButton.disabled = false;
+                joinSessionButton.disabled = false;
+            }
+        });
+
+        // Adiciona um listener para a mudança do idioma para pré-popular o input para o usuário
+        languageSelect.addEventListener('change', () => {
+            const selectedLanguage = languageSelect.value;
+            // Apenas para conveniência, pode pré-popular com um exemplo
+            // sessionIdInput.value = `____${selectedLanguage.replace('-', '').toUpperCase()}`;
+        });
+
     </script>
-</head>
-<body class="p-4 flex flex-col min-h-screen">
-    <div id="main-content-container" class="container bg-white p-10 rounded-2xl shadow-2xl max-w-lg w-full text-center border-b-4 border-teal-500 flex-grow">
-        <h1 id="mainTitle" class="text-5xl font-extrabold text-teal-700 mb-6 drop-shadow-sm">
-            Jogo de Gerenciamento de Projetos
-        </h1>
-        <p id="descriptionText" class="text-xl text-gray-800 leading-relaxed mb-8">
-            Domine as habilidades essenciais de gerenciamento de projetos neste jogo interativo! Aprenda sobre **planejamento**, **execução**, **monitoramento de progresso** e **resolução de desafios** em cenários simulados para se tornar um gestor de projetos de sucesso. Cada decisão importa!
-        </p>
-
-        <div class="mb-6">
-            <button id="newGameButton" class="game-button bg-gradient-to-r from-teal-500 to-green-500 hover:from-teal-600 hover:to-green-600 text-white font-bold py-4 px-8 rounded-full text-xl focus:outline-none focus:ring-4 focus:ring-teal-300 focus:ring-opacity-75" disabled>
-                <span data-lang-key="button_new_game">Iniciar Novo Jogo</span>
-            </button>
-            <div id="sessionInfo" class="session-info hidden mt-4">
-                <!-- Mensagem da sessão criada será exibida aqui -->
-            </div>
-        </div>
-
-        <div class="mt-8 pt-6 border-t border-gray-200">
-            <h2 id="accessGameTitle" class="text-2xl font-bold text-gray-700 mb-4">
-                Acessar Jogo Existente
-            </h2>
-            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <input type="text" id="sessionIdInput" placeholder="Digite o ID da Sessão" class="game-input">
-                <button id="accessGameButton" class="game-button bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50" disabled>
-                    <span data-lang-key="button_access_game">Acessar Jogo</span>
-                </button>
-            </div>
-            <div id="errorMessage" class="mt-4 text-red-600 hidden">
-                <!-- Mensagem de erro para ID de sessão inválido -->
-            </div>
-        </div>
-
-        <div class="mt-8 pt-6 border-t border-gray-200">
-            <h2 id="languageSelectTitle" class="text-2xl font-bold text-gray-700 mb-4">
-                Idioma
-            </h2>
-            <div class="flex justify-center gap-2">
-                <button id="langPtBrButton" class="language-button py-2 px-4 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800">Português</button>
-                <button id="langEnUsButton" class="language-button py-2 px-4 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800">English</button>
-                <button id="langEsEsButton" class="language-button py-2 px-4 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800">Español</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Indicador de Versão (agora no final do fluxo, empurrado pelo flex-grow) -->
-    <div id="app-version" class="mt-auto text-gray-400 text-xs p-4 text-center w-full">
-        Versão: 1.0.0
-    </div>
-
-    <!-- Incluindo arquivo de configuração -->
-    <script src="js/config.js"></script>
-    <!-- Incluindo JavaScript externo -->
-    <script src="js/index.js"></script>
+    <!-- Incluir AppConfig.js DEPOIS DESTE SCRIPT mas ANTES de game.js (se game.js for na index) -->
+    <!-- Se game.js estiver apenas em game.html, AppConfig.js precisa estar antes de game.js lá -->
 </body>
 </html>
