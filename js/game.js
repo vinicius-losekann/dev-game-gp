@@ -96,8 +96,6 @@ const translations = {
 };
 
 // Elementos do DOM (Verificar se existem antes de usar em updateUITexts para evitar null errors)
-// Note: Declarar essas variáveis aqui permite que sejam acessadas por todas as funções.
-// Elas só terão o valor 'null' ou o elemento real depois do DOMContentLoaded.
 const sessionIdDisplay = document.getElementById('sessionIdDisplay');
 const backToHomeButton = document.getElementById('backToHomeButton');
 
@@ -123,14 +121,15 @@ let unsubscribeAnsweredQuestions = null;
 let unsubscribePlayers = null;
 
 // Função para extrair o idioma de um ID de sessão como "1234PTBR"
+// Retorna o código de idioma ou null se o formato não for o esperado
 function getLanguageFromSessionIdString(sessionId) {
     const languageCodeToLangMap = {
         'PTBR': 'pt-BR',
         'ESES': 'es-ES',
         'ENUS': 'en-US'
     };
-    if (sessionId && sessionId.length === 8) {
-        const code = sessionId.substring(4).toUpperCase();
+    if (sessionId && sessionId.length >= 4) { // Pelo menos 4 caracteres para o código do idioma
+        const code = sessionId.substring(sessionId.length - 4).toUpperCase(); // Pega os últimos 4 caracteres
         return languageCodeToLangMap[code] || null;
     }
     return null;
@@ -178,6 +177,7 @@ function updateUITexts() {
                 optionButton.className = 'option-button bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-3 px-5 rounded-lg text-left w-full shadow';
                 optionButton.innerHTML = `<span class="font-bold mr-2">${key})</span> ${options[key]}`;
                 optionButton.setAttribute('data-option', key);
+
                 optionButton.addEventListener('click', () => {
                     document.querySelectorAll('.option-button').forEach(btn => { btn.classList.remove('selected'); });
                     optionButton.classList.add('selected');
@@ -261,7 +261,7 @@ function getQueryParams() {
     const urlParams = new URLSearchParams(window.location.search);
     return {
         session: urlParams.get('session'),
-        lang: urlParams.get('lang') || AppConfig.defaultLanguage 
+        lang: urlParams.get('lang') // Retorna o idioma da URL, pode ser null
     };
 }
 
@@ -478,23 +478,24 @@ async function initGameLogic() {
     if (currentSessionId) {
         if (sessionIdDisplay) sessionIdDisplay.textContent = currentSessionId;
 
-        let determinedLanguage = getLanguageFromSessionIdString(currentSessionId);
-
-        if (!determinedLanguage) {
-            console.error(`Não foi possível determinar o idioma a partir do ID da sessão '${currentSessionId}'. Redirecionando.`);
-            await loadUITranslations(AppConfig.defaultLanguage); 
-            alert(translations[AppConfig.defaultLanguage].no_session_id_message); 
-            window.location.href = 'index.html?error=invalid_session_id_format';
-            return;
-        } 
-        
-        if (determinedLanguage !== langFromUrl) {
-            console.warn(`Idioma da URL ('${langFromUrl}') não corresponde ao idioma do ID ('${determinedLanguage}'). Priorizando idioma do ID.`);
+        // PRIORIDADE 1: Idioma do parâmetro 'lang' da URL
+        if (langFromUrl && translations[langFromUrl]) {
+            currentLanguage = langFromUrl;
+            console.log(`Idioma definido a partir da URL: ${currentLanguage}`);
+        } else {
+            // PRIORIDADE 2: Idioma inferido do ID da sessão (se o formato for "XXXXLLLL")
+            let langFromSessionId = getLanguageFromSessionIdString(currentSessionId);
+            if (langFromSessionId && translations[langFromSessionId]) {
+                currentLanguage = langFromSessionId;
+                console.log(`Idioma definido a partir do ID da sessão: ${currentLanguage}`);
+            } else {
+                // PRIORIDADE 3: Idioma padrão do AppConfig
+                currentLanguage = AppConfig.defaultLanguage;
+                console.log(`Idioma definido como padrão: ${currentLanguage}`);
+            }
         }
         
-        currentLanguage = determinedLanguage;
         document.documentElement.lang = currentLanguage;
-
         await loadUITranslations(currentLanguage); // Carrega e aplica traduções iniciais
 
         const appId = window.appId;
@@ -507,15 +508,16 @@ async function initGameLogic() {
 
             if (docSnap.exists()) {
                 const sessionData = docSnap.data();
-                if (sessionData.language !== currentLanguage) {
-                    console.warn(`Idioma da sessão no Firestore ('${sessionData.language}') difere do idioma do ID ('${currentLanguage}'). Priorizando idioma do ID.`);
+                // Opcional: Se a sessão no Firestore tiver um idioma diferente, podemos logar um aviso
+                if (sessionData.language && sessionData.language !== currentLanguage) {
+                    console.warn(`Idioma da sessão no Firestore ('${sessionData.language}') difere do idioma determinado ('${currentLanguage}').`);
                 }
 
                 await addOrUpdatePlayerToSession(currentSessionId, window.currentUserId);
 
                 listenToSessionChanges(currentSessionId);
                 
-                await loadQuestions(currentLanguage); // Carrega as perguntas do Firestore
+                await loadQuestions(currentLanguage); // Carrega as perguntas do Firestore com o idioma determinado
 
                 if (sessionData.currentQuestion) {
                     displayQuestionInUI(sessionData.currentQuestion);
@@ -538,10 +540,12 @@ async function initGameLogic() {
         }
 
     } else {
+        // NENHUM ID DE SESSÃO NA URL
         if (sessionIdDisplay) sessionIdDisplay.textContent = 'N/A';
+        // Garante que o idioma padrão é carregado para a mensagem de erro
         await loadUITranslations(AppConfig.defaultLanguage); 
-        console.error(translations[AppConfig.defaultLanguage].error_no_session_id);
-        alert(translations[AppConfig.defaultLanguage].no_session_id_message);
+        console.error(translations[currentLanguage].error_no_session_id);
+        alert(translations[currentLanguage].no_session_id_message);
         window.location.href = 'index.html?error=no_session_id';
     }
 
@@ -665,6 +669,7 @@ async function initGameLogic() {
 // Listener principal DOMContentLoaded que AGUARDA a inicialização do Firebase
 document.addEventListener('DOMContentLoaded', async () => {
     // Aguarda que a promessa de inicialização do Firebase seja resolvida
+    // Isso garante que window.db, window.appId, window.firestore e window.currentUserId estejam definidos.
     await window.firebaseInitializedPromise;
     console.log("Firebase inicializado. Iniciando a lógica do jogo...");
     // Agora que Firebase está pronto, inicia a lógica principal do jogo
