@@ -27,7 +27,8 @@
             updateDoc,
             arrayRemove,
             arrayUnion,
-            serverTimestamp
+            serverTimestamp,
+            collection // <--- Importação da função 'collection' adicionada aqui
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Promessa para rastrear a inicialização do Firebase
@@ -57,7 +58,8 @@
                     // Expõe instâncias de Firebase para outros scripts globalmente
                     window.app = app; // Adicionado para expor a instância do app
                     window.db = db;
-                    window.firestore = { doc, getDoc, setDoc, updateDoc, arrayRemove, arrayUnion, serverTimestamp, getFirestore, collection }; // Exporta funções específicas e collection
+                    // Certifica-se de expor 'collection' também
+                    window.firestore = { doc, getDoc, setDoc, updateDoc, arrayRemove, arrayUnion, serverTimestamp, getFirestore, collection };
                     window.auth = auth; // Expõe a instância de autenticação
 
                     // Notifica que o Firebase está pronto
@@ -109,6 +111,8 @@
         <!-- Seção de Acessar Jogo Existente -->
         <div class="input-group p-6 rounded-lg shadow-md bg-green-50">
             <h2 class="text-xl font-semibold mb-4 text-green-800" data-lang-key="access_game_title">Acessar Jogo Existente</h2>
+            <!-- Campo para o nome de usuário adicionado de volta -->
+            <input type="text" id="usernameInput" placeholder="Digite seu Nome de Usuário" class="input-field mb-4" data-lang-key="input_username_placeholder">
             <input type="text" id="sessionIdInput" placeholder="Digite o ID da Sessão (Ex: 1234PTBR)" class="input-field mb-4" data-lang-key="input_session_placeholder">
             <button id="accessGameButton" class="game-button bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg w-full" data-lang-key="button_access_game">
                 Acessar Jogo
