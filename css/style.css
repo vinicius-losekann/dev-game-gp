@@ -76,7 +76,6 @@ body {
 }
 
 /* Ajusta os botões dentro das seções para terem a mesma largura máxima dos inputs */
-/* Removido o w-full do Tailwind nos botões para permitir que a largura máxima de 200px funcione */
 .input-group button {
     max-width: 200px; /* Define largura máxima para os botões dentro de input-group */
     margin-left: auto; /* Centraliza o botão */
@@ -97,20 +96,20 @@ body {
     padding: 2.5rem;
     border-radius: 1rem;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    max-width: 500px; /* Mantém a largura máxima do container principal */
+    max-width: 400px; /* Reduz a largura máxima do container principal */
     width: 90%;
     text-align: center;
-    display: flex; /* Adicionado para game.html para flex-direction column */
-    flex-direction: column; /* Adicionado para game.html para empilhar elementos */
-    gap: 1.5rem; /* Espaçamento entre seções */
-    position: relative; /* Para o posicionamento do footer */
+    display: flex; 
+    flex-direction: column; 
+    gap: 1.5rem; 
+    position: relative; 
 }
 
-/* Reduz a largura máxima dos input-group para 300px */
+/* Reduz a largura máxima dos input-group para 280px e centraliza */
 .input-group {
-    max-width: 300px; /* Define a largura máxima para as caixas de Novo Jogo e Acessar Jogo */
-    margin-left: auto; /* Centraliza a caixa */
-    margin-right: auto; /* Centraliza a caixa */
+    max-width: 280px; /* Largura máxima para as caixas de Novo Jogo e Acessar Jogo */
+    margin-left: auto; 
+    margin-right: auto; 
 }
 
 /* Estilos para caixas de mensagem (feedback) */
