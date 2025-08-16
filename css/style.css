@@ -31,6 +31,7 @@ body {
     transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
 }
 
+/* Classe para tornar o container visível com transição */
 .container.visible {
     opacity: 1;
     visibility: visible;
