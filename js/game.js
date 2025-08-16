@@ -3,6 +3,7 @@
 let allQuestions = [];
 let currentQuestion = null;
 let selectedOption = null;
+// currentLanguage é inicializado com um valor padrão em AppConfig
 let currentLanguage = AppConfig.defaultLanguage; 
 
 const translations = {
@@ -139,10 +140,10 @@ function getLanguageFromSessionIdString(sessionId) {
 function updateUITexts() {
     // Garante que currentLanguage tem um valor válido
     if (!currentLanguage || !translations[currentLanguage]) {
-        console.warn(`Idioma '${currentLanguage}' inválido ou traduções não carregadas. Usando 'pt-BR' como fallback.`);
+        console.warn(`[updateUITexts] Idioma '${currentLanguage}' inválido ou traduções não carregadas. Usando 'pt-BR' como fallback.`);
         currentLanguage = 'pt-BR'; // Define fallback
         if (!translations[currentLanguage]) {
-            console.error("Erro fatal: Fallback para 'pt-BR' também falhou. Certifique-se de que 'pt-BR' está definido.");
+            console.error("[updateUITexts] Erro fatal: Fallback para 'pt-BR' também falhou. Certifique-se de que 'pt-BR' está definido.");
             return; // Sai se nem o fallback for válido
         }
     }
@@ -215,6 +216,7 @@ function updateUITexts() {
 
 // Nova função para carregar traduções da UI
 async function loadUITranslations(lang) {
+    console.log(`[loadUITranslations] Tentando carregar traduções para: ${lang}`);
     currentLanguage = lang;
     document.documentElement.lang = currentLanguage;
     updateUITexts(); // Atualiza a UI imediatamente com o idioma carregado
@@ -258,6 +260,7 @@ async function loadQuestions(lang) {
 
 // Função para obter o ID da sessão e o idioma da URL
 function getQueryParams() {
+    console.log(`[getQueryParams] window.location.search: ${window.location.search}`);
     const urlParams = new URLSearchParams(window.location.search);
     const sessionParam = urlParams.get('session');
     const langParam = urlParams.get('lang');
@@ -318,7 +321,7 @@ function displayQuestionInUI(question) {
     }
     if (nextCardButton) nextCardButton.classList.add('hidden');
 
-    if (questionArea) questionArea.textContent = question.area;
+    if (questionArea) questionArea.textContent = question.area; 
     if (questionText) questionText.textContent = question.questionText;
     if (optionsContainer) optionsContainer.innerHTML = '';
     if (feedbackContainer) feedbackContainer.innerHTML = '';
@@ -475,14 +478,21 @@ function listenToSessionChanges(sessionId) {
 // Esta função é chamada SOMENTE após o Firebase estar pronto
 // ===========================================
 async function initGameLogic() {
+    console.log("[initGameLogic] Iniciando...");
+    console.log(`[initGameLogic] AppConfig.defaultLanguage está acessível? ${!!AppConfig.defaultLanguage}. Valor: ${AppConfig.defaultLanguage}`);
+
     const params = getQueryParams();
-    console.log(`[initGameLogic] Parâmetros recebidos: session='${params.session}', lang='${params.lang}'`);
+    console.log(`[initGameLogic] Parâmetros recebidos de getQueryParams: session='${params.session}', lang='${params.lang}'`);
 
     currentSessionId = params.session;
-    console.log(`[initGameLogic] currentSessionId após atribuição: ${currentSessionId}`);
+    console.log(`[initGameLogic] currentSessionId após atribuição de params.session: '${currentSessionId}'`);
+    
     let langFromUrl = params.lang; 
+    console.log(`[initGameLogic] langFromUrl (do parâmetro URL): '${langFromUrl}'`);
+
 
     if (currentSessionId) {
+        console.log(`[initGameLogic] currentSessionId É VÁLIDO: '${currentSessionId}'. Prosseguindo com a lógica de sessão.`);
         if (sessionIdDisplay) sessionIdDisplay.textContent = currentSessionId;
 
         // PRIORIDADE 1: Idioma do parâmetro 'lang' da URL
@@ -504,10 +514,11 @@ async function initGameLogic() {
                 } else {
                     // Último recurso: fallback para pt-BR se AppConfig.defaultLanguage for inválido
                     currentLanguage = 'pt-BR';
-                    console.error(`[initGameLogic] AppConfig.defaultLanguage inválido. Definindo idioma como 'pt-BR'.`);
+                    console.error(`[initGameLogic] AppConfig.defaultLanguage inválido ou não encontrado. Definindo idioma como 'pt-BR'.`);
                 }
             }
         }
+        console.log(`[initGameLogic] Idioma final determinado: ${currentLanguage}`);
         
         document.documentElement.lang = currentLanguage;
         await loadUITranslations(currentLanguage); // Carrega e aplica traduções iniciais
@@ -541,13 +552,13 @@ async function initGameLogic() {
                 }
 
             } else {
-                console.error(`[initGameLogic] Sessão ${currentSessionId} não encontrada no Firestore. Redirecionando para a página inicial.`);
+                console.error(`[initGameLogic] Sessão '${currentSessionId}' não encontrada no Firestore. Redirecionando para a página inicial.`);
                 alert(translations[currentLanguage].session_not_found_message);
                 window.location.href = 'index.html?error=session_not_found';
                 return;
             }
         } catch (e) {
-            console.error("Erro ao carregar ou ingressar na sessão Firestore: ", e);
+            console.error("[initGameLogic] Erro ao carregar ou ingressar na sessão Firestore: ", e);
             alert(translations[currentLanguage].session_load_failed_message);
             window.location.href = 'index.html?error=session_load_failed';
             return;
@@ -555,7 +566,7 @@ async function initGameLogic() {
 
     } else {
         // NENHUM ID DE SESSÃO NA URL
-        console.error(`[initGameLogic] Nenhum ID de sessão encontrado no parâmetro 'session' da URL.`);
+        console.error(`[initGameLogic] currentSessionId é NULO ou VAZIO. Redirecionando para a página inicial.`);
         if (sessionIdDisplay) sessionIdDisplay.textContent = 'N/A';
         // Garante que o idioma padrão é carregado para a mensagem de erro
         // Usa AppConfig.defaultLanguage como fallback se translations[currentLanguage] ainda for problemático
@@ -686,6 +697,17 @@ async function initGameLogic() {
 
 // Listener principal DOMContentLoaded que AGUARDA a inicialização do Firebase
 document.addEventListener('DOMContentLoaded', async () => {
+    console.log("DOMContentLoaded disparado. Verificando AppConfig.defaultLanguage...");
+    // Acessa AppConfig.defaultLanguage aqui para garantir que está disponível
+    // Isso é crucial, pois AppConfig precisa ser carregado ANTES que game.js tente usá-lo.
+    if (typeof AppConfig === 'undefined' || !AppConfig.defaultLanguage) {
+        console.error("AppConfig ou AppConfig.defaultLanguage não está definido. Verifique a ordem de carregamento dos scripts.");
+        // Pode adicionar um alert ou redirecionamento aqui se for um erro crítico.
+        // Para depuração, vamos continuar e ver os próximos logs.
+    } else {
+        console.log(`AppConfig.defaultLanguage: ${AppConfig.defaultLanguage} (confirmado em DOMContentLoaded)`);
+    }
+
     // Aguarda que a promessa de inicialização do Firebase seja resolvida
     // Isso garante que window.db, window.appId, window.firestore e window.currentUserId estejam definidos.
     await window.firebaseInitializedPromise;
