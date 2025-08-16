@@ -17,20 +17,23 @@ let languageSelectorButtonsContainer;
 let langPtBrButton;
 let langEnUsButton;
 let langEsEsButton;
-// Removido: copySessionIdButton; 
 
-// Função para mostrar mensagens na tela
+// Função para mostrar mensagens na tela (para erros e infos gerais, não para "sessão criada")
 function showMessage(message, type = 'info') {
     if (messageBox) {
         messageBox.textContent = message;
         messageBox.className = `message-box ${type}`; 
         messageBox.classList.remove('hidden');
+        // Esconde a mensagem de sessão criada se uma nova mensagem geral for exibida
+        if (sessionInfo) {
+            sessionInfo.classList.add('hidden');
+        }
     } else {
         console.warn('Elemento messageBox não encontrado.');
     }
 }
 
-// Função para esconder a caixa de mensagem
+// Função para esconder a caixa de mensagem geral
 function hideMessage() {
     if (messageBox) {
         messageBox.classList.add('hidden');
@@ -83,7 +86,9 @@ function applyTranslations() {
 
 // Função para definir o idioma
 async function setLanguage(lang) {
-    hideMessage();
+    hideMessage(); // Esconde qualquer mensagem geral ao mudar o idioma
+    if (sessionInfo) sessionInfo.classList.add('hidden'); // Esconde a mensagem de sessão criada também
+
     currentLanguage = lang;
     document.documentElement.lang = currentLanguage; // Atualiza o atributo lang do <html>
     await loadTranslations(currentLanguage); // Recarrega e aplica as traduções
@@ -114,7 +119,8 @@ function generateSessionId() {
 
 // Função para criar uma nova sessão
 async function createNewSession() {
-    hideMessage();
+    hideMessage(); // Esconde a messageBox geral
+    if (sessionInfo) sessionInfo.classList.add('hidden'); // Esconde a mensagem de sessão anterior, se houver
     newGameButton.disabled = true; // Desabilita o botão para evitar cliques múltiplos
 
     if (!window.db || !window.auth || !window.currentUserId) {
@@ -123,7 +129,8 @@ async function createNewSession() {
         return;
     }
 
-    showMessage(pageTranslations.creating_session_message || "Criando nova sessão...", 'info');
+    // Não usa showMessage aqui, pois a mensagem será tratada por sessionInfo
+    // showMessage(pageTranslations.creating_session_message || "Criando nova sessão...", 'info');
 
     let newSessionId = generateSessionId();
     const sessionDocRef = window.firestore.doc(window.db, `artifacts/${window.appId}/public/data/sessions`, newSessionId);
@@ -152,9 +159,8 @@ async function createNewSession() {
         });
 
         console.log(`Nova sessão criada com ID: ${newSessionId}`);
-        showMessage(pageTranslations.session_created_message + newSessionId, 'success');
         
-        // Preenche o campo de ID e exibe a seção de informações da sessão
+        // Exibe a mensagem de sucesso usando o sessionInfo
         if (displayCreatedSessionId) {
             displayCreatedSessionId.textContent = newSessionId;
         }
@@ -179,7 +185,9 @@ async function createNewSession() {
 
 // Função para acessar uma sessão existente (agora também usada para recém-criada)
 async function accessExistingSession() {
-    hideMessage();
+    hideMessage(); // Esconde a messageBox geral
+    if (sessionInfo) sessionInfo.classList.add('hidden'); // Esconde a mensagem de sessão criada
+
     accessGameButton.disabled = true; // Desabilita o botão para evitar cliques múltiplos
 
     if (!window.db || !window.auth || !window.currentUserId) {
@@ -234,7 +242,8 @@ async function accessExistingSession() {
                 }
             }
 
-            showMessage(pageTranslations.joining_session_message || `Entrando na sessão ${enteredSessionId}...`, 'success');
+            // Não usa showMessage aqui, o redirecionamento será imediato
+            // showMessage(pageTranslations.joining_session_message || `Entrando na sessão ${enteredSessionId}...`, 'success');
             console.log(`Entrando na sessão ${enteredSessionId}.`);
             // Redireciona para a página do jogo com o ID da sessão e o idioma da sessão
             window.location.href = `game.html?session=${enteredSessionId}&lang=${sessionLanguage}&playerName=${encodeURIComponent(enteredPlayerName)}`;
@@ -248,10 +257,6 @@ async function accessExistingSession() {
         accessGameButton.disabled = false;
     }
 }
-
-// Removido: copySessionIdToClipboard
-// Função para copiar o ID da sessão para a área de transferência
-// function copySessionIdToClipboard() { /* ... */ }
 
 // Inicializa a lógica da página (chamada após o Firebase ser inicializado)
 async function initPageLogic() {
@@ -268,7 +273,6 @@ async function initPageLogic() {
     langPtBrButton = document.getElementById('langPtBrButton');
     langEnUsButton = document.getElementById('langEnUsButton');
     langEsEsButton = document.getElementById('langEsEsButton');
-    // Removido: copySessionIdButton = document.getElementById('copySessionIdButton');
 
     // Adiciona event listeners
     if (newGameButton) newGameButton.addEventListener('click', createNewSession);
@@ -279,10 +283,7 @@ async function initPageLogic() {
     if (langEnUsButton) langEnUsButton.addEventListener('click', () => setLanguage('en-US'));
     if (langEsEsButton) langEsEsButton.addEventListener('click', () => setLanguage('es-ES'));
 
-    // Removido: if (copySessionIdButton) copySessionIdButton.addEventListener('click', copySessionIdToClipboard);
-
     // Define o idioma padrão e carrega as traduções (AppConfig.defaultLanguage já está disponível)
-    // Isso garante que o botão do idioma padrão seja selecionado na inicialização
     await setLanguage(AppConfig.defaultLanguage); 
     console.log('Página carregada. setLanguage() inicial chamado com o idioma padrão.');
 
@@ -298,6 +299,10 @@ async function initPageLogic() {
     // Será exibida apenas após "Iniciar Novo Jogo" ou quando necessário.
     if (sessionInfo) {
         sessionInfo.classList.add('hidden');
+    }
+    // Garante que a messageBox geral esteja oculta ao carregar a página
+    if (messageBox) {
+        messageBox.classList.add('hidden');
     }
 }
 
