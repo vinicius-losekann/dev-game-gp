@@ -8,74 +8,64 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <!-- Importa seu arquivo de estilo CSS personalizado -->
     <link rel="stylesheet" href="css/style.css">
-    <!-- Script para carregar as configurações do Firebase e AppConfig. Este deve vir antes de outros scripts. -->
+    <!-- NOVO: Importa o script de configuração ANTES de qualquer outro script JS -->
     <script src="js/config.js"></script>
+    <!-- Importa as bibliotecas do Firebase. Certifique-se de que a versão é compatível com o seu projeto. -->
     <script type="module">
-        // Importa as funções necessárias do Firebase SDK
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import {
-            getAuth,
-            signInAnonymously,
-            signInWithCustomToken,
-            onAuthStateChanged
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import {
-            getFirestore,
-            doc,
-            getDoc,
-            setDoc,
-            updateDoc,
-            arrayRemove,
-            arrayUnion,
-            serverTimestamp,
-            collection // <--- Importação da função 'collection' adicionada aqui
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, serverTimestamp, arrayRemove, arrayUnion } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 
-        // Promessa para rastrear a inicialização do Firebase
-        // window.firebaseInitializedPromise será resolvida quando o Firebase for inicializado e autenticado.
+        // Cria uma Promise para sinalizar quando o Firebase estiver inicializado e autenticado
         window.firebaseInitializedPromise = new Promise(async (resolve) => {
             try {
-                // Certifica-se de que window.firebaseConfig está disponível antes de inicializar
-                if (window.firebaseConfig) {
-                    const app = initializeApp(window.firebaseConfig);
+                // Usa a configuração global definida em config.js
+                const firebaseConfig = window.firebaseConfig;
+                const appId = window.appId;
+                const initialAuthToken = window.initialAuthToken;
+
+                if (firebaseConfig) {
+                    const app = initializeApp(firebaseConfig);
                     const db = getFirestore(app);
                     const auth = getAuth(app);
 
                     // Autenticação: tenta com token customizado primeiro, depois anonimamente.
-                    if (window.initialAuthToken) {
-                        await signInWithCustomToken(auth, window.initialAuthToken);
-                        console.log("Firebase (index.html): Autenticado com token personalizado.");
+                    if (initialAuthToken) {
+                        try {
+                            await signInWithCustomToken(auth, initialAuthToken);
+                            console.log("Autenticado com token personalizado.");
+                        } catch (error) {
+                            console.warn("Erro ao autenticar com token personalizado, tentando anonimamente:", error);
+                            await signInAnonymously(auth);
+                        }
                     } else {
                         await signInAnonymously(auth);
-                        console.log("Firebase (index.html): Autenticado anonimamente.");
+                        console.log("Autenticado anonimamente.");
                     }
 
                     // Define o userId globalmente após a autenticação
-                    // Usa o UID do usuário autenticado ou gera um anônimo se não autenticado (embora signInAnonymously sempre forneça um UID).
                     window.currentUserId = auth.currentUser?.uid || `anon-${crypto.randomUUID()}`;
-                    console.log("Firebase (index.html): UserID definido:", window.currentUserId);
+                    console.log("UserID definido:", window.currentUserId);
 
-                    // Expõe instâncias de Firebase para outros scripts globalmente
-                    window.app = app; // Adicionado para expor a instância do app
+                    // Expõe instâncias de Firebase para outros scripts
                     window.db = db;
-                    // Certifica-se de expor 'collection' também
-                    window.firestore = { doc, getDoc, setDoc, updateDoc, arrayRemove, arrayUnion, serverTimestamp, getFirestore, collection };
+                    window.firestore = { doc, getDoc, setDoc, serverTimestamp, arrayRemove, arrayUnion }; // Exporta funções específicas
                     window.auth = auth; // Expõe a instância de autenticação
 
                     // Notifica que o Firebase está pronto
                     resolve();
                 } else {
                     console.error("Firebase: Configuração não encontrada ou inválida. Pulando inicialização.");
-                    resolve(); // Resolve mesmo em caso de erro para não travar a aplicação
+                    resolve();
                 }
             } catch (error) {
                 console.error("Erro na inicialização ou autenticação do Firebase:", error);
-                resolve(); // Resolve para permitir que a página continue carregando
+                resolve();
             }
         });
 
-        // Opcional: listener para mudanças de estado de autenticação (para depuração)
-        onAuthStateChanged(getAuth(), (user) => {
+        // Opcional: listener para mudanças de estado de autenticação
+        onAuthStateChanged(auth, (user) => {
             if (user) {
                 console.log("onAuthStateChanged: Usuário logado:", user.uid);
             } else {
@@ -85,6 +75,13 @@
     </script>
 </head>
 <body>
+    <!-- Overlay de carregamento, inicialmente visível -->
+    <div id="loadingOverlay" class="loading-overlay">
+        Carregando...
+        <!-- Você pode adicionar um spinner aqui se quiser -->
+        <!-- <div class="loading-spinner"></div> -->
+    </div>
+
     <div id="main-content-container" class="container">
         <h1 data-lang-key="main_title">Jogo de Gerenciamento de Projetos</h1>
         <p class="text-gray-700 mb-6 leading-relaxed" data-lang-key="description_text">
@@ -94,45 +91,43 @@
         <!-- Seção de Seleção de Idioma -->
         <div class="select-group mb-6">
             <h2 class="text-xl font-semibold mb-3" data-lang-key="language_select_title">Selecione o Idioma:</h2>
-            <!-- Contêiner para os botões de idioma -->
-            <div id="languageSelectorButtonsContainer" class="flex flex-wrap justify-center gap-2">
-                <!-- Os botões serão gerados dinamicamente via JavaScript -->
+            <!-- Contêiner para os botões de seleção de idioma (serão gerados via JS) -->
+            <div id="languageSelectorButtons" class="flex flex-wrap justify-center gap-2 mb-4">
+                <!-- Botões de idioma serão inseridos aqui pelo JavaScript -->
             </div>
         </div>
 
-        <!-- Seção de Iniciar Novo Jogo -->
-        <div class="input-group p-6 rounded-lg shadow-md bg-blue-50">
-            <h2 class="text-xl font-semibold mb-4 text-blue-800" data-lang-key="new_game_title">Iniciar Novo Jogo</h2>
-            <button id="newGameButton" class="game-button bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg mb-4 w-full" data-lang-key="button_new_game">
-                Iniciar Novo Jogo
+        <div class="input-group mb-4">
+            <button id="newGameButton" class="game-button bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg w-full">
+                <span data-lang-key="button_new_game">Iniciar Novo Jogo</span>
             </button>
         </div>
 
-        <!-- Seção de Acessar Jogo Existente -->
-        <div class="input-group p-6 rounded-lg shadow-md bg-green-50">
-            <h2 class="text-xl font-semibold mb-4 text-green-800" data-lang-key="access_game_title">Acessar Jogo Existente</h2>
-            <!-- Campo para o nome de usuário adicionado de volta -->
-            <input type="text" id="usernameInput" placeholder="Digite seu Nome de Usuário" class="input-field mb-4" data-lang-key="input_username_placeholder">
-            <input type="text" id="sessionIdInput" placeholder="Digite o ID da Sessão (Ex: 1234PTBR)" class="input-field mb-4" data-lang-key="input_session_placeholder">
-            <button id="accessGameButton" class="game-button bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg w-full" data-lang-key="button_access_game">
-                Acessar Jogo
+        <div class="mt-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4" data-lang-key="access_game_title">Acessar Jogo Existente</h2>
+            <div class="input-group mb-4">
+                <input type="text" id="sessionIdInput" placeholder="Digite o ID da Sessão (Ex: 1234PTBR)"
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 text-center"
+                       data-lang-key="input_session_placeholder">
+            </div>
+            <button id="accessGameButton" class="game-button bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg w-full">
+                <span data-lang-key="button_access_game">Acessar Jogo</span>
             </button>
         </div>
 
-        <!-- Caixa de Mensagem (Feedback ao usuário) -->
+        <!-- Mensagens para o usuário -->
         <div id="messageBox" class="message-box hidden" role="alert">
-            <!-- Mensagens serão inseridas aqui via JavaScript -->
+            <!-- As mensagens serão exibidas aqui -->
         </div>
 
-        <!-- Informações da sessão criada -->
-        <div id="sessionInfo" class="session-message-success hidden" role="status">
-            <!-- Mensagem de ID da sessão será inserida aqui via JavaScript -->
+        <!-- Informações da sessão para o usuário (inicialmente oculto) -->
+        <div id="sessionInfo" class="hidden bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative mt-4" role="alert">
+            <strong class="font-bold" data-lang-key="session_created_message">Sessão criada! Seu ID é:</strong>
+            <span id="displaySessionId" class="block sm:inline font-mono text-lg text-blue-900"></span>
+            <p class="text-sm mt-1" data-lang-key="session_id_prompt">Insira este ID para acessar seu jogo.</p>
         </div>
     </div>
-    <!-- Rodapé de Versão -->
-    <div class="version-footer">
-        Versão: 1.0.0
-    </div>
+
     <!-- Carrega o script principal do jogo (index.js) com type="module" se ele importar outras coisas -->
     <script src="js/index.js" type="module"></script>
 </body>
