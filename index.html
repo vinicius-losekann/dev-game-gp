@@ -8,13 +8,79 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Incluindo estilos personalizados -->
     <link rel="stylesheet" href="css/style.css">
-    <!-- Removido o estilo inline e a classe 'hidden' da div principal.
-         A visibilidade agora é controlada puramente via css/style.css e js/index.js. -->
+    <style>
+        /* Esconde o conteúdo principal instantaneamente para evitar o "flash" */
+        #main-content-container {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+        }
+    </style>
+    <!-- Incluindo Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // Variáveis globais para Firebase, que serão preenchidas no DOMContentLoaded
+        window.firebaseApp = null;
+        window.db = null;
+        window.auth = null;
+        window.currentUserId = null; // Adicionado para armazenar o UID do usuário
+        window.serverTimestamp = serverTimestamp; // Expondo serverTimestamp globalmente
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // As variáveis __app_id e __firebase_config são fornecidas pelo ambiente Canvas.
+            // Se você não estiver no ambiente Canvas (ex: testando localmente),
+            // você precisará preencher 'appId' e 'firebaseConfig' manualmente com seus próprios valores.
+            const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'; // Fallback para dev local
+            const manualFirebaseConfig = { 
+                apiKey: "", // Se não estiver no Canvas, preencha com sua API Key
+                authDomain: "YOUR_AUTH_DOMAIN.firebaseapp.com", // Substitua
+                projectId: "YOUR_PROJECT_ID", // Substitua
+                storageBucket: "YOUR_STORAGE_BUCKET.appspot.com",
+                messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+                appId: "YOUR_APP_ID_FROM_FIREBASE_SETTINGS",
+                measurementId: "YOUR_MEASUREMENT_ID"
+            };
+
+            const finalFirebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : manualFirebaseConfig;
+            const finalAppId = typeof __app_id !== 'undefined' ? __app_id : 'gameGP'; // Use 'gameGP' como fallback específico
+
+            try {
+                window.firebaseApp = initializeApp(finalFirebaseConfig);
+                window.auth = getAuth(window.firebaseApp);
+                window.db = getFirestore(window.firebaseApp);
+                window.appId = finalAppId; // Torna o appId globalmente acessível
+
+                // Autenticação: Tenta usar o token customizado (Canvas), caso contrário, faz login anônimo
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(window.auth, __initial_auth_token);
+                    console.log("Firebase: Autenticado com token customizado.");
+                } else {
+                    await signInAnonymously(window.auth);
+                    console.log("Firebase: Autenticado anonimamente.");
+                }
+                
+                // O UID do usuário autenticado é usado como currentUserId
+                window.currentUserId = window.auth.currentUser?.uid || 'anonymous-user';
+
+                console.log("Firebase: App inicializado e autenticado. ID do Usuário:", window.currentUserId);
+
+            } catch (error) {
+                console.error("Erro ao inicializar Firebase ou autenticar:", error);
+                const mainContent = document.getElementById('main-content-container');
+                if (mainContent) {
+                    mainContent.innerHTML = `<p class="text-red-600 text-center">Erro crítico: Não foi possível conectar ao Firebase. Por favor, recarregue a página.</p>`;
+                    mainContent.style.opacity = '1';
+                    mainContent.style.visibility = 'visible';
+                }
+            }
+        });
+    </script>
 </head>
-<body class="p-4">
-    <!-- A classe 'hidden' FOI REMOVIDA DAQUI.
-         A visibilidade é controlada pelo CSS em style.css (#main-content-container) e pelo JS. -->
-    <div id="main-content-container" class="container bg-white p-10 rounded-2xl shadow-2xl max-w-lg w-full text-center border-b-4 border-teal-500">
+<body class="p-4 flex flex-col min-h-screen">
+    <div id="main-content-container" class="container bg-white p-10 rounded-2xl shadow-2xl max-w-lg w-full text-center border-b-4 border-teal-500 flex-grow">
         <h1 id="mainTitle" class="text-5xl font-extrabold text-teal-700 mb-6 drop-shadow-sm">
             Jogo de Gerenciamento de Projetos
         </h1>
@@ -58,8 +124,8 @@
         </div>
     </div>
 
-    <!-- Indicador de Versão -->
-    <div id="app-version" class="fixed bottom-2 left-2 text-gray-400 text-xs z-50">
+    <!-- Indicador de Versão (agora no final do fluxo, empurrado pelo flex-grow) -->
+    <div id="app-version" class="mt-auto text-gray-400 text-xs p-4 text-center w-full">
         Versão: 1.0.0
     </div>
 
