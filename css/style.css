@@ -65,7 +65,7 @@ body {
     border: 1px solid #d1d5db; /* gray-300 */
     padding: 0.75rem 1rem;
     border-radius: 0.5rem;
-    max-width: 300px; /* Limita a largura dos inputs */
+    max-width: 200px; /* Reduz a largura máxima dos inputs */
     width: 100%;
     box-sizing: border-box; /* Garante que padding não aumente a largura total */
     font-size: 1rem;
