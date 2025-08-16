@@ -219,7 +219,8 @@ async function initPageLogic() {
                     createdAt: firestore.serverTimestamp(),
                     createdBy: userId,
                     language: currentLanguage, // Salva o idioma da sessão
-                    currentPlayers: [{ userId: userId, joinedAt: firestore.serverTimestamp() }] // Adiciona o criador como primeiro jogador
+                    // CORREÇÃO: Usando new Date() em vez de firestore.serverTimestamp() dentro do array
+                    currentPlayers: [{ userId: userId, joinedAt: new Date() }] 
                 });
                 showMessage(pageTranslations.session_created_message + ` ${newSessionId}. ${pageTranslations.session_id_prompt}`, 'success');
                 sessionInfo.innerHTML = `<strong>${pageTranslations.session_created_message}</strong> ${newSessionId}.<br>${pageTranslations.session_id_prompt}`;
@@ -278,7 +279,7 @@ async function initPageLogic() {
 
                     if (!playerExists) {
                         await firestore.updateDoc(sessionDocRef, {
-                            currentPlayers: firestore.arrayUnion({ userId: userId, joinedAt: firestore.serverTimestamp() })
+                            currentPlayers: firestore.arrayUnion({ userId: userId, joinedAt: new Date() }) // CORREÇÃO: Usando new Date()
                         });
                         console.log(`Usuário ${userId} adicionado à sessão.`);
                     } else {
