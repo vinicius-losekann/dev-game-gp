@@ -93,14 +93,14 @@
 
     <!-- Container principal do jogo, inicialmente invisível -->
     <div id="main-content-container" class="container">
-        <h1 data-lang-key="main_title" class="text-4xl font-extrabold text-teal-800 mb-4">Jogo de Gerenciamento de Projetos</h1>
-        <p class="text-gray-700 mb-6 leading-relaxed" data-lang-key="description_text">
+        <h1 data-lang-key="main_title" class="text-4xl font-extrabold text-teal-800 mb-6 text-center">Jogo de Gerenciamento de Projetos</h1>
+        <p class="text-gray-700 mb-8 leading-relaxed text-center max-w-2xl mx-auto" data-lang-key="description_text">
             Domine as habilidades essenciais de gerenciamento de projetos neste jogo interativo! Aprenda sobre **planejamento**, **execução**, **monitoramento de progresso** e **resolução de desafios** em cenários simulados para se tornar um gestor de projetos de sucesso. Cada decisão importa!
         </p>
 
         <!-- Seção de Seleção de Idioma -->
-        <div class="select-group mb-6 p-4 bg-blue-50 rounded-lg shadow-inner">
-            <h2 class="text-xl font-semibold mb-3 text-blue-800" data-lang-key="language_select_title">Selecione o Idioma:</h2>
+        <div class="select-group mb-8 p-6 bg-blue-50 rounded-xl shadow-lg border border-blue-100 max-w-md mx-auto">
+            <h2 class="text-xl font-semibold mb-4 text-blue-800 text-center" data-lang-key="language_select_title">Selecione o Idioma:</h2>
             <!-- Contêiner para os botões de seleção de idioma (preenchido por JS) -->
             <div id="languageSelectorButtons" class="flex flex-wrap justify-center gap-3">
                 <!-- Botões de idioma serão carregados aqui pelo JS -->
@@ -108,46 +108,47 @@
         </div>
 
         <!-- Campo para nome de usuário -->
-        <div class="mb-6 input-group">
-            <label for="usernameInput" class="block text-gray-700 text-lg font-semibold mb-2" data-lang-key="label_username">Seu Nome de Usuário:</label>
-            <input type="text" id="usernameInput" placeholder="Digite seu nome" class="input-field p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500" required>
+        <div class="mb-8 input-group p-6 bg-yellow-50 rounded-xl shadow-lg border border-yellow-100 max-w-md mx-auto">
+            <label for="usernameInput" class="block text-gray-700 text-lg font-semibold mb-3 text-center" data-lang-key="label_username">Seu Nome de Usuário:</label>
+            <input type="text" id="usernameInput" placeholder="Digite seu nome"
+                   class="input-field p-3 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-teal-500 text-center" required>
         </div>
 
         <!-- Seção de Novo Jogo -->
-        <div class="action-card mb-8">
-            <h2 class="text-2xl font-bold text-teal-700 mb-4" data-lang-key="new_game_title">Iniciar Novo Jogo</h2>
-            <p class="text-gray-600 mb-6 text-center" data-lang-key="new_game_description">
+        <div class="action-card mb-8 p-8 bg-gradient-to-br from-teal-50 to-teal-100 rounded-xl shadow-2xl border border-teal-200 max-w-md mx-auto">
+            <h2 class="text-2xl font-bold text-teal-700 mb-4 text-center" data-lang-key="new_game_title">Iniciar Novo Jogo</h2>
+            <p class="text-gray-600 mb-6 text-center leading-snug" data-lang-key="new_game_description">
                 Crie uma nova sessão de jogo para começar do zero ou convidar amigos.
             </p>
-            <button id="newGameButton" class="game-button bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out">
+            <button id="newGameButton" class="game-button bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out w-full transform hover:scale-105">
                 <span data-lang-key="button_new_game">Iniciar Novo Jogo</span>
             </button>
-            <div id="sessionInfo" class="hidden mt-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-800 text-center text-lg shadow-sm">
-                <p><span data-lang-key="session_created_message">Sessão criada! Seu ID é: </span><strong id="displaySessionId" class="text-green-900"></strong></p>
+            <div id="sessionInfo" class="hidden mt-6 p-4 bg-green-100 border border-green-300 rounded-lg text-green-800 text-center text-lg shadow-inner">
+                <p><span data-lang-key="session_created_message">Sessão criada! Seu ID é: </span><strong id="displaySessionId" class="text-green-900 font-extrabold text-xl"></strong></p>
                 <p class="text-sm text-green-700 mt-2" data-lang-key="session_id_prompt">Insira este ID para acessar seu jogo.</p>
-                <button id="goToGameButton" class="game-button bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md mt-4">
+                <button id="goToGameButton" class="game-button bg-green-700 hover:bg-green-800 text-white font-bold py-2 px-4 rounded-lg shadow-md mt-4 transform hover:scale-105">
                     <span data-lang-key="button_go_to_game">Ir para o Jogo</span>
                 </button>
             </div>
         </div>
 
         <!-- Seção de Acessar Jogo Existente -->
-        <div class="action-card">
-            <h2 class="text-2xl font-bold text-blue-700 mb-4" data-lang-key="access_game_title">Acessar Jogo Existente</h2>
-            <p class="text-gray-600 mb-6 text-center" data-lang-key="access_game_description">
+        <div class="action-card p-8 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-2xl border border-blue-200 max-w-md mx-auto">
+            <h2 class="text-2xl font-bold text-blue-700 mb-4 text-center" data-lang-key="access_game_title">Acessar Jogo Existente</h2>
+            <p class="text-gray-600 mb-6 text-center leading-snug" data-lang-key="access_game_description">
                 Entre em uma sessão de jogo existente usando um ID de sessão.
             </p>
             <div class="input-group mb-4">
                 <input type="text" id="sessionIdInput" placeholder="Digite o ID da Sessão (Ex: 1234PTBR)"
-                       class="input-field p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                       class="input-field p-3 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-center" required>
             </div>
-            <button id="accessGameButton" class="game-button bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out">
+            <button id="accessGameButton" class="game-button bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out w-full transform hover:scale-105">
                 <span data-lang-key="button_access_game">Acessar Jogo</span>
             </button>
         </div>
 
         <!-- Caixa de Mensagens (para feedback do usuário) -->
-        <div id="messageBox" class="message-box hidden"></div>
+        <div id="messageBox" class="message-box hidden mt-8 max-w-md mx-auto"></div>
     </div>
 
     <!-- Informações da Versão -->
