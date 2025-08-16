@@ -126,7 +126,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, updateDoc, arrayUnion, arrayRemove, serverTimestamp, onSnapshot, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         // Variáveis globais para Firebase, acessíveis em todo o escopo do módulo
         let app;
@@ -144,7 +144,8 @@
         // Promessa para garantir que o Firebase está inicializado e autenticado
         window.firebaseInitializedPromise = new Promise(async (resolve) => {
             try {
-                if (Object.keys(firebaseConfig).length > 0) {
+                // Apenas inicializa o Firebase se a configuração for válida
+                if (firebaseConfig && Object.keys(firebaseConfig).length > 0) {
                     app = initializeApp(firebaseConfig);
                     auth = getAuth(app);
                     db = getFirestore(app);
@@ -152,7 +153,15 @@
                         doc: doc,
                         setDoc: setDoc,
                         getDoc: getDoc,
-                        collection: (dbInstance, path) => getFirestore(dbInstance).collection(path) // Exemplo para collection
+                        collection: collection,
+                        updateDoc: updateDoc,
+                        arrayUnion: arrayUnion,
+                        arrayRemove: arrayRemove,
+                        serverTimestamp: serverTimestamp,
+                        onSnapshot: onSnapshot,
+                        query: query,
+                        where: where,
+                        getDocs: getDocs
                     };
 
                     window.db = db; // Exporta para game.js
@@ -172,8 +181,11 @@
                     console.log(`Firebase: App inicializado e autenticado. ID do Usuário: ${currentUserId}`);
                     resolve(); // Resolve a promessa após a inicialização e autenticação
                 } else {
-                    console.error("Firebase Configuração não encontrada. Pulando a inicialização do Firebase.");
-                    resolve(); // Resolve mesmo sem config para não bloquear o restante do app
+                    console.error("Firebase Configuração não encontrada ou inválida. Pulando a inicialização do Firebase.");
+                    // Não resolve a promessa para indicar que o Firebase não foi inicializado com sucesso
+                    // Ou resolve para não travar o app, mas as operações de DB falharão.
+                    // Para este caso, vamos resolver, mas as funções de DB precisarão checar 'db' e 'auth.currentUser'
+                    resolve();
                 }
             } catch (error) {
                 console.error("Erro na inicialização ou autenticação do Firebase:", error);
@@ -219,7 +231,7 @@
             await window.firebaseInitializedPromise; // Garante que o Firebase está pronto
 
             if (!db || !auth.currentUser) {
-                showMessage('Erro: Firebase não inicializado ou usuário não autenticado.', 'error');
+                showMessage('Erro: Firebase não inicializado ou usuário não autenticado. Verifique a configuração.', 'error');
                 createSessionButton.disabled = false;
                 joinSessionButton.disabled = sessionIdInput.value.trim() === '';
                 return;
@@ -227,12 +239,13 @@
 
             const selectedLanguage = languageSelect.value;
             const newSessionId = generateSessionIdWithLanguage(selectedLanguage);
+            // Caminho da coleção conforme as regras do Firestore: artifacts/{appId}/public/data/sessions
             const sessionDocRef = firestore.doc(db, `artifacts/${appId}/public/data/sessions`, newSessionId);
 
             try {
                 // Tenta criar o documento da sessão
                 await firestore.setDoc(sessionDocRef, {
-                    createdAt: new Date(),
+                    createdAt: serverTimestamp(), // Usa serverTimestamp para data do servidor
                     hostUserId: auth.currentUser.uid,
                     language: selectedLanguage, // Salva o idioma na sessão
                     status: 'active', // 'active', 'completed', 'archived'
@@ -267,12 +280,13 @@
             await window.firebaseInitializedPromise; // Garante que o Firebase está pronto
 
             if (!db || !auth.currentUser) {
-                showMessage('Erro: Firebase não inicializado ou usuário não autenticado.', 'error');
+                showMessage('Erro: Firebase não inicializado ou usuário não autenticado. Verifique a configuração.', 'error');
                 createSessionButton.disabled = false;
                 joinSessionButton.disabled = sessionIdInput.value.trim() === '';
                 return;
             }
 
+            // Caminho da coleção conforme as regras do Firestore: artifacts/{appId}/public/data/sessions
             const sessionDocRef = firestore.doc(db, `artifacts/${appId}/public/data/sessions`, enteredSessionId);
 
             try {
@@ -297,15 +311,6 @@
             }
         });
 
-        // Adiciona um listener para a mudança do idioma para pré-popular o input para o usuário
-        languageSelect.addEventListener('change', () => {
-            const selectedLanguage = languageSelect.value;
-            // Apenas para conveniência, pode pré-popular com um exemplo
-            // sessionIdInput.value = `____${selectedLanguage.replace('-', '').toUpperCase()}`;
-        });
-
     </script>
-    <!-- Incluir AppConfig.js DEPOIS DESTE SCRIPT mas ANTES de game.js (se game.js for na index) -->
-    <!-- Se game.js estiver apenas em game.html, AppConfig.js precisa estar antes de game.js lá -->
 </body>
 </html>
