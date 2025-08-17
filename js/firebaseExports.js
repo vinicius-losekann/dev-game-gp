@@ -1,12 +1,12 @@
 // js/firebaseExports.js
 
 // Importa as funções necessárias do Firebase SDK
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { 
     getFirestore, doc, setDoc, getDoc, collection, updateDoc, 
     arrayUnion, arrayRemove, serverTimestamp, onSnapshot, query, where, getDocs 
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // Variáveis globais (exportadas) para as instâncias do Firebase
 let app;
@@ -19,13 +19,13 @@ let firebaseInitializedPromise; // Promessa que resolve quando o Firebase está 
 // No ambiente Canvas, __firebase_config e __app_id são fornecidos.
 // Para testes locais, você DEVE preencher manualFirebaseConfig com os seus dados do Firebase.
 const manualFirebaseConfig = { 
-    apiKey: "AIzaSyDdiedj1Smjzn9CDqShdhG5Y0_Sa18xyWI",
-    authDomain: "jogo-gerencia-de-projetos.firebaseapp.com",
-    projectId: "jogo-gerencia-de-projetos",
-    storageBucket: "jogo-gerencia-de-projetos.firebasestorage.app",
-    messagingSenderId: "356867532123",
-    appId: "1:356867532123:web:0657d84635a5849df2667e",
-    measurementId: "G-M5QYQ36Q9P"
+    apiKey: "YOUR_FIREBASE_API_KEY", // SUBSTITUA PELA SUA CHAVE SE FOR TESTAR LOCALMENTE
+    authDomain: "YOUR_FIREBASE_AUTH_DOMAIN",
+    projectId: "YOUR_FIREBASE_PROJECT_ID",
+    storageBucket: "YOUR_FIREBASE_STORAGE_BUCKET",
+    messagingSenderId: "YOUR_FIREBASE_MESSAGING_SENDER_ID",
+    appId: "YOUR_FIREBASE_APP_ID",
+    measurementId: "YOUR_FIREBASE_MEASUREMENT_ID"
 };
 
 // Define o ID do aplicativo. No Canvas, será __app_id. Localmente, use 'gameGP'.
@@ -40,12 +40,47 @@ async function initializeFirebase() {
     firebaseInitializedPromise = new Promise(async (resolve, reject) => {
         console.log("firebaseExports: Iniciando inicialização do Firebase...");
 
-        const finalFirebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : manualFirebaseConfig;
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        let finalFirebaseConfig = {};
+        let initialAuthToken = null;
+
+        // Função para tentar obter as variáveis globais do ambiente Canvas usando polling.
+        // Este método é crucial porque as variáveis __app_id, __firebase_config e __initial_auth_token
+        // podem não estar disponíveis imediatamente no carregamento inicial do script,
+        // especialmente em ambientes como o Canvas que injetam variáveis de forma assíncrona.
+        const pollForCanvasGlobals = () => new Promise(resolvePoll => {
+            const interval = setInterval(() => {
+                // Verifica se TODAS as variáveis esperadas estão definidas
+                if (typeof __app_id !== 'undefined' && typeof __firebase_config !== 'undefined' && typeof __initial_auth_token !== 'undefined') {
+                    clearInterval(interval); // Para o polling
+                    try {
+                        finalFirebaseConfig = JSON.parse(__firebase_config);
+                    } catch (e) {
+                        console.error("firebaseExports (polling): Erro ao analisar __firebase_config:", e);
+                        finalFirebaseConfig = {}; // Garante que a configuração seja um objeto vazio em caso de erro
+                    }
+                    initialAuthToken = __initial_auth_token;
+                    console.log("firebaseExports (polling): Variáveis do Canvas obtidas via polling.");
+                    resolvePoll(); // Resolve a promessa interna de polling
+                } else {
+                    // console.log("firebaseExports (polling): Aguardando variáveis do Canvas...");
+                }
+            }, 50); // Tenta a cada 50ms (ajustado para ser mais rápido)
+        });
+
+        console.log("firebaseExports: Iniciando polling para variáveis do Canvas...");
+        await pollForCanvasGlobals(); // Espera até que as variáveis do Canvas estejam disponíveis
+
+        // Se, mesmo após o polling, as variáveis do Canvas não estiverem disponíveis, usa a config manual.
+        // Isso é principalmente para desenvolvimento local. No Canvas, devem estar disponíveis.
+        if (Object.keys(finalFirebaseConfig).length === 0 || !finalFirebaseConfig.projectId) {
+            console.warn("firebaseExports: Variáveis do Canvas não disponíveis ou inválidas. Usando configuração manual para testes locais.");
+            finalFirebaseConfig = manualFirebaseConfig;
+        }
 
         if (!finalFirebaseConfig || Object.keys(finalFirebaseConfig).length === 0 || !finalFirebaseConfig.projectId) {
-            console.error("firebaseExports: Configuração do Firebase ausente ou inválida. Não foi possível inicializar.");
-            reject(new Error("Firebase configuration missing or invalid."));
+            const errorMessage = "firebaseExports: Configuração do Firebase ausente ou inválida. Não foi possível inicializar.";
+            console.error(errorMessage);
+            reject(new Error(errorMessage));
             return;
         }
 
