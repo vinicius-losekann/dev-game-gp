@@ -24,36 +24,29 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Variável global para armazenar a promessa de inicialização do Firebase.
-        // Outros scripts (index.js, gameLogic.js) irão esperar por esta promessa.
         window.firebaseInitializedPromise = new Promise(async (resolve, reject) => {
             let firebaseConfig = {};
             let appId = 'default-app-id'; // Valor de fallback
             let initialAuthToken = null;
 
-            // Função para tentar obter as variáveis globais do ambiente Canvas.
-            // Loop até que __app_id e __firebase_config estejam definidos.
-            const pollForCanvasGlobals = () => new Promise(resolvePoll => {
-                const interval = setInterval(() => {
-                    if (typeof __app_id !== 'undefined' && typeof __firebase_config !== 'undefined') {
-                        clearInterval(interval);
-                        appId = __app_id;
-                        try {
-                            firebaseConfig = JSON.parse(__firebase_config);
-                        } catch (e) {
-                            console.error("Erro ao analisar __firebase_config:", e);
-                        }
-                        initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-                        resolvePoll();
-                    }
-                }, 50); // Tenta a cada 50ms
-            });
-
-            console.log("Firebase (index.html): Aguardando variáveis do ambiente Canvas...");
-            await pollForCanvasGlobals(); // Espera até que as variáveis do Canvas estejam disponíveis
-            console.log("Firebase (index.html): Variáveis do Canvas obtidas.");
+            // Tentar obter as variáveis globais do ambiente Canvas.
+            // O ambiente Canvas deve injetar estas variáveis antes que este script seja executado.
+            // Se elas não estiverem definidas aqui, é um problema do ambiente Canvas.
+            try {
+                if (typeof __app_id !== 'undefined' && typeof __firebase_config !== 'undefined') {
+                    appId = __app_id;
+                    firebaseConfig = JSON.parse(__firebase_config);
+                    initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                    console.log("Firebase (index.html): Variáveis do Canvas obtidas diretamente.");
+                } else {
+                    console.warn("Firebase (index.html): Variáveis __app_id ou __firebase_config não definidas no ambiente Canvas. Usando fallbacks.");
+                }
+            } catch (e) {
+                console.error("Firebase (index.html): Erro ao tentar obter variáveis do Canvas:", e);
+            }
 
             if (Object.keys(firebaseConfig).length > 0 && appId !== 'default-app-id') {
                 try {
@@ -65,7 +58,7 @@
                     window.app = appInstance;
                     window.auth = authInstance;
                     window.db = dbInstance;
-                    window.appId = appId; // Garante que appId também esteja no window
+                    window.appId = appId;
                     window.currentUserId = null; // Será preenchido após a autenticação
 
                     // Autenticação
@@ -86,9 +79,13 @@
                     reject(error); // Rejeita a promessa em caso de erro
                 }
             } else {
-                console.error("Firebase (index.html): Configuração final inválida. Inicialização pulada.");
-                reject(new Error("Configuração do Firebase ausente ou inválida."));
+                const errorMessage = "Firebase (index.html): Configuração final inválida. Inicialização pulada.";
+                console.error(errorMessage);
+                reject(new Error(errorMessage));
             }
+        }).catch(error => {
+            // Captura qualquer erro de inicialização para garantir que o overlay seja removido
+            console.error("Erro fatal na inicialização do Firebase:", error);
         });
     </script>
     
@@ -98,7 +95,7 @@
     <div id="main-content-container" class="opacity-0 visibility-hidden transition-opacity duration-500 ease-in-out px-4 py-8 md:px-8 md:py-12 max-w-4xl w-full mx-auto bg-white rounded-xl shadow-lg flex flex-col items-center justify-center space-y-8 mt-12 mb-12">
         <h1 class="text-4xl md:text-5xl font-extrabold text-blue-800 text-center leading-tight mb-4" data-lang-key="main_title">Jogo de Gerenciamento de Projetos</h1>
         <p class="text-lg md:text-xl text-gray-700 text-center max-w-2xl" data-lang-key="description_text">
-            Domine as habilidades essenciais de gerenciamento de projetos neste jogo interativo! Aprenda sobre **planejamento**, **execução**, **monitoramento de progresso** e **resolução de desafios** em cenários simulados para se tornar um gestor de projetos de sucesso. Cada decisão importa!
+            Domine as habilidades essenciais de gerenciamento de projetos neste jogo interativo! Aprenda sobre **planeamento**, **execução**, **monitorização de progresso** e **resolução de desafios** em cenários simulados para se tornar um gestor de projetos de sucesso. Cada decisão importa!
         </p>
 
         <!-- Seletor de Idioma -->
@@ -119,20 +116,20 @@
 
         <!-- Mensagem de ID da sessão para novo jogo (inicialmente oculta) -->
         <div id="go-to-game-container" class="hidden mt-8 text-center bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded-lg shadow-md max-w-md mx-auto" role="alert">
-            <p class="font-bold mb-2" data-lang-key="session_created_message">Sessão criada! Seu ID é: <span id="displaySessionId"></span></p>
-            <p class="text-sm" data-lang-key="session_id_prompt">Insira este ID para que outros jogadores possam acessar seu jogo. Clique em 'Entrar no Jogo' quando estiver pronto.</p>
+            <p class="font-bold mb-2" data-lang-key="session_created_message">Sessão criada! O seu ID é: <span id="displaySessionId"></span></p>
+            <p class="text-sm" data-lang-key="session_id_prompt">Insira este ID para que outros jogadores possam aceder ao seu jogo. Clique em 'Entrar no Jogo' quando estiver pronto.</p>
             <button id="goToGameButton" class="game-button mt-4 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
                 <span data-lang-key="button_go_to_game">Entrar no Jogo</span>
             </button>
         </div>
 
-        <!-- Seção de Acessar Jogo Existente -->
+        <!-- Seção de Aceder a Jogo Existente -->
         <div id="accessGameCard" class="action-card bg-gradient-to-r from-green-100 to-green-200 text-gray-800 p-6 md:p-8 rounded-lg shadow-xl w-full max-w-md mx-auto transform transition-transform duration-300 hover:scale-105">
-            <h2 class="text-3xl font-bold mb-4 text-center" data-lang-key="access_game_title">Acessar Jogo Existente</h2>
-            <!-- Campo para Nome de Usuário -->
+            <h2 class="text-3xl font-bold mb-4 text-center" data-lang-key="access_game_title">Aceder a Jogo Existente</h2>
+            <!-- Campo para Nome de Utilizador -->
             <div class="input-group mb-4 w-full">
-                <label for="existingGameUsernameInput" class="block text-gray-700 text-lg font-semibold mb-3 text-center" data-lang-key="label_username">Seu Nome de Usuário:</label>
-                <input type="text" id="existingGameUsernameInput" placeholder="Digite seu Nome de Usuário"
+                <label for="existingGameUsernameInput" class="block text-gray-700 text-lg font-semibold mb-3 text-center" data-lang-key="label_username">O seu Nome de Utilizador:</label>
+                <input type="text" id="existingGameUsernameInput" placeholder="Digite o seu Nome de Utilizador"
                         class="input-field p-3 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-green-500 text-center" required>
             </div>
             <!-- Campo para ID da sessão existente -->
@@ -142,17 +139,17 @@
                         class="input-field p-3 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-green-500 text-center" required>
             </div>
             <button id="accessGameButton" class="game-button bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out w-full transform hover:scale-105">
-                <span data-lang-key="button_access_game">Acessar Sessão</span>
+                <span data-lang-key="button_access_game">Aceder a Sessão</span>
             </button>
         </div>
 
-        <!-- Caixa de Mensagens (para feedback do usuário) -->
+        <!-- Caixa de Mensagens (para feedback do utilizador) -->
         <div id="messageBox" class="message-box hidden mt-8 max-w-md mx-auto"></div>
     </div>
 
     <!-- Informações da Versão -->
     <div class="version-info">
-        <span>Versão 1.0.1</span>
+        <span>Versão 1.0.2</span>
         <span>&bull;</span>
         <span>&copy; 2025 Vinicius Losekann</span>
     </div>
