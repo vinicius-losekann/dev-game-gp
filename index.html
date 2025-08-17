@@ -295,13 +295,60 @@
                 invalidSession: "O código da sessão não é válido. Verifique e tente novamente.",
                 fieldsRequired: "Por favor, preencha todos os campos."
             },
-            'en-US': { /* ... traduções em inglês ... */ },
-            'es-ES': { /* ... traduções em espanhol ... */ }
+            'en-US': {
+                title: 'Project Management Game',
+                objective: 'This game was created to help you learn, review, and apply fundamental project management concepts in an interactive and fun way. Test your skills and knowledge in various areas to become a successful project manager.',
+                instructionsTitle: 'Instructions:',
+                instructions: [
+                    'Choose your language.',
+                    'Start a new session or join an existing one.',
+                    'Test your skills in various knowledge areas.'
+                ],
+                newGameTitle: 'Start a New Game',
+                newGameButton: 'Create New Session',
+                sessionTitle: 'Session Created! 🎉',
+                sessionMessage: 'Share the session code with other players:',
+                joinSessionTitle: 'Join an Existing Session',
+                usernamePlaceholder: 'Your username',
+                sessionCodePlaceholder: 'Session code',
+                joinSessionButton: 'Join Session',
+                versionText: 'Game Version: ',
+                creatingSession: "Creating new session...",
+                sessionCreated: "Session created! Share the code.",
+                validatingSession: "Verifying session...",
+                joinSuccess: "Joining session...",
+                invalidSession: "The session code is not valid. Please check and try again.",
+                fieldsRequired: "Please fill in all fields."
+            },
+            'es-ES': {
+                title: 'Juego de Gestión de Proyectos',
+                objective: 'Este juego fue creado para ayudarte a aprender, revisar y aplicar conceptos fundamentales de gestión de proyectos de forma interactiva y divertida. Pon a prueba tus habilidades y conocimientos en diversas áreas para convertirte en un gestor de proyectos exitoso.',
+                instructionsTitle: 'Instrucciones:',
+                instructions: [
+                    'Elige tu idioma.',
+                    'Inicia una nueva sesión o únete a una ya existente.',
+                    'Pon a prueba tus habilidades en diversas áreas de conocimiento.'
+                ],
+                newGameTitle: 'Crear un Nuevo Juego',
+                newGameButton: 'Crear nueva sesión',
+                sessionTitle: '¡Sesión creada! 🎉',
+                sessionMessage: 'Comparte el código de la sesión con los otros jugadores:',
+                joinSessionTitle: 'Únete a una sesión existente',
+                usernamePlaceholder: 'Tu nombre de usuario',
+                sessionCodePlaceholder: 'Código de la sesión',
+                joinSessionButton: 'Unirse a la sesión',
+                versionText: 'Versión del juego: ',
+                creatingSession: "Creando nueva sesión...",
+                sessionCreated: "¡Sesión creada! Comparte el código.",
+                validatingSession: "Verificando sesión...",
+                joinSuccess: "Uniéndote a la sesión...",
+                invalidSession: "El código de la sesión no es válido. Por favor, verifica y vuelve a intentarlo.",
+                fieldsRequired: "Por favor, completa todos los campos."
+            }
         };
 
         function updateContent(langCode) {
             const lang = translations[langCode] || translations['pt-BR'];
-            // Lógica de atualização de texto na UI
             document.title = lang.title;
             document.getElementById('main-title').textContent = lang.title;
             document.getElementById('game-objective').textContent = lang.objective;
@@ -442,7 +489,8 @@
                 showMessage("Erro ao entrar na sessão. Verifique sua conexão e o código.", 'red');
             }
         });
-
+        
+        // Inicializa o conteúdo da página com o idioma padrão
         updateContent('pt-BR');
     </script>
 </body>
