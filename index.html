@@ -28,30 +28,26 @@
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Variáveis globais para Firebase, acessíveis através de window.
-        // Assegura que window.firebaseConfig e window.appId de config.js estão carregados.
-        const firebaseConfig = window.firebaseConfig;
-        const appId = window.appId;
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-        let appInstance;
-        let authInstance;
-        let dbInstance;
-
         // Cria uma promessa que será resolvida quando o Firebase estiver inicializado e autenticado.
         // index.js e gameLogic.js irão aguardar por esta promessa.
         window.firebaseInitializedPromise = new Promise(async (resolve, reject) => {
             try {
+                // Acessa __app_id e __firebase_config que são fornecidos pelo ambiente Canvas
+                // e verifica se estão definidos antes de usá-los.
+                const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
                 if (firebaseConfig && Object.keys(firebaseConfig).length > 0) {
-                    appInstance = initializeApp(firebaseConfig);
-                    authInstance = getAuth(appInstance);
-                    dbInstance = getFirestore(appInstance);
+                    const appInstance = initializeApp(firebaseConfig);
+                    const authInstance = getAuth(appInstance);
+                    const dbInstance = getFirestore(appInstance);
 
                     // ATRIBUIÇÃO CRUCIAL PARA EXPOR AO ESCOPO GLOBAL DO NAVEGADOR
                     window.app = appInstance;
                     window.auth = authInstance;
                     window.db = dbInstance;
-                    window.appId = appId; // Garantir que appId também esteja no window
+                    window.appId = appId; // Atribui appId ao escopo global
 
                     // Autenticação: tenta com token customizado primeiro, depois anonimamente.
                     if (initialAuthToken) {
@@ -67,7 +63,7 @@
 
                     resolve();
                 } else {
-                    console.error("Firebase: Configuração não encontrada ou inválida. Pulando inicialização.");
+                    console.error("Firebase: Configuração não encontrada ou inválida. Inicialização pulada. Isso pode ocorrer se o ambiente Canvas não fornecer a configuração.");
                     resolve(); // Ainda resolve para não bloquear a UI, mas com erro no console.
                 }
             } catch (error) {
