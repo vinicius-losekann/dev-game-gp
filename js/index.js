@@ -20,7 +20,6 @@ function showMessage(message, type = 'info') {
         messageBox.textContent = message;
         messageBox.className = `message-box ${type}`;
         messageBox.classList.remove('hidden');
-        // Esconde a mensagem após 5 segundos
         setTimeout(() => {
             hideMessage();
         }, 5000);
@@ -59,26 +58,23 @@ function generateUUID() {
 // Carregar traduções
 async function loadTranslations(lang) {
     try {
-        const response = await fetch(`game_translations.json`); // Ajustado para carregar do game_translations.json
+        // CORREÇÃO: Carregar index_translations.json para a página inicial
+        const response = await fetch(`index_translations.json`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        // Usamos as traduções da página principal (index_translations.json)
-        // e as traduções do jogo (game_translations.json) para garantir que
-        // todas as chaves de tradução necessárias estão disponíveis.
-        const pageResponse = await fetch(`index_translations.json`);
-        if (!pageResponse.ok) {
-            throw new Error(`HTTP error! status: ${pageResponse.status}`);
+        
+        pageTranslations = data[lang];
+        if (!pageTranslations) {
+            console.warn(`No translations found for language: ${lang} in index_translations.json. Falling back to default.`);
+            pageTranslations = data[AppConfig.defaultLanguage];
         }
-        const pageData = await pageResponse.json();
 
-        // Combina as traduções: as traduções da página podem sobrescrever as do jogo se houver conflito de chaves
-        pageTranslations = { ...data[lang], ...pageData[lang] };
         console.log(`Traduções para ${lang} carregadas.`, pageTranslations);
         return true;
     } catch (error) {
-        console.error("Erro ao carregar traduções:", error);
+        console.error("Erro ao carregar traduções (index.js):", error);
         showMessage("Erro ao carregar traduções. A interface pode não exibir texto.", 'error');
         return false;
     }
@@ -96,7 +92,7 @@ function updateContentLanguage() {
     });
     // Atualizar o placeholder do username e session id
     if (existingGameUsernameInput) {
-        existingGameUsernameInput.placeholder = pageTranslations['input_username_placeholder'] || 'Digite seu Nome de Usuário';
+        existingGameUsernameInput.placeholder = pageTranslations['input_username_placeholder'] || 'Digite seu Nome de Utilizador';
     }
     if (sessionIdInput) {
         sessionIdInput.placeholder = pageTranslations['input_session_placeholder'] || 'Digite o ID da Sessão (Ex: 1234PTBR)';
@@ -184,7 +180,7 @@ async function checkSessionExists(sessionId) {
 // Função para criar uma nova sessão
 async function createNewSession(username) {
     if (!username) {
-        showMessage(pageTranslations['error_empty_username'] || "Por favor, digite seu nome de usuário.", 'warning');
+        showMessage(pageTranslations['error_empty_username'] || "Por favor, digite o seu nome de utilizador.", 'warning');
         return;
     }
 
@@ -247,7 +243,7 @@ async function createNewSession(username) {
 // Função para aceder a uma sessão existente
 async function accessExistingSession(sessionId, username) {
     if (!sessionId || !username) {
-        showMessage(pageTranslations['error_invalid_session_id'] || "Por favor, digite o ID da sessão e seu nome de utilizador.", 'warning');
+        showMessage(pageTranslations['error_invalid_session_id'] || "Por favor, digite o ID da sessão e o seu nome de utilizador.", 'warning');
         return;
     }
 
@@ -306,7 +302,7 @@ function addEventListeners() {
         if (sessionId && username) {
             accessExistingSession(sessionId, username);
         } else {
-            showMessage(pageTranslations['error_invalid_session_id'] || "Por favor, digite o ID da sessão e seu nome de utilizador.", 'warning');
+            showMessage(pageTranslations['error_invalid_session_id'] || "Por favor, digite o ID da sessão e o seu nome de utilizador.", 'warning');
         }
     });
 
@@ -343,8 +339,6 @@ async function initPageLogic() {
     // Verificações para elementos DOM
     if (!newGameButton || !accessGameButton || !sessionIdInput) {
         console.error("initPageLogic: Um ou mais botões/inputs principais não foram encontrados no DOM! A página pode não funcionar corretamente.");
-        // Não esconde o overlay se os elementos críticos não forem encontrados, para mostrar que algo está errado.
-        // Ou, pode-se mostrar uma mensagem de erro na tela aqui também
     }
     if (!loadingOverlay) {
         console.warn("initPageLogic: Elemento #loadingOverlay não encontrado no DOM. O overlay de carregamento não será gerido.");
