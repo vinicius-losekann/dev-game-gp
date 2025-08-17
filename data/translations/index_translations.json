@@ -1,55 +1,53 @@
-<script>
-    const translations = {
-        'pt-BR': {
-            title: 'Jogo de Gerência de Projetos',
-            objective: 'Este jogo foi criado para ajudar você a aprender, revisar e aplicar conceitos fundamentais de gerenciamento de projetos de forma interativa e divertida. Teste suas habilidades e conhecimentos em diversas áreas para se tornar um gerente de projetos de sucesso.',
-            instructionsTitle: 'Instruções:',
-            instructions: [
-                'Escolha seu idioma.',
-                'Inicie uma nova sessão ou junte-se a uma já existente.',
-                'Teste suas habilidades em diversas áreas de conhecimento.'
-            ],
-            newGameTitle: 'Iniciar um Novo Jogo',
-            newGameButton: 'Criar Nova Sessão',
-            joinSessionTitle: 'Entrar em uma Sessão Existente',
-            usernamePlaceholder: 'Seu nome de usuário',
-            sessionCodePlaceholder: 'Código da sessão',
-            joinSessionButton: 'Entrar na Sessão',
-            versionText: 'Versão do Jogo: '
-        },
-        'en-US': {
-            title: 'Project Management Game',
-            objective: 'This game was created to help you learn, review, and apply fundamental project management concepts in an interactive and fun way. Test your skills and knowledge in various areas to become a successful project manager.',
-            instructionsTitle: 'Instructions:',
-            instructions: [
-                'Choose your language.',
-                'Start a new session or join an existing one.',
-                'Test your skills in various knowledge areas.'
-            ],
-            newGameTitle: 'Start a New Game',
-            newGameButton: 'Create New Session',
-            joinSessionTitle: 'Join an Existing Session',
-            usernamePlaceholder: 'Your username',
-            sessionCodePlaceholder: 'Session code',
-            joinSessionButton: 'Join Session',
-            versionText: 'Game Version: '
-        },
-        'es-ES': {
-            title: 'Juego de Gestión de Proyectos',
-            objective: 'Este juego fue creado para ayudarte a aprender, revisar y aplicar conceptos fundamentales de gestión de proyectos de forma interactiva y divertida. Pon a prueba tus habilidades y conocimientos en diversas áreas para convertirte en un gestor de proyectos exitoso.',
-            instructionsTitle: 'Instrucciones:',
-            instructions: [
-                'Elige tu idioma.',
-                'Inicia una nueva sesión o únete a una ya existente.',
-                'Pon a prueba tus habilidades en diversas áreas de conocimiento.'
-            ],
-            newGameTitle: 'Crear un Nuevo Juego',
-            newGameButton: 'Crear nueva sesión',
-            joinSessionTitle: 'Únete a una sesión existente',
-            usernamePlaceholder: 'Tu nombre de usuario',
-            sessionCodePlaceholder: 'Código de la sesión',
-            joinSessionButton: 'Unirse a la sesión',
-            versionText: 'Versión del juego: '
-        }
-    };
-</script>
+{
+  "pt-BR": {
+    "title": "Jogo de Gerência de Projetos",
+    "objective": "Este jogo foi criado para ajudar você a aprender, revisar e aplicar conceitos fundamentais de gerenciamento de projetos de forma interativa e divertida. Teste suas habilidades e conhecimentos em diversas áreas para se tornar um gerente de projetos de sucesso.",
+    "instructionsTitle": "Instruções:",
+    "instructions": [
+      "Escolha seu idioma.",
+      "Inicie uma nova sessão ou junte-se a uma já existente.",
+      "Teste suas habilidades em diversas áreas de conhecimento."
+    ],
+    "newGameTitle": "Iniciar um Novo Jogo",
+    "newGameButton": "Criar Nova Sessão",
+    "joinSessionTitle": "Entrar em uma Sessão Existente",
+    "usernamePlaceholder": "Seu nome de usuário",
+    "sessionCodePlaceholder": "Código da sessão",
+    "joinSessionButton": "Entrar na Sessão",
+    "versionText": "Versão do Jogo: "
+  },
+  "en-US": {
+    "title": "Project Management Game",
+    "objective": "This game was created to help you learn, review, and apply fundamental project management concepts in an interactive and fun way. Test your skills and knowledge in various areas to become a successful project manager.",
+    "instructionsTitle": "Instructions:",
+    "instructions": [
+      "Choose your language.",
+      "Start a new session or join an existing one.",
+      "Test your skills in various knowledge areas."
+    ],
+    "newGameTitle": "Start a New Game",
+    "newGameButton": "Create New Session",
+    "joinSessionTitle": "Join an Existing Session",
+    "usernamePlaceholder": "Your username",
+    "sessionCodePlaceholder": "Session code",
+    "joinSessionButton": "Join Session",
+    "versionText": "Game Version: "
+  },
+  "es-ES": {
+    "title": "Juego de Gestión de Proyectos",
+    "objective": "Este juego fue creado para ayudarte a aprender, revisar y aplicar conceptos fundamentales de gestión de proyectos de forma interactiva y divertida. Pon a prueba tus habilidades y conocimientos en diversas áreas para convertirte en un gestor de proyectos exitoso.",
+    "instructionsTitle": "Instrucciones:",
+    "instructions": [
+      "Elige tu idioma.",
+      "Inicia una nueva sesión o únete a una ya existente.",
+      "Pon a prueba tus habilidades en diversas áreas de conocimiento."
+    ],
+    "newGameTitle": "Crear un Nuevo Juego",
+    "newGameButton": "Crear nueva sesión",
+    "joinSessionTitle": "Únete a una sesión existente",
+    "usernamePlaceholder": "Tu nombre de usuario",
+    "sessionCodePlaceholder": "Código de la sesión",
+    "joinSessionButton": "Unirse a la sesión",
+    "versionText": "Versión del juego: "
+  }
+}
