@@ -3,121 +3,158 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jogo de Gerência de Projetos</title>
+    <title>Gerência de Projetos Game</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
     <style>
-        /* Estilos para o Modal */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f2f5;
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
-            visibility: hidden;
-            opacity: 0;
-            transition: visibility 0s, opacity 0.3s;
+            height: 100vh;
+            margin: 0;
+            color: #333;
         }
-        .modal-overlay.active {
-            visibility: visible;
-            opacity: 1;
-        }
-        .modal-content {
+        .container {
             background-color: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 450px;
             text-align: center;
-            max-width: 400px;
-            width: 90%;
-            position: relative;
+            box-sizing: border-box;
         }
-        .modal-content h3 {
+        h1 {
             font-family: 'Poppins', sans-serif;
-            color: #2e7d32;
-            margin-top: 0;
-            margin-bottom: 15px;
-            font-size: 1.8em;
+            color: #1a73e8;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            font-weight: 600;
         }
-        .modal-content p {
+        p {
+            color: #666;
+            margin-bottom: 30px;
             font-size: 1.1em;
-            margin-bottom: 25px;
-            line-height: 1.5;
+        }
+        .form-group {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
             color: #555;
         }
-        .modal-content button {
-            background-color: #43a047;
-            color: #fff;
-            padding: 10px 25px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
+        input[type="text"], select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
             font-size: 1em;
-            transition: background-color 0.3s;
+            transition: border-color 0.3s;
         }
-        .modal-content button:hover {
-            background-color: #388e3c;
+        input[type="text"]:focus, select:focus {
+            border-color: #1a73e8;
+            outline: none;
+        }
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .button-group button {
+            flex: 1 1 45%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        #create-session-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        #create-session-btn:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+        #join-session-btn {
+            background-color: #1a73e8;
+            color: white;
+        }
+        #join-session-btn:hover {
+            background-color: #155bb5;
+            transform: translateY(-2px);
+        }
+        #error-message {
+            color: #d32f2f;
+            margin-top: 15px;
+            font-size: 0.9em;
+            font-weight: 500;
+            min-height: 20px;
+        }
+        .footer {
+            margin-top: 40px;
+            color: #aaa;
+            font-size: 0.85em;
+        }
+        @media (max-width: 500px) {
+            .container {
+                margin: 20px;
+                padding: 30px;
+            }
+            .button-group {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <div class="header">
-            <img src="https://github.com/vinicius-losekann/dev-game-gp/blob/refatorado/data/imgs/logo-jogo.png?raw=true" alt="Logo do Jogo de Gerência de Projetos">
-            <h1 id="main-title">Jogo de Gerência de Projetos</h1>
-            
-            <p id="game-objective" class="game-objective"></p>
+        <h1>Gerência de Projetos</h1>
+        <p>Um jogo para testar seus conhecimentos sobre o PMBOK.</p>
 
-            <p class="instructions-heading">
-                <b id="instructions-title">Instruções:</b>
-            </p>
+        <form id="login-form">
+            <div class="form-group">
+                <label for="username" id="label-username">Seu Nome:</label>
+                <input type="text" id="username" placeholder="Digite seu nome" required>
+            </div>
 
-            <ol class="instructions-list" id="instructions-list"></ol>
-        </div>
-
-        <div class="language-selection" id="language-selection"></div>
-
-        <div class="cards">
-            <div class="card">
-                <h2 id="new-game-title">Iniciar um Novo Jogo</h2>
-                <form id="new-game-form">
-                    <button id="new-game-button">Criar Nova Sessão</button>
-                </form>
+            <div class="form-group">
+                <label for="language" id="label-language">Idioma:</label>
+                <select id="language"></select>
             </div>
             
-            <div class="card">
-                <h2 id="join-session-title">Entrar em uma Sessão Existente</h2>
-                <form id="join-session-form">
-                    <input type="text" id="username-join" placeholder="Seu nome de usuário" required>
-                    <input type="text" id="session-code" placeholder="Código da sessão" required>
-                    <button type="submit">Entrar na Sessão</button>
-                </form>
+            <div class="form-group">
+                <label for="session-code" id="label-session-code">Código da Sessão (para entrar):</label>
+                <input type="text" id="session-code" placeholder="Opcional">
             </div>
-        </div>
-        
+
+            <div class="button-group">
+                <button type="submit" id="create-session-btn">Criar Nova Sessão</button>
+                <button type="submit" id="join-session-btn">Entrar em Sessão</button>
+            </div>
+
+            <p id="error-message"></p>
+        </form>
+
         <div class="footer">
-            <p><span id="game-version-text">Versão do Jogo:</span> <span id="game-version">1.0.0</span></p>
+            <p>Jogo de Gerência de Projetos v1.0.0</p>
         </div>
     </div>
-
-    <!-- Modal para mensagens -->
-    <div id="message-modal" class="modal-overlay">
-        <div class="modal-content">
-            <h3 id="modal-title"></h3>
-            <p id="modal-message"></p>
-            <button id="modal-close-button">OK</button>
-        </div>
-    </div>
-
+    
     <script type="module" src="js/script.js"></script>
-    <script src="js/script.js"></script>
+    
 </body>
 </html>
