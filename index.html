@@ -18,7 +18,7 @@
             color: #333;
         }
         /* Esconde o conteúdo principal por padrão */
-        #main-content {
+        #main-content, #game-content {
             display: none;
         }
     </style>
@@ -37,7 +37,7 @@
             O Firebase foi inicializado com sucesso e o aplicativo está pronto para uso.
             Esta é a sua tela principal.
         </p>
-        <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+        <button id="startButton" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105">
             Iniciar Jogo
         </button>
         <div class="mt-8 text-sm text-gray-500">
@@ -46,12 +46,23 @@
         </div>
     </div>
 
+    <!-- Área do Jogo (inicialmente oculto) -->
+    <div id="game-content" class="w-full max-w-4xl bg-white p-8 rounded-xl shadow-lg text-center hidden">
+        <h2 class="text-3xl font-bold mb-6 text-gray-900">Área do Jogo</h2>
+        <p class="text-lg mb-8">
+            Aqui é onde o seu jogo de Gerência de Projetos será exibido!
+            Você pode começar a construir a lógica e a interface do jogo aqui.
+        </p>
+        <button id="backButton" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+            Voltar
+        </button>
+    </div>
+
     <!-- Script para inicializar o Firebase e gerenciar o carregamento -->
     <script type="module">
         console.log("index.html: Script de módulo iniciando...");
 
         // Importa a promessa de inicialização do Firebase e o ID do usuário/aplicativo
-        // Certifique-se de que o caminho './js/firebaseExports.js' está correto!
         import { firebaseInitializedPromise, currentUserId, APP_ID } from './js/firebaseExports.js';
 
         console.log("index.html: Importação de firebaseExports.js concluída.");
@@ -60,32 +71,32 @@
         // Pega as referências dos elementos HTML
         const loadingScreen = document.getElementById('loading-screen');
         const mainContent = document.getElementById('main-content');
+        const gameContent = document.getElementById('game-content'); // Nova referência
         const displayUserId = document.getElementById('display-user-id');
         const displayAppId = document.getElementById('display-app-id');
+        const startButton = document.getElementById('startButton'); // Nova referência
+        const backButton = document.getElementById('backButton'); // Nova referência
 
         // Função assíncrona para iniciar o aplicativo após a inicialização do Firebase
         async function startApp() {
             console.log("index.html: Função startApp() iniciada.");
             try {
-                // Verifica se firebaseInitializedPromise é realmente uma Promise e a aguarda.
                 if (firebaseInitializedPromise && typeof firebaseInitializedPromise.then === 'function') {
                     console.log("index.html: Aguardando firebaseInitializedPromise...");
-                    await firebaseInitializedPromise; // Esta linha espera o Firebase inicializar
+                    await firebaseInitializedPromise;
                     console.log("index.html: firebaseInitializedPromise resolvida.");
                 } else {
                     console.warn("index.html: firebaseInitializedPromise não é uma promessa válida ou não está disponível.");
-                    // Fallback para caso a promessa não seja importada corretamente
                     if (loadingScreen) {
                         loadingScreen.textContent = "Erro: Firebase não pôde ser inicializado corretamente. Verifique firebaseExports.js e o console.";
                         loadingScreen.classList.remove('animate-pulse');
                         loadingScreen.classList.add('text-red-600');
                     }
-                    return; // Interrompe a execução se a promessa não for válida
+                    return;
                 }
 
                 console.log("index.html: Firebase inicializado. Exibindo conteúdo principal.");
 
-                // Atualiza o User ID e App ID na tela
                 if (displayUserId) {
                     displayUserId.textContent = currentUserId || 'N/A';
                     console.log("index.html: User ID atualizado para:", currentUserId);
@@ -95,19 +106,17 @@
                     console.log("index.html: App ID atualizado para:", APP_ID);
                 }
 
-                // Esconde a tela de carregamento e mostra o conteúdo principal
                 if (loadingScreen) {
                     loadingScreen.style.display = 'none';
                     console.log("index.html: Tela de carregamento escondida.");
                 }
                 if (mainContent) {
-                    mainContent.style.display = 'block';
+                    mainContent.style.display = 'block'; // Mostra a tela de boas-vindas por padrão
                     console.log("index.html: Conteúdo principal exibido.");
                 }
 
             } catch (error) {
                 console.error("index.html: ERRO CRÍTICO ao iniciar o aplicativo após a inicialização do Firebase:", error);
-                // Em caso de erro, você pode exibir uma mensagem de erro mais detalhada na tela de carregamento
                 if (loadingScreen) {
                     loadingScreen.textContent = `Erro ao carregar o aplicativo: ${error.message || 'Erro desconhecido'}. Verifique o console.`;
                     loadingScreen.classList.remove('animate-pulse');
@@ -115,6 +124,33 @@
                 }
             }
         }
+
+        // Adiciona o event listener ao botão "Iniciar Jogo"
+        if (startButton) {
+            startButton.addEventListener('click', () => {
+                console.log("Botão 'Iniciar Jogo' clicado. Transicionando para a área do jogo.");
+                if (mainContent) {
+                    mainContent.style.display = 'none'; // Esconde a tela principal
+                }
+                if (gameContent) {
+                    gameContent.style.display = 'block'; // Mostra a área do jogo
+                }
+            });
+        }
+
+        // Adiciona o event listener ao botão "Voltar" na área do jogo
+        if (backButton) {
+            backButton.addEventListener('click', () => {
+                console.log("Botão 'Voltar' clicado. Transicionando de volta para a tela principal.");
+                if (gameContent) {
+                    gameContent.style.display = 'none'; // Esconde a área do jogo
+                }
+                if (mainContent) {
+                    mainContent.style.display = 'block'; // Mostra a tela principal
+                }
+            });
+        }
+
 
         // Garante que o aplicativo comece a inicialização quando o DOM estiver completamente carregado
         document.addEventListener('DOMContentLoaded', () => {
