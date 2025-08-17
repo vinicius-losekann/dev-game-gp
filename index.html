@@ -25,7 +25,8 @@
         // Importa as funções necessárias do Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // As funções do Firestore serão importadas diretamente no index.js
+        // import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Cria uma promessa que será resolvida quando o Firebase for inicializado e autenticado.
         // Isso permite que outros scripts esperem pela inicialização.
@@ -41,13 +42,13 @@
                 if (Object.keys(firebaseConfig).length > 0) {
                     const appInstance = initializeApp(firebaseConfig);
                     const authInstance = getAuth(appInstance);
-                    const dbInstance = getFirestore(appInstance);
+                    // O getFirestore agora será feito diretamente no index.js
+                    // const dbInstance = getFirestore(appInstance);
 
                     // Torna as instâncias do Firebase acessíveis globalmente
                     window.app = appInstance;
                     window.auth = authInstance;
-                    window.db = dbInstance;
-                    window.firestore = { getFirestore }; // Inclui funções específicas do firestore se necessário
+                    // window.db = dbInstance; // Não mais necessário expor db globalmente, será importado no index.js
 
                     // Adiciona as variáveis globais que são usadas em outros scripts
                     window.appId = appId; // Garante que appId esteja acessível globalmente
@@ -98,11 +99,7 @@
                 <!-- Card de Iniciar Novo Jogo -->
                 <div id="newGameCard" class="action-card bg-gradient-to-br from-blue-100 to-blue-200 p-8 rounded-xl shadow-lg flex-1 border-2 border-blue-300 transform transition duration-300 ease-in-out hover:scale-105 hover:shadow-2xl">
                     <h2 class="text-3xl font-bold text-blue-800 mb-6" data-lang-key="new_game_title">Iniciar Novo Jogo</h2>
-                    <div class="input-group mb-6 w-full">
-                        <label for="newGameUsernameInput" class="block text-gray-700 text-lg font-semibold mb-3 text-center" data-lang-key="label_username">Seu Nome de Usuário:</label>
-                        <input type="text" id="newGameUsernameInput" placeholder="Digite seu Nome de Usuário"
-                                class="input-field p-3 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-center" required>
-                    </div>
+                    <!-- REMOVIDO: Campo de Nome de Usuário -->
                     <button id="newGameButton" class="game-button bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out w-full transform hover:scale-105">
                         <span data-lang-key="button_new_game">Criar Nova Sessão</span>
                     </button>
