@@ -94,6 +94,7 @@
             width: 100%;
             box-sizing: border-box;
             text-align: left;
+            position: relative; /* Importante para o z-index e posicionamento do modal */
         }
         .card h2 {
             font-family: 'Poppins', sans-serif;
@@ -233,6 +234,15 @@
                 <form id="new-game-form">
                     <button type="button" id="new-game-button">Criar Nova Sessão</button>
                 </form>
+                
+                <div id="session-modal" class="modal-overlay">
+                    <div class="modal-content">
+                        <h3>Sessão Criada! 🎉</h3>
+                        <p>Compartilhe o código da sessão com seus amigos:</p>
+                        <h2 id="modal-session-code"></h2>
+                        <button id="modal-close-button">OK</button>
+                    </div>
+                </div>
             </div>
             
             <div class="card">
@@ -249,15 +259,6 @@
 
         <div class="footer">
             <p><span id="game-version-text">Versão do Jogo:</span> <span id="game-version">1.0.0</span></p>
-        </div>
-    </div>
-
-    <div id="session-modal" class="modal-overlay">
-        <div class="modal-content">
-            <h3>Sessão Criada! 🎉</h3>
-            <p>Compartilhe o código da sessão com seus amigos:</p>
-            <h2 id="modal-session-code"></h2>
-            <button id="modal-close-button">OK</button>
         </div>
     </div>
 
@@ -311,7 +312,7 @@
                 instructionsTitle: 'Instrucciones:',
                 instructions: [
                     'Elige tu idioma.',
-                    'Inicia una nueva sessão ou únete a una ya existente.',
+                    'Inicia una nueva sesión o únete a una ya existente.',
                     'Pon a prueba tus habilidades en diversas áreas de conocimiento.'
                 ],
                 newGameTitle: 'Crear un Nuevo Juego',
