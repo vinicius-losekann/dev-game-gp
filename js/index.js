@@ -146,16 +146,13 @@ function setupLanguageSelector() {
 async function createNewSession() {
     hideMessage(); // Esconde qualquer mensagem anterior
 
-    // Adiciona uma asserção para garantir que window.db e window.auth existam
-    console.assert(window.db, "Erro de Asserção: window.db não está definido em createNewSession!");
-    console.assert(window.auth, "Erro de Asserção: window.auth não está definido em createNewSession!");
-
     showMessage(pageTranslations[currentLanguage].creating_session_message, 'info');
 
-    // Acessa diretamente window.db e window.auth
+    // As instâncias 'db' e 'auth' SÃO GARANTIDAS aqui pelo await no DOMContentLoaded
+    // Se ainda forem undefined, é um problema mais fundamental no HTML/Firebase SDK.
     if (!window.db || !window.auth) {
         showMessage(pageTranslations[currentLanguage].error_firebase_init, 'error');
-        console.error("Firebase Firestore ou Auth NÃO ESTÃO INICIALIZADOS no createNewSession. Isso é inesperado!");
+        console.error("Firebase Firestore ou Auth NÃO ESTÃO INICIALIZADOS no createNewSession. Isso é um erro crítico!");
         return;
     }
 
@@ -163,7 +160,7 @@ async function createNewSession() {
         const userId = window.auth.currentUser?.uid || crypto.randomUUID();
         const defaultUsername = `Usuário-${userId.substring(0, 5)}`;
 
-        const sessionId = generateSessionId(); // Gera um ID de sessão
+        const sessionId = generateSessionId();
         const sessionDocRef = doc(window.db, "artifacts", window.appId, "public", "data", "sessions", sessionId);
         const playerDocRef = doc(sessionDocRef, "players", userId);
 
@@ -215,13 +212,9 @@ async function createNewSession() {
  * Manipula o acesso a uma sessão de jogo existente.
  */
 async function accessExistingSession() {
-    hideMessage(); // Esconde qualquer mensagem anterior
+    hideMessage();
     const sessionId = sessionIdInput.value.trim();
     const username = existingGameUsernameInput.value.trim();
-
-    // Adiciona uma asserção para garantir que window.db e window.auth existam
-    console.assert(window.db, "Erro de Asserção: window.db não está definido em accessExistingSession!");
-    console.assert(window.auth, "Erro de Asserção: window.auth não está definido em accessExistingSession!");
 
     if (!sessionId) {
         showMessage(pageTranslations[currentLanguage].error_invalid_session_id, 'error');
@@ -234,10 +227,9 @@ async function accessExistingSession() {
 
     showMessage(`${pageTranslations[currentLanguage].joining_session_message} ${sessionId}...`, 'info');
 
-    // Acessa diretamente window.db e window.auth
     if (!window.db || !window.auth) {
         showMessage(pageTranslations[currentLanguage].error_firebase_init, 'error');
-        console.error("Firebase Firestore ou Auth NÃO ESTÃO INICIALIZADOS no accessExistingSession. Isso é inesperado!");
+        console.error("Firebase Firestore ou Auth NÃO ESTÃO INICIALIZADOS no accessExistingSession. Isso é um erro crítico!");
         return;
     }
 
@@ -274,11 +266,8 @@ async function accessExistingSession() {
 
 /**
  * Adiciona os event listeners aos botões.
- * Esta função deve ser chamada APÓS a inicialização do Firebase para garantir que as funções de callback
- * (createNewSession, accessExistingSession) tenham acesso às instâncias de Firebase.
  */
 function addEventListeners() {
-    // Garante que os elementos existem antes de adicionar listeners
     newGameButton = document.getElementById('newGameButton');
     accessGameButton = document.getElementById('accessGameButton');
     sessionIdInput = document.getElementById('sessionIdInput');
