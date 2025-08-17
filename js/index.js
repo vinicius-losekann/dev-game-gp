@@ -58,6 +58,18 @@ function hideLoadingOverlay() {
 }
 
 /**
+ * Gera um UUID v4. Esta é uma implementação simples para garantir compatibilidade,
+ * substituindo crypto.randomUUID() que pode não estar disponível em todos os ambientes.
+ * @returns {string} Um UUID v4 gerado.
+ */
+function generateUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
+/**
  * Gera um ID de sessão aleatório com sufixo de idioma.
  * @returns {string} O ID de sessão gerado.
  */
@@ -157,7 +169,8 @@ async function createNewSession() {
     }
 
     try {
-        const userId = window.auth.currentUser?.uid || crypto.randomUUID();
+        // Usa generateUUID() para compatibilidade
+        const userId = window.auth.currentUser?.uid || generateUUID();
         const defaultUsername = `Usuário-${userId.substring(0, 5)}`;
 
         const sessionId = generateSessionId();
@@ -234,7 +247,8 @@ async function accessExistingSession() {
     }
 
     try {
-        const userId = window.auth.currentUser?.uid || crypto.randomUUID();
+        // Usa generateUUID() para compatibilidade
+        const userId = window.auth.currentUser?.uid || generateUUID();
         const sessionDocRef = doc(window.db, "artifacts", window.appId, "public", "data", "sessions", sessionId);
         const sessionDoc = await getDoc(sessionDocRef);
 
