@@ -51,27 +51,24 @@ function updateContent(langCode, translations) {
 // Lógica para carregar as traduções e inicializar a página
 document.addEventListener('DOMContentLoaded', () => {
     // Carrega o arquivo de traduções dinamicamente
-    fetch('data/translations/index_translations.html')
-        .then(response => response.text())
-        .then(html => {
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = html;
-            const script = tempDiv.querySelector('script');
-            if (script) {
-                eval(script.textContent); // Executa o script para carregar a variável 'translations'
-
-                const langContainer = document.getElementById('language-selection');
-                config.languages.forEach(lang => {
-                    const button = document.createElement('button');
-                    button.textContent = lang.name;
-                    button.setAttribute('data-lang', lang.code);
-                    button.onclick = () => updateContent(lang.code, translations);
-                    langContainer.appendChild(button);
-                });
-
-                // Inicializa a página com o idioma padrão
-                updateContent(config.defaultLang, translations);
+    fetch('data/translations/index_translations.json')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
             }
+            return response.json();
+        })
+        .then(translations => {
+            const langContainer = document.getElementById('language-selection');
+            config.languages.forEach(lang => {
+                const button = document.createElement('button');
+                button.textContent = lang.name;
+                button.setAttribute('data-lang', lang.code);
+                button.onclick = () => updateContent(lang.code, translations);
+                langContainer.appendChild(button);
+            });
+
+            updateContent(config.defaultLang, translations);
         })
         .catch(error => console.error('Erro ao carregar o arquivo de traduções:', error));
 
