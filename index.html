@@ -19,8 +19,11 @@
     <script type="module">
         // Importa as funções do Firebase SDK
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+        // Adiciona um log para confirmar que o script foi carregado
+        console.log("Script carregado. Iniciando a configuração do Firebase...");
 
         const firebaseConfig = {
             apiKey: "AIzaSyDdiedj1Smjzn9CDqShdhG5Y0_Sa18xyWI",
@@ -36,6 +39,9 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
         const APP_ID = firebaseConfig.appId;
+
+        // Log para confirmar que as instâncias foram criadas
+        console.log("Instâncias do Firebase criadas: app, db, auth.");
 
         const translations = {
             // ... suas traduções existentes ...
@@ -66,20 +72,27 @@
 
         newGameButton.addEventListener('click', async () => {
             showMessage("Criando nova sessão...", 'green');
+            console.log("Botão 'Novo Jogo' clicado. Iniciando autenticação anônima...");
             try {
                 // 1. Autenticação Anônima
                 const userCredential = await signInAnonymously(auth);
                 const user = userCredential.user;
                 const userId = user.uid;
+                console.log(`Autenticação anônima bem-sucedida. User ID: ${userId}`);
 
                 // 2. Criação do Documento no Firestore
-                // O Firebase gera um ID de documento aleatório se o setDoc for chamado sem um ID.
-                const newSessionRef = doc(db, `artifacts/${APP_ID}/public/data/sessions/`);
+                const sessionsCollectionPath = `artifacts/${APP_ID}/public/data/sessions`;
+                console.log(`Caminho da coleção de sessões: ${sessionsCollectionPath}`);
+                
+                const newSessionRef = doc(db, sessionsCollectionPath);
+                console.log("Tentando criar novo documento de sessão...");
+                
                 await setDoc(newSessionRef, {
                     createdAt: new Date(),
                     hostUserId: userId
                 });
                 const sessionId = newSessionRef.id;
+                console.log(`Documento de sessão criado com sucesso! Session ID: ${sessionId}`);
 
                 // 3. Exibe o código da sessão gerado
                 sessionCodeDisplay.textContent = sessionId;
@@ -102,20 +115,26 @@
 
             if (!username || !sessionCode) {
                 showMessage('Por favor, preencha todos os campos.');
+                console.log("Dados de formulário incompletos. Ação abortada.");
                 return;
             }
 
             showMessage("Verificando sessão...", 'green');
+            console.log(`Tentando entrar na sessão '${sessionCode}' como '${username}'.`);
             try {
                 // Autentica o usuário anonimamente antes de tentar se juntar
                 const userCredential = await signInAnonymously(auth);
                 const userId = userCredential.user.uid;
+                console.log(`Autenticação anônima para entrar na sessão. User ID: ${userId}`);
 
                 // Verifica se a sessão existe
                 const sessionRef = doc(db, `artifacts/${APP_ID}/public/data/sessions/${sessionCode}`);
+                console.log(`Caminho da sessão: artifacts/${APP_ID}/public/data/sessions/${sessionCode}`);
+                
                 const sessionSnap = await getDoc(sessionRef);
 
                 if (sessionSnap.exists()) {
+                    console.log("Sessão encontrada no Firestore. Adicionando jogador...");
                     // Adiciona o jogador à subcoleção 'players'
                     const playerRef = doc(db, `artifacts/${APP_ID}/public/data/sessions/${sessionCode}/players/${userId}`);
                     await setDoc(playerRef, {
@@ -124,11 +143,13 @@
                         lastActive: new Date(),
                         answeredQuestions: {}
                     });
+                    console.log(`Jogador '${username}' adicionado à sessão '${sessionCode}'.`);
 
                     // Redireciona para game.html com os parâmetros na URL
                     window.location.href = `game.html?session=${encodeURIComponent(sessionCode)}&username=${encodeURIComponent(username)}&lang=${encodeURIComponent(langCode)}&userId=${encodeURIComponent(userId)}`;
                 } else {
                     showMessage("O código da sessão não é válido. Verifique e tente novamente.");
+                    console.warn("Sessão não encontrada. O código pode estar incorreto.");
                 }
             } catch (error) {
                 console.error("Erro ao entrar na sessão: ", error);
@@ -136,6 +157,8 @@
             }
         });
 
+        // Log final para indicar que o script de setup foi concluído
+        console.log("Setup do script concluído.");
         updateContent('pt-BR');
     </script>
 </body>
