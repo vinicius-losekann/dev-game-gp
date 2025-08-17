@@ -1,5 +1,8 @@
 // js/index.js
 
+// Importa as funções necessárias do Firebase Firestore
+import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
 // Idioma padrão lido do arquivo de configuração
 let currentLanguage = AppConfig.defaultLanguage;
 let pageTranslations = {}; // Objeto para armazenar as traduções carregadas
@@ -10,7 +13,7 @@ let accessGameButton;
 let newGameCard; // Referência ao card "Iniciar Novo Jogo"
 let accessGameCard; // Referência ao card "Acessar Jogo Existente"
 let sessionIdInput;
-let newGameUsernameInput; // Input para nome de usuário em novo jogo
+// REMOVIDO: let newGameUsernameInput; // Não é mais necessário para "Iniciar Novo Jogo"
 let existingGameUsernameInput; // Input para nome de usuário em jogo existente
 let messageBox; // Referência à caixa de mensagem
 let sessionInfo; // Elemento para informações da sessão
@@ -19,6 +22,10 @@ let goBackToHomeButtonContainer; // Container do botão "Entrar no Jogo"
 let mainContentContainer; // Referência ao contêiner principal
 let languageSelectorButtonsContainer; // Referência ao contêiner dos botões de idioma
 const loadingOverlay = document.getElementById('loadingOverlay'); // Referência ao overlay de carregamento
+
+// Variáveis para as instâncias do Firebase
+let db;
+let auth;
 
 // Função para mostrar mensagens na tela
 function showMessage(message, type = 'info') {
@@ -85,9 +92,7 @@ function updateContentLanguage() {
 
     // Atualiza placeholders manualmente, pois textContent não funciona para eles
     const usernameInputPlaceholder = pageTranslations[currentLanguage]?.input_username_placeholder || 'Digite seu Nome de Usuário';
-    if (newGameUsernameInput) {
-        newGameUsernameInput.placeholder = usernameInputPlaceholder;
-    }
+    // REMOVIDO: newGameUsernameInput.placeholder = usernameInputPlaceholder;
     if (existingGameUsernameInput) {
         existingGameUsernameInput.placeholder = usernameInputPlaceholder;
     }
@@ -124,31 +129,29 @@ function setupLanguageSelector() {
 // Função para manipular a criação de uma nova sessão de jogo
 async function createNewSession() {
     hideMessage(); // Esconde qualquer mensagem anterior
-    const username = newGameUsernameInput.value.trim();
-
-    if (!username) {
-        showMessage(pageTranslations[currentLanguage].error_empty_username, 'error');
-        return;
-    }
 
     showMessage(pageTranslations[currentLanguage].creating_session_message, 'info');
 
-    // Verifica se as instâncias do Firebase estão prontas
-    if (!window.db || !window.auth) {
+    // As instâncias 'db' e 'auth' são garantidas como inicializadas pelo 'window.firebaseInitializedPromise'
+    // e setadas no `initPageLogic`.
+    if (!db || !auth) {
         showMessage(pageTranslations[currentLanguage].error_firebase_init, 'error');
-        console.error("Firebase Firestore ou Auth não estão inicializados.");
+        console.error("Firebase Firestore ou Auth não estão inicializados no createNewSession.");
         return;
     }
 
     try {
-        const userId = window.auth.currentUser?.uid || crypto.randomUUID();
+        const userId = auth.currentUser?.uid || crypto.randomUUID();
+        // Gerar um nome de usuário padrão se não for fornecido no início do jogo
+        const defaultUsername = `Usuário-${userId.substring(0, 5)}`;
+
         const sessionId = generateSessionId(); // Gera um ID de sessão
-        const sessionDocRef = window.firestore.doc(window.db, "artifacts", window.appId, "public", "data", "sessions", sessionId);
-        const playerDocRef = window.firestore.doc(sessionDocRef, "players", userId);
+        const sessionDocRef = doc(db, "artifacts", window.appId, "public", "data", "sessions", sessionId);
+        const playerDocRef = doc(sessionDocRef, "players", userId);
 
         // Cria a sessão com os dados iniciais
-        await window.firestore.setDoc(sessionDocRef, {
-            createdAt: window.firestore.serverTimestamp(),
+        await setDoc(sessionDocRef, {
+            createdAt: serverTimestamp(),
             hostId: userId,
             currentQuestionIndex: 0,
             questionArea: null, // Para a primeira pergunta aleatória
@@ -156,26 +159,27 @@ async function createNewSession() {
         });
 
         // Adiciona o jogador à subcoleção 'players'
-        await window.firestore.setDoc(playerDocRef, {
-            username: username,
+        await setDoc(playerDocRef, {
+            username: defaultUsername, // Usa o nome de usuário padrão
             score: 0,
-            lastActivity: window.firestore.serverTimestamp()
+            lastActivity: serverTimestamp()
         });
 
-        // Armazena o ID da sessão e o nome de usuário no localStorage para game.html
+        // Armazena o ID da sessão e o nome de usuário (padrão) no localStorage para game.html
         localStorage.setItem('pm_game_session_id', sessionId);
-        localStorage.setItem('pm_game_username', username);
+        localStorage.setItem('pm_game_username', defaultUsername); // Salva o nome de usuário padrão
 
-        // *** NOVO: Preenche o campo de ID da sessão e o nome de usuário existente ***
+        // Preenche o campo de ID da sessão automaticamente
         if (sessionIdInput) {
             sessionIdInput.value = sessionId;
         }
+        // Coloca o foco no campo de nome de usuário existente para o usuário digitar
         if (existingGameUsernameInput) {
-            existingGameUsernameInput.value = username; // Preenche com o nome usado na criação
-            existingGameUsernameInput.focus(); // Coloca o foco no campo de nome de usuário
+            existingGameUsernameInput.value = ''; // Garante que esteja vazio
+            existingGameUsernameInput.focus();
         }
 
-        // *** NOVO: Oculta o card de novo jogo e mostra a mensagem e botão para ir ao jogo ***
+        // Oculta o card de novo jogo e mostra a mensagem e botão para ir ao jogo
         if (newGameCard) {
             newGameCard.classList.add('hidden'); // Oculta o card de criar novo jogo
         }
@@ -189,10 +193,8 @@ async function createNewSession() {
             goBackToHomeButtonContainer.querySelector('p').textContent = pageTranslations[currentLanguage].session_id_prompt;
         }
 
-
         // Atualiza a mensagem da caixa de mensagens para instruir o usuário
         showMessage(`${pageTranslations[currentLanguage].session_created_message}${sessionId}`, 'success');
-        // A mensagem de "Insira este ID..." será exibida pelo go-to-game-container
 
     } catch (e) {
         console.error("Erro ao criar documento:", e);
@@ -217,17 +219,18 @@ async function accessExistingSession() {
 
     showMessage(`${pageTranslations[currentLanguage].joining_session_message} ${sessionId}...`, 'info');
 
-    // Verifica se as instâncias do Firebase estão prontas
-    if (!window.db || !window.auth) {
+    // As instâncias 'db' e 'auth' são garantidas como inicializadas pelo 'window.firebaseInitializedPromise'
+    // e setadas no `initPageLogic`.
+    if (!db || !auth) {
         showMessage(pageTranslations[currentLanguage].error_firebase_init, 'error');
-        console.error("Firebase Firestore ou Auth não estão inicializados.");
+        console.error("Firebase Firestore ou Auth não estão inicializados no accessExistingSession.");
         return;
     }
 
     try {
-        const userId = window.auth.currentUser?.uid || crypto.randomUUID();
-        const sessionDocRef = window.firestore.doc(window.db, "artifacts", window.appId, "public", "data", "sessions", sessionId);
-        const sessionDoc = await window.firestore.getDoc(sessionDocRef);
+        const userId = auth.currentUser?.uid || crypto.randomUUID();
+        const sessionDocRef = doc(db, "artifacts", window.appId, "public", "data", "sessions", sessionId);
+        const sessionDoc = await getDoc(sessionDocRef);
 
         if (!sessionDoc.exists()) {
             showMessage(pageTranslations[currentLanguage].session_not_found_error, 'error');
@@ -235,11 +238,11 @@ async function accessExistingSession() {
         }
 
         // Adiciona ou atualiza o jogador na subcoleção 'players' da sessão
-        const playerDocRef = window.firestore.doc(sessionDocRef, "players", userId);
-        await window.firestore.setDoc(playerDocRef, {
+        const playerDocRef = doc(sessionDocRef, "players", userId);
+        await setDoc(playerDocRef, {
             username: username,
             score: 0, // Reinicia ou mantém o score
-            lastActivity: window.firestore.serverTimestamp()
+            lastActivity: serverTimestamp()
         }, { merge: true }); // Usa merge para não sobrescrever outros dados do jogador se existirem
 
         // Armazena o ID da sessão e o nome de usuário no localStorage para game.html
@@ -265,7 +268,7 @@ function addEventListeners() {
     newGameButton = document.getElementById('newGameButton');
     accessGameButton = document.getElementById('accessGameButton');
     sessionIdInput = document.getElementById('sessionIdInput');
-    newGameUsernameInput = document.getElementById('newGameUsernameInput');
+    // REMOVIDO: newGameUsernameInput = document.getElementById('newGameUsernameInput');
     existingGameUsernameInput = document.getElementById('existingGameUsernameInput');
     messageBox = document.getElementById('messageBox');
     sessionInfo = document.getElementById('sessionInfo'); // Certifique-se de que este elemento existe
@@ -316,12 +319,16 @@ async function initPageLogic() {
         localStorage.setItem('pm_game_language', currentLanguage);
     }
 
+    // Atribui as instâncias do Firebase, que são garantidas pelo window.firebaseInitializedPromise
+    db = getFirestore(window.app); // Obtém a instância do Firestore a partir do app global
+    auth = window.auth; // A instância de autenticação já está global em window.auth
+
     // Garante que todos os elementos DOM necessários estão disponíveis
     // Re-obtem as referências caso o initPageLogic seja chamado novamente
     newGameButton = document.getElementById('newGameButton');
     accessGameButton = document.getElementById('accessGameButton');
     sessionIdInput = document.getElementById('sessionIdInput');
-    newGameUsernameInput = document.getElementById('newGameUsernameInput');
+    // REMOVIDO: newGameUsernameInput = document.getElementById('newGameUsernameInput');
     existingGameUsernameInput = document.getElementById('existingGameUsernameInput');
     messageBox = document.getElementById('messageBox');
     sessionInfo = document.getElementById('sessionInfo');
@@ -352,7 +359,6 @@ async function initPageLogic() {
     if (!languageSelectorButtonsContainer) {
         console.warn("initPageLogic: Elemento #language-selector-buttons não encontrado no DOM. O seletor de idioma não funcionará.");
     }
-    // Verificado apenas existingGameUsernameInput, já que newGameUsernameInput foi removido
     if (!existingGameUsernameInput) {
         console.error("initPageLogic: O elemento de input 'existingGameUsernameInput' não foi encontrado no DOM! A entrada de nome de usuário para jogos existentes pode não funcionar.");
     }
