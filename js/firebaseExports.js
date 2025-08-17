@@ -3,9 +3,9 @@
 // Importa as funções necessárias do Firebase SDK
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { 
-    getFirestore, doc, setDoc, getDoc, collection, updateDoc, 
-    arrayUnion, arrayRemove, serverTimestamp, onSnapshot, query, where, getDocs 
+import {
+    getFirestore, doc, setDoc, getDoc, collection, updateDoc,
+    arrayUnion, arrayRemove, serverTimestamp, onSnapshot, query, where, getDocs
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // Variáveis globais (exportadas) para as instâncias do Firebase
@@ -18,14 +18,14 @@ let firebaseInitializedPromise; // Promessa que resolve quando o Firebase está 
 // Define as configurações do Firebase.
 // No ambiente Canvas, __firebase_config e __app_id são fornecidos.
 // Para testes locais, você DEVE preencher manualFirebaseConfig com os seus dados do Firebase.
-const manualFirebaseConfig = { 
-    apiKey: "YOUR_FIREBASE_API_KEY", // SUBSTITUA PELA SUA CHAVE SE FOR TESTAR LOCALMENTE
-    authDomain: "YOUR_FIREBASE_AUTH_DOMAIN",
-    projectId: "YOUR_FIREBASE_PROJECT_ID",
-    storageBucket: "YOUR_FIREBASE_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_FIREBASE_MESSAGING_SENDER_ID",
-    appId: "YOUR_FIREBASE_APP_ID",
-    measurementId: "YOUR_FIREBASE_MEASUREMENT_ID"
+const manualFirebaseConfig = {
+    apiKey: "AIzaSyDdiedj1Smjzn9CDqShdhG5Y0_Sa18xyWI", // SUA CHAVE ATUALIZADA
+    authDomain: "jogo-gerencia-de-projetos.firebaseapp.com",
+    projectId: "jogo-gerencia-de-projetos",
+    storageBucket: "jogo-gerencia-de-projetos.firebasestorage.app",
+    messagingSenderId: "356867532123",
+    appId: "1:356867532123:web:0657d84635a5849df2667e",
+    measurementId: "G-M5QYQ36Q9P"
 };
 
 // Define o ID do aplicativo. No Canvas, será __app_id. Localmente, use 'gameGP'.
@@ -97,7 +97,7 @@ async function initializeFirebase() {
                 await signInAnonymously(auth);
                 console.log("firebaseExports: Autenticado anonimamente.");
             }
-            
+
             // Define o UID do usuário autenticado para uso em toda a aplicação
             currentUserId = auth.currentUser?.uid || `anon-${crypto.randomUUID()}`;
             console.log("firebaseExports: Firebase inicializado e autenticado. UserID:", currentUserId);
@@ -116,25 +116,25 @@ async function initializeFirebase() {
 initializeFirebase();
 
 // Exporta as instâncias e funções para serem usadas por outros módulos
-export { 
-    app, 
-    db, 
-    auth, 
+export {
+    app,
+    db,
+    auth,
     APP_ID, // O ID do aplicativo para caminhos do Firestore
-    currentUserId, 
+    currentUserId,
     serverTimestamp, // Função do Firestore para timestamps do servidor
 
     // Funções do Firestore que serão usadas
-    doc, 
-    getDoc, 
-    setDoc, 
-    collection, 
-    updateDoc, 
-    arrayUnion, 
-    arrayRemove, 
-    onSnapshot, 
-    query, 
-    where, 
+    doc,
+    getDoc,
+    setDoc,
+    collection,
+    updateDoc,
+    arrayUnion,
+    arrayRemove,
+    onSnapshot,
+    query,
+    where,
     getDocs,
 
     firebaseInitializedPromise // Promessa para garantir que o Firebase está pronto
