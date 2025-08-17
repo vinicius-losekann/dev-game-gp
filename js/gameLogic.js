@@ -15,7 +15,7 @@ const questionAreaElement = document.getElementById('questionArea');
 const currentQuestionDisplayElement = document.getElementById('currentQuestionDisplay');
 const optionsContainerElement = document.getElementById('optionsContainer');
 const answerButton = document.getElementById('answerButton');
-const nextCardButton = document.getElementById('nextCardButton');
+const nextCardButton = document = document.getElementById('nextCardButton');
 const feedbackContainer = document.getElementById('feedbackContainer');
 const backToHomeButton = document.getElementById('backToHomeButton');
 const randomCardButton = document.getElementById('randomCardButton');
@@ -50,7 +50,7 @@ function showMessage(message, type = 'info') {
  */
 async function loadTranslations(lang) {
     try {
-        // Ajustado o caminho para ser relativo ao diretório raiz do aplicativo ou o local do HTML.
+        // Caminho relativo para o arquivo de traduções
         const response = await fetch(`translations/game_translations.json`);
         if (!response.ok) {
             console.error(`HTTP error! status: ${response.status} ao carregar game_translations.json`);
@@ -117,7 +117,6 @@ function redirectToHome(messageKey = 'no_session_id_message') {
  * Em uma versão futura, podem ser carregadas do Firestore.
  */
 async function loadQuestions() {
-    // Por enquanto, as perguntas são mockadas. No futuro, podem vir do Firestore ou de um arquivo JSON.
     allQuestions = [
         {
             id: 'q1',
@@ -292,7 +291,6 @@ function checkAnswer() {
     }
 
     const correctOptionIndex = currentQuestion.options.findIndex(opt => opt.isCorrect);
-    // const selectedOptionButton = optionsContainerElement.querySelector(`[data-index="${selectedOption}"]`); // Não usado, mas pode ser útil para estilização
 
     feedbackContainer.classList.remove('hidden'); // Mostra o contêiner de feedback
 
@@ -376,6 +374,9 @@ async function addPlayerToSession(sessionId, userId, username, firestore, db, ap
                     console.log(`Username do jogador ${userId} atualizado para ${username}.`);
                 }
             }
+        } else {
+            console.warn(`Tentativa de adicionar jogador a sessão inexistente: ${sessionId}`);
+            // Não faz nada se a sessão não existir, pois initGameLogic já vai redirecionar.
         }
     } catch (error) {
         console.error(`Erro ao adicionar jogador ${userId} à sessão ${sessionId}:`, error);
@@ -415,8 +416,8 @@ function updatePlayerList(players) {
  * @param {string} userId - O ID do usuário a ser removido.
  */
 async function removePlayerFromSession(sessionId, userId) {
-    if (window.db && window.firestore && sessionId && userId && window.appId) {
-        const sessionRef = window.firestore.doc(window.db, `artifacts/${window.appId}/public/data/sessions`, sessionId);
+    if (window.db && window.firestore && sessionId && userId && window.__app_id) {
+        const sessionRef = window.firestore.doc(window.db, `artifacts/${window.__app_id}/public/data/sessions`, sessionId);
         try {
             const sessionSnap = await window.firestore.getDoc(sessionRef);
             if (sessionSnap.exists()) {
@@ -464,7 +465,6 @@ function addEventListeners() {
     }
 
     // Adicionar listeners para os botões de área
-    // Corrigido para usar a classe correta 'area-select-button'
     document.querySelectorAll('.area-select-button').forEach(button => {
         button.addEventListener('click', () => {
             const area = button.dataset.area;
@@ -484,7 +484,7 @@ async function initGameLogic() {
     const sessionLang = queryParams.lang;
 
     if (!currentSessionId) {
-        redirectToHome('no_session_id_message'); // Usar a chave da tradução
+        redirectToHome('no_session_id_message');
         return;
     }
 
@@ -503,51 +503,65 @@ async function initGameLogic() {
     const translationsLoaded = await loadTranslations(currentLanguage);
     if (!translationsLoaded) {
         console.error("Falha ao carregar as traduções do jogo. A interface pode não estar traduzida.");
+        // Não redireciona aqui, pois o jogo ainda pode funcionar sem traduções completas.
     }
     
     // Assegura que o displaySessionIdElement tem o ID antes de qualquer listener.
     displaySessionIdElement.textContent = currentSessionId;
+    
+    // VERIFICAÇÃO PRINCIPAL DA EXISTÊNCIA DA SESSÃO
+    if (window.db && window.firestore && window.__app_id && window.currentUserId) {
+        const sessionDocRef = window.firestore.doc(window.db, `artifacts/${window.__app_id}/public/data/sessions`, currentSessionId);
 
+        try {
+            const sessionSnap = await window.firestore.getDoc(sessionDocRef); // Tenta ler o documento UMA VEZ
+            if (sessionSnap.exists()) {
+                console.log(`Sessão ${currentSessionId} encontrada. Iniciando jogo.`);
+                // Adiciona o jogador atual à sessão
+                await addPlayerToSession(currentSessionId, window.currentUserId, currentUsername, window.firestore, window.db, window.__app_id);
 
-    // Escuta por mudanças na sessão (para jogadores)
-    if (window.db && window.firestore && window.appId && window.currentUserId) { // Verifique se window.currentUserId está disponível
-        const sessionDocRef = window.firestore.doc(window.db, `artifacts/${window.appId}/public/data/sessions`, currentSessionId);
+                // Configura o listener para atualizações em tempo real dos jogadores
+                sessionPlayersUnsubscribe = window.firestore.onSnapshot(sessionDocRef, (doc) => {
+                    if (doc.exists()) {
+                        const sessionData = doc.data();
+                        const players = sessionData.currentPlayers || [];
+                        updatePlayerList(players); // Atualiza a lista de jogadores na UI
+                    } else {
+                        // Se a sessão for deletada *após* o jogador entrar
+                        console.log("Sessão não encontrada ou removida. Redirecionando.");
+                        redirectToHome('session_deleted_message');
+                    }
+                }, (error) => {
+                    console.error("Erro no listener onSnapshot da sessão:", error);
+                    if (error.code === 'permission-denied') {
+                        showMessage(gameTranslations.permission_denied_error || "Erro de permissão ao acessar a sessão.", 'error');
+                    } else {
+                        showMessage(gameTranslations.session_load_error || "Erro ao carregar a sessão.", 'error');
+                    }
+                    redirectToHome('session_load_error'); // Redireciona em caso de erro grave no listener
+                });
 
-        // Adiciona o jogador atual à sessão quando ela é carregada
-        await addPlayerToSession(currentSessionId, window.currentUserId, currentUsername, window.firestore, window.db, window.appId);
+                await loadQuestions(); // Carrega as perguntas do jogo (mockadas por enquanto)
+                addEventListeners(); // Adiciona os event listeners
 
-        sessionPlayersUnsubscribe = window.firestore.onSnapshot(sessionDocRef, (docSnap) => {
-            if (docSnap.exists()) {
-                const sessionData = docSnap.data();
-                const players = sessionData.currentPlayers || [];
-                updatePlayerList(players); // Atualiza a lista de jogadores na UI
+                // Esconde o overlay de carregamento e mostra o conteúdo do jogo
+                loadingOverlay.classList.add('hidden');
+                gameContainer.classList.remove('hidden'); // Remove a classe 'hidden' do container
+                gameAreaSelectorElement.classList.remove('hidden'); // Garante que o seletor de área esteja visível inicialmente
+
             } else {
-                console.log("Sessão não encontrada ou removida. Redirecionando.");
-                redirectToHome('session_deleted_message'); // Redireciona se a sessão for removida
+                console.error(`Sessão ${currentSessionId} não encontrada. Redirecionando para home.`);
+                redirectToHome('session_deleted_message'); // Redireciona se a sessão não for encontrada inicialmente
             }
-        }, (error) => {
-            console.error("Erro ao ouvir por jogadores da sessão:", error);
-            // Verifica se o erro é de permissão e informa ao usuário
-            if (error.code === 'permission-denied') {
-                showMessage(gameTranslations.permission_denied_error || "Erro de permissão ao acessar a sessão. Verifique suas regras ou autenticação.", 'error');
-            } else {
-                showMessage(gameTranslations.session_load_error || "Erro ao carregar jogadores da sessão.", 'error');
-            }
-            redirectToHome('session_load_error'); // Redireciona em caso de erro grave
-        });
+        } catch (error) {
+            console.error("Erro ao verificar a sessão do Firestore:", error);
+            showMessage("Erro ao acessar a sessão do jogo. Por favor, tente novamente.", 'error');
+            redirectToHome('error_firebase_init');
+        }
     } else {
-        console.error("Firebase Firestore ou ID de usuário não estão inicializados para listeners de jogadores.");
+        console.error("Firebase Firestore ou ID de usuário não estão inicializados. Redirecionando.");
         redirectToHome('error_firebase_init');
-        return;
     }
-
-    await loadQuestions(); // Carrega as perguntas do jogo (mockadas por enquanto)
-    addEventListeners(); // Adiciona os event listeners
-
-    // Esconde o overlay de carregamento e mostra o conteúdo do jogo
-    loadingOverlay.classList.add('hidden');
-    gameContainer.classList.remove('hidden'); // Remove a classe 'hidden' do container
-    gameAreaSelectorElement.classList.remove('hidden'); // Garante que o seletor de área esteja visível inicialmente
 }
 
 
@@ -573,7 +587,7 @@ window.addEventListener('beforeunload', async (event) => {
         console.log("Listener de jogadores desinscrito em beforeunload.");
     }
     if (currentSessionId && window.currentUserId) {
+        // Usa o AppId correto para a remoção
         await removePlayerFromSession(currentSessionId, window.currentUserId);
     }
 });
-
