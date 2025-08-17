@@ -1,132 +1,528 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title></title> <!-- Título vazio, será definido via JS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
+    <title>Sessão do Jogo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(240, 242, 245, 0.9);
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #e8f0f2;
             display: flex;
             justify-content: center;
-            align-items: center;
-            font-size: 1.5rem;
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 0;
             color: #333;
-            z-index: 1000;
+            padding: 20px;
         }
-
-        .container.hidden {
-            display: none;
-        }
-
         .container {
-            background-color: #ffffff;
-            padding: 2.5rem;
-            border-radius: 1rem;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            max-width: 900px;
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            max-width: 800px;
             width: 100%;
             text-align: center;
+        }
+        .header {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            text-align: left;
+        }
+        .user-info {
+            flex-grow: 1;
+        }
+        .user-info h2 {
+            font-family: 'Poppins', sans-serif;
+            color: #2e7d32;
+            margin: 0 0 5px 0;
+            font-size: 1.8em;
+            font-weight: 600;
+        }
+        .user-info p {
+            margin: 0;
+            font-size: 1.1em;
+            color: #555;
+            font-weight: 500;
+        }
+        .game-stats {
+            text-align: right;
+        }
+        .game-stats h2, .game-stats p {
+            margin: 0;
+            font-size: 1.2em;
+            color: #555;
+        }
+        
+        .game-area {
+            margin-top: 30px;
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
+            align-items: center;
+            gap: 20px;
         }
-        /* Estilo para o botão "Aceder Sessão" no game.html - corrigido */
-        #accessGameButton {
-            color: #ffffff; /* Cor do texto branco */
+        .game-card {
+            background-color: #f9f9f9;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            box-sizing: border-box;
+            text-align: left;
+            min-height: 250px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .game-card h2 {
+            font-family: 'Poppins', sans-serif;
+            color: #555;
+            margin-top: 0;
+            font-size: 1.5em;
+            text-align: center;
+        }
+        .question-text {
+            font-size: 1.2em;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+        }
+        .options button {
+            font-family: 'Roboto', sans-serif;
+            color: #fff;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s;
+        }
+        .options button:hover {
+            opacity: 0.8;
+        }
+        /* Cores para os botões das áreas de conhecimento */
+        #selection-buttons .btn-integ { background-color: #2e7d32; }
+        #selection-buttons .btn-escopo { background-color: #1565c0; }
+        #selection-buttons .btn-cronograma { background-color: #ffb300; }
+        #selection-buttons .btn-custos { background-color: #c62828; }
+        #selection-buttons .btn-qualidade { background-color: #6a1b9a; }
+        #selection-buttons .btn-recursos { background-color: #e65100; }
+        #selection-buttons .btn-comunicacao { background-color: #00897b; }
+        #selection-buttons .btn-riscos { background-color: #455a64; }
+        #selection-buttons .btn-aquisicoes { background-color: #5d4037; }
+        #selection-buttons .btn-stakeholders { background-color: #d84315; }
+
+        /* Estilo das alternativas de resposta */
+        .option-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: border-color 0.3s, background-color 0.3s;
+            text-align: left;
+            font-weight: 500;
+        }
+        .option-item:hover {
+            border-color: #999;
+        }
+        .option-item::before {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #bbb;
+            border-radius: 50%;
+            margin-right: 15px;
+            transition: border-color 0.3s;
+        }
+        .option-item.selected::before {
+            border-color: #1976d2;
+            background-color: #1976d2;
+        }
+        .options .disabled {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+        .correct-answer {
+            border-color: #2e7d32;
+            color: #2e7d32;
+        }
+        .correct-answer::before {
+            background-color: #2e7d32;
+            border-color: #2e7d32;
+        }
+        .incorrect-answer {
+            border-color: #c62828;
+            color: #c62828;
+        }
+        .incorrect-answer::before {
+            background-color: #c62828;
+            border-color: #c62828;
+        }
+
+        #result-message {
+            margin-top: 15px;
+            font-size: 1.1em;
+            font-weight: bold;
+            display: none;
+            text-align: center;
+        }
+
+        #explanation {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e0f2f1;
+            border-left: 5px solid #004d40;
+            border-radius: 5px;
+            font-style: italic;
+            line-height: 1.5;
+            display: none;
+            text-align: left;
+        }
+        .correct {
+            color: #2e7d32;
+        }
+        .incorrect {
+            color: #c62828;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .action-buttons button {
+            background-color: #43a047;
+            color: #fff;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s;
+        }
+        .action-buttons button:hover {
+            background-color: #388e3c;
+        }
+
+        .footer {
+            margin-top: 40px;
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .game-stats {
+                text-align: left;
+            }
+            .game-card {
+                padding: 20px;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Overlay de carregamento, inicialmente visível -->
-    <div id="loadingOverlay" class="loading-overlay">
-        Carregando jogo...
-    </div>
 
-    <!-- Script para carregar configurações globais da aplicação (AppConfig) -->
-    <script src="js/config.js"></script>
-
-    <!--
-        A inicialização do Firebase e a definição de window.firebaseInitializedPromise
-        são agora tratadas EXCLUSIVAMENTE por firebaseExports.js.
-        Não é necessário um bloco de script <type="module"> aqui para isso.
-    -->
-
-    <!-- Inclua o script da lógica do jogo (gameLogic.js) como um módulo -->
-    <script type="module" src="js/gameLogic.js"></script>
-
-    <!-- Container principal do jogo, inicialmente oculto com display: none via classe 'hidden' -->
-    <div class="container hidden" id="gameContainer">
-        <div class="w-full flex justify-between items-center mb-6">
-            <h1 class="text-3xl font-extrabold text-teal-700">
-                <span id="labelSession" data-lang-key="label_session">Sessão</span>: <span id="displaySessionId" class="text-green-600">Carregando...</span>
-            </h1>
-            <button id="backToHomeButton" class="game-button bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg shadow">
-                <span data-lang-key="label_back_to_home">Voltar para o Início</span>
-            </button>
-        </div>
-
-        <div class="session-info">
-            <h2 data-lang-key="label_players">Jogadores na Sessão:</h2>
-            <ul id="playerList" class="player-list">
-                <li data-lang-key="no_players_in_session">Nenhum jogador ainda...</li>
-            </ul>
-        </div>
-
-        <!-- Seletor de Área (inicialmente visível) -->
-        <div id="gameAreaSelector" class="game-area-selector">
-            <h2 data-lang-key="label_choose_area">Escolha a Área da Próxima Carta:</h2>
-            <div id="areaButtons" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
-                <!-- Certifique-se de que os valores data-area correspondem ao campo 'area' no Firestore -->
-                <button class="area-select-button bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-4" data-area="Cronograma" data-lang-key="area_schedule">Cronograma</button>
-                <button class="area-select-button bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-4" data-area="Escopo" data-lang-key="area_scope">Escopo</button>
-                <button class="area-select-button bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-4" data-area="Qualidade" data-lang-key="area_quality">Qualidade</button>
-                <!-- Adicione mais botões conforme as áreas no seu Firestore -->
-                <!-- Exemplo para outras áreas, se existirem:
-                <button class="area-select-button bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-4" data-area="Integração" data-lang-key="area_integration">Integração</button>
-                <button class="area-select-button bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-4" data-area="Custo" data-lang-key="area_cost">Custo</button>
-                <button class="area-select-button bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-4" data-area="Recursos" data-lang-key="area_resources">Recursos</button>
-                <button class="area-select-button bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-4" data-area="Comunicação" data-lang-key="area_communications">Comunicações</button>
-                <button class="area-select-button bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-4" data-area="Riscos" data-lang-key="area_risks">Riscos</button>
-                <button class="area-select-button bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-4" data-area="Aquisições" data-lang-key="area_acquisitions">Aquisições</button>
-                <button class="area-select-button bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-4" data-area="Partes Interessadas" data-lang-key="area_stakeholders">Partes Interessadas</button>
-                -->
+    <div class="container">
+        <div class="header">
+            <div class="user-info">
+                <h2>Jogador: <span id="player-name"></span></h2>
+                <p>Sessão: <span id="session-code"></span></p>
             </div>
-            <button id="randomCardButton" class="game-button bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg shadow-lg mt-6 w-full" data-lang-key="button_random_card">
-                Carta Aleatória
-            </button>
-        </div>
-
-        <!-- Carta do Jogo (inicialmente oculta) -->
-        <div id="gameCard" class="card hidden">
-            <div class="card-content">
-                <h2 id="questionArea" class="text-2xl font-semibold mb-4 text-teal-800" data-lang-key="label_area_title">Área: Carregando...</h2>
-                <p id="currentQuestionDisplay" class="text-xl font-medium mb-6">Aguardando a próxima pergunta...</p>
-                <div id="optionsContainer" class="options-container">
-                    <!-- As opções serão inseridas aqui via JavaScript -->
-                </div>
-                <button id="answerButton" class="game-button bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg shadow-lg w-full mt-6" data-lang-key="button_check_answer">
-                    Verificar Resposta
-                </button>
-                <div id="feedbackContainer" class="mt-4">
-                    <!-- Feedback e explicação serão inseridos aqui -->
-                </div>
-                <button id="nextCardButton" class="game-button bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-lg w-full mt-4 hidden" data-lang-key="button_next_card">
-                    Próxima Carta
-                </button>
+            <div class="game-stats">
+                <p>Pontuação: <span id="score">0</span></p>
+                <p id="question-counter" style="display: none;">Pergunta <span id="current-question">1</span> de <span id="total-questions">10</span></p>
             </div>
         </div>
 
-        <div id="messageBox" class="message-box hidden"></div>
+        <div class="game-area">
+            <div class="game-card">
+                <h2 id="main-title">Selecione uma Área de Conhecimento</h2>
+                <p id="instruction-text">Clique em um dos botões abaixo para iniciar o desafio sobre a área selecionada.</p>
+                <div id="selection-buttons" class="options">
+                    </div>
+                <p id="question-text" class="question-text" style="display: none;"></p>
+                <div id="options-container" class="options" style="display: none;">
+                    </div>
+                <p id="result-message"></p>
+                <div id="explanation" style="display: none;"></div>
+                <div id="game-controls" class="action-buttons" style="display: none;">
+                    <button id="back-button">Voltar para as Áreas</button>
+                    <button id="next-question-button">Próxima Pergunta</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Jogo de Gerência de Projetos v1.0.0</p>
+        </div>
     </div>
-    <div class="version-text">Versão: 1.0.1</div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const playerName = urlParams.get('username') || 'Anônimo';
+        const sessionCode = urlParams.get('session') || 'N/A';
+
+        const gameData = {
+            "Integração": [
+                {
+                    question: "Qual documento descreve a visão geral e os objetivos do projeto, autorizando formalmente o seu início?",
+                    options: ["Plano de Comunicação", "Termo de Abertura do Projeto (Project Charter)", "Estrutura Analítica do Projeto (EAP)", "Cronograma do Projeto"],
+                    answer: "Termo de Abertura do Projeto (Project Charter)",
+                    explanation: "O Termo de Abertura do Projeto, ou Project Charter, é o documento formal que autoriza a existência de um projeto, nomeia o gerente de projeto e concede-lhe autoridade para aplicar recursos. Ele estabelece a visão e os objetivos iniciais."
+                }
+            ],
+            "Escopo": [
+                {
+                    question: "O que é um 'stakeholder' em um projeto?",
+                    options: ["Uma parte interessada no projeto", "Um software de gestão", "O líder da equipe técnica", "O orçamento disponível"],
+                    answer: "Uma parte interessada no projeto",
+                    explanation: "Um stakeholder é qualquer indivíduo, grupo ou organização que pode afetar ou ser afetado por uma decisão, atividade ou resultado de um projeto."
+                }
+            ],
+            "Cronograma": [
+                {
+                    question: "Qual é a técnica que estima a duração de uma atividade baseada em valores otimistas, pessimistas e mais prováveis?",
+                    options: ["Análise de Monte Carlo", "Método do Caminho Crítico (CPM)", "Técnica de Estimativa de Três Pontos (PERT)", "Análise de Variância"],
+                    answer: "Técnica de Estimativa de Três Pontos (PERT)",
+                    explanation: "A Técnica de Estimativa de Três Pontos (PERT) utiliza três estimativas de duração (otimista, pessimista e mais provável) para calcular uma estimativa de duração mais precisa. É útil quando há incerteza sobre a duração de uma atividade."
+                }
+            ],
+            "Custos": [
+                {
+                    question: "Em gerenciamento de custos, o que a sigla 'EAC' representa?",
+                    options: ["Custo Estimado na Conclusão", "Análise de Custo Estimado", "Custo Estimado de Aquisição", "Previsão de Custo e Ações"],
+                    answer: "Custo Estimado na Conclusão",
+                    explanation: "EAC (Estimate At Completion) é uma previsão do custo total final do projeto quando ele estiver concluído. É uma ferramenta fundamental para o controle do desempenho financeiro."
+                }
+            ],
+            "Qualidade": [
+                {
+                    question: "Qual dos seguintes não é um princípio fundamental da gestão da qualidade total (TQM)?",
+                    options: ["Foco no cliente", "Melhoria contínua", "Decisões baseadas em fatos", "Minimizar o envolvimento da equipe"],
+                    answer: "Minimizar o envolvimento da equipe",
+                    explanation: "A Gestão da Qualidade Total (TQM) é uma abordagem que exige o envolvimento de todos os membros da organização, desde a alta gerência até os colaboradores, para melhorar a qualidade dos produtos e serviços. Minimizar o envolvimento da equipe vai contra este princípio."
+                }
+            ],
+            "Recursos": [
+                {
+                    question: "O que o Gráfico de Gantt é mais utilizado para visualizar?",
+                    options: ["Riscos do projeto", "Cadeia de valor", "Atividades e cronograma", "Análise de custos"],
+                    answer: "Atividades e cronograma",
+                    explanation: "O Gráfico de Gantt é uma ferramenta visual que representa as atividades de um projeto ao longo do tempo. É amplamente utilizado para planejar e acompanhar o cronograma e os recursos do projeto."
+                }
+            ],
+            "Comunicação": [
+                {
+                    question: "Qual é o principal propósito do 'Plano de Gerenciamento de Comunicações'?",
+                    options: ["Definir a estrutura organizacional", "Determinar como e quando as informações do projeto serão distribuídas", "Gerenciar conflitos da equipe", "Monitorar o orçamento"],
+                    answer: "Determinar como e quando as informações do projeto serão distribuídas",
+                    explanation: "O Plano de Gerenciamento de Comunicações define quem precisa de quais informações, quando, como e por quem elas serão entregues. Ele é essencial para garantir um fluxo de informações eficiente durante o projeto."
+                }
+            ],
+            "Riscos": [
+                {
+                    question: "Em gerenciamento de riscos, o que significa 'Mitigar'?",
+                    options: ["Aceitar o risco", "Transferir o risco", "Reduzir a probabilidade ou o impacto de um risco", "Ignorar o risco"],
+                    answer: "Reduzir a probabilidade ou o impacto de um risco",
+                    explanation: "Mitigar um risco envolve a tomada de ações para diminuir a probabilidade de sua ocorrência ou para reduzir o seu impacto caso ele aconteça. É uma das principais estratégias de resposta a riscos."
+                }
+            ],
+            "Aquisições": [
+                {
+                    question: "Em qual fase do projeto é realizada a seleção de fornecedores e a negociação de contratos?",
+                    options: ["Planejamento", "Iniciação", "Execução", "Encerramento"],
+                    answer: "Execução",
+                    explanation: "As atividades de seleção de fornecedores e negociação de contratos ocorrem durante a fase de execução do projeto, após o planejamento ter sido concluído. É quando o trabalho para contratar os vendedores é realizado."
+                }
+            ],
+            "Stakeholders": [
+                {
+                    question: "Qual é a principal função de um 'Mapa de Stakeholders'?",
+                    options: ["Medir a satisfação do cliente", "Identificar e analisar o interesse e a influência dos envolvidos", "Rastrear o progresso das tarefas", "Gerenciar o cronograma"],
+                    answer: "Identificar e analisar o interesse e a influência dos envolvidos",
+                    explanation: "O Mapa de Stakeholders, ou Matriz de Poder/Interesse, é uma ferramenta usada para identificar e classificar os stakeholders com base em seu nível de interesse e poder sobre o projeto, ajudando a planejar a melhor estratégia de engajamento."
+                }
+            ]
+        };
+
+        const areaColors = {
+            "Integração": "btn-integ",
+            "Escopo": "btn-escopo",
+            "Cronograma": "btn-cronograma",
+            "Custos": "btn-custos",
+            "Qualidade": "btn-qualidade",
+            "Recursos": "btn-recursos",
+            "Comunicação": "btn-comunicacao",
+            "Riscos": "btn-riscos",
+            "Aquisições": "btn-aquisicoes",
+            "Stakeholders": "btn-stakeholders"
+        };
+        
+        const areas = Object.keys(gameData);
+        let selectedArea = '';
+        let currentQuestionIndex = 0;
+        let score = 0;
+
+        document.getElementById('player-name').textContent = playerName;
+        document.getElementById('session-code').textContent = sessionCode;
+        document.getElementById('score').textContent = score;
+
+        const mainTitleElement = document.getElementById('main-title');
+        const instructionTextElement = document.getElementById('instruction-text');
+        const selectionButtonsContainer = document.getElementById('selection-buttons');
+        const questionTextElement = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const scoreElement = document.getElementById('score');
+        const questionCounterElement = document.getElementById('question-counter');
+        const currentQuestionElement = document.getElementById('current-question');
+        const totalQuestionsElement = document.getElementById('total-questions');
+        const resultMessageElement = document.getElementById('result-message');
+        const explanationElement = document.getElementById('explanation');
+        const nextQuestionButton = document.getElementById('next-question-button');
+        const backButton = document.getElementById('back-button');
+        const gameControls = document.getElementById('game-controls');
+
+        function showAreaSelection() {
+            mainTitleElement.textContent = 'Selecione uma Área de Conhecimento';
+            instructionTextElement.style.display = 'block';
+            selectionButtonsContainer.style.display = 'flex';
+            questionTextElement.style.display = 'none';
+            optionsContainer.style.display = 'none';
+            resultMessageElement.style.display = 'none';
+            explanationElement.style.display = 'none';
+            gameControls.style.display = 'none';
+            questionCounterElement.style.display = 'none';
+            document.querySelector('.game-card').style.justifyContent = 'center';
+            score = 0;
+            scoreElement.textContent = score;
+        }
+
+        function loadQuestion() {
+            const questions = gameData[selectedArea];
+            if (currentQuestionIndex < questions.length) {
+                const currentQuestion = questions[currentQuestionIndex];
+                
+                mainTitleElement.textContent = `${selectedArea}`;
+                instructionTextElement.style.display = 'none';
+                selectionButtonsContainer.style.display = 'none';
+                questionCounterElement.style.display = 'block';
+                questionTextElement.style.display = 'block';
+                optionsContainer.style.display = 'flex';
+                resultMessageElement.style.display = 'none';
+                explanationElement.style.display = 'none';
+                gameControls.style.display = 'flex';
+                nextQuestionButton.style.display = 'none';
+
+                questionTextElement.textContent = currentQuestion.question;
+                optionsContainer.innerHTML = '';
+
+                currentQuestion.options.forEach(option => {
+                    const optionDiv = document.createElement('div');
+                    optionDiv.textContent = option;
+                    optionDiv.classList.add('option-item');
+                    optionDiv.addEventListener('click', () => checkAnswer(option, currentQuestion.answer, currentQuestion.explanation, optionDiv));
+                    optionsContainer.appendChild(optionDiv);
+                });
+                
+                currentQuestionElement.textContent = currentQuestionIndex + 1;
+                totalQuestionsElement.textContent = questions.length;
+                document.querySelector('.game-card').style.justifyContent = 'flex-start';
+            } else {
+                endGame();
+            }
+        }
+
+        function checkAnswer(selectedOption, correctAnswer, explanation, clickedElement) {
+            const allOptions = optionsContainer.querySelectorAll('.option-item');
+            allOptions.forEach(option => {
+                option.classList.add('disabled');
+            });
+            
+            if (selectedOption === correctAnswer) {
+                score++;
+                scoreElement.textContent = score;
+                resultMessageElement.textContent = 'Correto! 🎉';
+                resultMessageElement.classList.remove('incorrect');
+                resultMessageElement.classList.add('correct');
+                clickedElement.classList.add('correct-answer');
+            } else {
+                resultMessageElement.textContent = `Incorreto. A resposta correta era: ${correctAnswer}`;
+                resultMessageElement.classList.remove('correct');
+                resultMessageElement.classList.add('incorrect');
+                clickedElement.classList.add('incorrect-answer');
+                const correctOption = Array.from(allOptions).find(opt => opt.textContent === correctAnswer);
+                if (correctOption) {
+                    correctOption.classList.add('correct-answer');
+                }
+            }
+            
+            resultMessageElement.style.display = 'block';
+            explanationElement.innerHTML = `<strong>Explicação:</strong> ${explanation}`;
+            explanationElement.style.display = 'block';
+            nextQuestionButton.style.display = 'block';
+        }
+
+        function endGame() {
+            mainTitleElement.textContent = 'Fim do Desafio!';
+            questionTextElement.textContent = 'Você completou as perguntas desta área.';
+            optionsContainer.innerHTML = '';
+            gameControls.style.display = 'flex';
+            nextQuestionButton.style.display = 'none';
+            explanationElement.style.display = 'none';
+            resultMessageElement.style.display = 'block';
+            resultMessageElement.textContent = `Sua pontuação final é ${score} de ${gameData[selectedArea].length}.`;
+            resultMessageElement.classList.remove('correct', 'incorrect');
+        }
+
+        nextQuestionButton.addEventListener('click', () => {
+            currentQuestionIndex++;
+            loadQuestion();
+        });
+
+        backButton.addEventListener('click', () => {
+            showAreaSelection();
+        });
+
+        // Cria os botões de seleção de área
+        areas.forEach(area => {
+            const button = document.createElement('button');
+            button.textContent = area;
+            button.classList.add(areaColors[area]);
+            button.addEventListener('click', () => {
+                selectedArea = area;
+                currentQuestionIndex = 0;
+                loadQuestion();
+            });
+            selectionButtonsContainer.appendChild(button);
+        });
+        
+        showAreaSelection();
+    </script>
 </body>
 </html>
