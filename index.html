@@ -26,129 +26,82 @@
         // Importa as funções necessárias do Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Variáveis que armazenarão as instâncias do Firebase e o appId para exposição global
-        let appInstanceGlobal;
-        let authInstanceGlobal;
-        let dbInstanceGlobal;
-        let appIdGlobal;
-        let currentUserIdGlobal;
+        // Define uma promessa global para sinalizar quando o Firebase estiver inicializado
+        // e as instâncias de db e auth estiverem disponíveis em window.
+        window.firebaseInitializedPromise = new Promise(async (resolve) => {
+            let firebaseConfig = {};
+            let appId = 'default-app-id'; // Fallback padrão
 
-        // Cria uma promessa que será resolvida quando o Firebase estiver inicializado e autenticado.
-        window.firebaseInitializedPromise = new Promise(async (resolve, reject) => {
-            try {
-                // Acessa __app_id e __firebase_config que são fornecidos pelo ambiente Canvas
-                // e verifica se estão definidos antes de usá-los.
-                const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'; // Fallback para dev local
-                const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+            // Tenta obter __app_id do ambiente Canvas, com fallback
+            if (typeof __app_id !== 'undefined') {
+                appId = __app_id;
+                console.log(`Firebase (index.html): __app_id lido: ${appId}`);
+            } else {
+                console.warn("Firebase (index.html): __app_id não definido no ambiente Canvas. Usando 'default-app-id'.");
+            }
 
-                if (firebaseConfig && Object.keys(firebaseConfig).length > 0) {
-                    appInstanceGlobal = initializeApp(firebaseConfig);
-                    authInstanceGlobal = getAuth(appInstanceGlobal);
-                    dbInstanceGlobal = getFirestore(appInstanceGlobal);
+            // Tenta obter e analisar __firebase_config do ambiente Canvas
+            if (typeof __firebase_config !== 'undefined') {
+                try {
+                    firebaseConfig = JSON.parse(__firebase_config);
+                    console.log("Firebase (index.html): __firebase_config lido e analisado com sucesso.");
+                    // console.log("Firebase Config:", firebaseConfig); // Evitar logar a config completa em produção
+                } catch (e) {
+                    console.error("Firebase (index.html): Erro ao analisar __firebase_config:", e);
+                    firebaseConfig = {};
+                }
+            } else {
+                console.warn("Firebase (index.html): __firebase_config não definido no ambiente Canvas.");
+            }
 
-                    // ATRIBUIÇÕES CRUCIAIS PARA EXPOR AO ESCOPO GLOBAL DO NAVEGADOR
-                    window.app = appInstanceGlobal;
-                    window.auth = authInstanceGlobal;
-                    window.db = dbInstanceGlobal;
-                    window.appId = appId; // Atribui appId ao escopo global
+            // Apenas inicializa o Firebase se a configuração for válida
+            if (Object.keys(firebaseConfig).length > 0 && appId !== 'default-app-id') {
+                try {
+                    const appInstance = initializeApp(firebaseConfig);
+                    const authInstance = getAuth(appInstance);
+                    const dbInstance = getFirestore(appInstance);
+
+                    // Expõe as instâncias globalmente para outros scripts (gameLogic.js, index.js)
+                    window.app = appInstance;
+                    window.auth = authInstance;
+                    window.db = dbInstance;
+                    // Exporta as funções do firestore que serão usadas no gameLogic e index (se necessário)
+                    // Não é o objeto completo, apenas as funções que são importadas nos outros arquivos
+                    window.firestore = {
+                        collection, doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot
+                    };
+
 
                     // Autenticação: tenta com token customizado primeiro, depois anonimamente.
-                    if (initialAuthToken) {
-                        await signInWithCustomToken(authInstanceGlobal, initialAuthToken);
-                        console.log("Firebase (index.html): Autenticado com token personalizado.");
+                    // __initial_auth_token é fornecido pelo ambiente Canvas.
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(authInstance, __initial_auth_token);
+                        console.log("Firebase (game.html): Autenticado com token personalizado.");
                     } else {
-                        await signInAnonymously(authInstanceGlobal);
-                        console.log("Firebase (index.html): Autenticado anonimamente.");
+                        await signInAnonymously(authInstance);
+                        console.log("Firebase (game.html): Autenticado anonimamente.");
                     }
 
-                    currentUserIdGlobal = authInstanceGlobal.currentUser.uid;
-                    window.currentUserId = currentUserIdGlobal; // Expor globalmente
-                    console.log(`Firebase (index.html): App inicializado e autenticado. ID do Usuário: ${window.currentUserId}`);
+                    // Define o ID do usuário globalmente.
+                    // Isso é importante porque auth.currentUser pode ser null brevemente após a inicialização.
+                    // onAuthStateChanged seria a forma mais robusta, mas para este caso, o `await` já ajuda.
+                    window.currentUserId = authInstance.currentUser.uid;
+                    console.log(`Firebase (game.html): App inicializado e autenticado. ID do Usuário: ${window.currentUserId}`);
 
-                    resolve();
-                } else {
-                    console.error("Firebase: Configuração não encontrada ou inválida. Inicialização pulada. Isso pode ocorrer se o ambiente Canvas não fornecer a configuração.");
-                    resolve(); // Ainda resolve para não bloquear a UI, mas com erro no console.
+                    resolve(); // Resolve a promessa indicando sucesso na inicialização
+                } catch (error) {
+                    console.error("Erro na inicialização ou autenticação do Firebase:", error);
+                    resolve(); // Resolve mesmo em erro para não bloquear o DOMContentLoaded
                 }
-            } catch (error) {
-                console.error("Erro na inicialização ou autenticação do Firebase:", error);
-                reject(error); // Rejeita a promessa em caso de erro fatal.
+            } else {
+                console.error("Firebase: Configuração não encontrada ou inválida. Inicialização pulada. Isso pode ocorrer se o ambiente Canvas não fornecer a configuração.");
+                resolve(); // Resolve para não bloquear a execução do DOMContentLoaded
             }
         });
     </script>
-
-    <div id="main-content-container" class="container mx-auto p-4 md:p-8 bg-white rounded-xl shadow-2xl mt-8 mb-8 relative z-10 hidden">
-        <h1 class="text-4xl md:text-5xl font-extrabold text-center text-gray-800 mb-8" data-lang-key="main_title">Jogo de Gerenciamento de Projetos</h1>
-
-        <p class="text-lg md:text-xl text-gray-600 text-center mb-10 leading-relaxed" data-lang-key="description_text">
-            Domine as habilidades essenciais de gerenciamento de projetos neste jogo interativo! Aprenda sobre **planejamento**, **execução**, **monitoramento de progresso** e **resolução de desafios** em cenários simulados para se tornar um gestor de projetos de sucesso. Cada decisão importa!
-        </p>
-
-        <!-- Seletor de Idioma -->
-        <div class="language-selector mb-8 text-center">
-            <h2 class="text-xl font-bold text-gray-700 mb-4" data-lang-key="language_select_title">Selecione o Idioma:</h2>
-            <div id="language-selector-buttons" class="flex flex-wrap justify-center gap-4">
-                <!-- Botões de idioma serão preenchidos via JS -->
-            </div>
-        </div>
-
-        <!-- Cards de Ação: Novo Jogo e Acessar Jogo -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <!-- Card: Iniciar Novo Jogo -->
-            <div id="newGameCard" class="action-card bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg shadow-lg flex flex-col items-center justify-center">
-                <h2 class="text-3xl font-bold text-blue-800 mb-6" data-lang-key="new_game_title">Iniciar Novo Jogo</h2>
-                <button id="newGameButton" class="game-button bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out w-full transform hover:scale-105">
-                    <span data-lang-key="button_new_game">Criar Nova Sessão</span>
-                </button>
-            </div>
-
-            <!-- Card: Acessar Jogo Existente -->
-            <div id="accessGameCard" class="action-card bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-lg shadow-lg flex flex-col items-center justify-center">
-                <h2 class="text-3xl font-bold text-green-800 mb-6" data-lang-key="access_game_title">Acessar Jogo Existente</h2>
-                <!-- Campo para ID da sessão existente -->
-                <div class="input-group mb-4 w-full">
-                    <label for="sessionIdInput" class="block text-gray-700 text-lg font-semibold mb-3 text-center" data-lang-key="label_session_id">ID da Sessão:</label>
-                    <input type="text" id="sessionIdInput" placeholder="Digite o ID da Sessão (Ex: 1234PTBR)"
-                            class="input-field p-3 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-green-500 text-center" required>
-                </div>
-                <!-- Novo campo para o nome de usuário em jogo existente -->
-                <div class="input-group mb-6 w-full">
-                    <label for="existingGameUsernameInput" class="block text-gray-700 text-lg font-semibold mb-3 text-center" data-lang-key="label_username">Seu Nome de Usuário:</label>
-                    <input type="text" id="existingGameUsernameInput" placeholder="Digite seu Nome de Usuário"
-                            class="input-field p-3 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-green-500 text-center" required>
-                </div>
-                <button id="accessGameButton" class="game-button bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out w-full transform hover:scale-105">
-                    <span data-lang-key="button_access_game">Acessar Sessão</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- Container para mensagem de sessão criada e botão "Entrar no Jogo" -->
-        <div id="go-to-game-container" class="mt-8 p-6 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 rounded-lg shadow-md hidden flex-col items-center text-center">
-            <p class="mb-4 text-lg font-medium" data-lang-key="session_id_prompt">
-                <!-- Mensagem dinâmica será inserida aqui pelo JS -->
-            </p>
-            <button id="goToGameButton" class="game-button bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
-                <span data-lang-key="button_go_to_game">Entrar no Jogo</span>
-            </button>
-        </div>
-
-
-        <!-- Caixa de Mensagens (para feedback do usuário) -->
-        <div id="messageBox" class="message-box hidden mt-8 max-w-md mx-auto"></div>
-    </div>
-
-    <!-- Informações da Versão -->
-    <div class="version-info">
-        <span>Versão 1.0.1</span>
-        <span>&bull;</span>
-        <span>&copy; 2025 Vinicius Losekann</span>
-    </div>
-
-    <!-- Carrega o script principal da lógica da página -->
+    <!-- Inclua o script principal (index.js) como um módulo -->
     <script type="module" src="js/index.js"></script>
 </body>
 </html>
