@@ -17,10 +17,7 @@
             background-color: #f0f0f0;
             color: #333;
         }
-        /* Esconde o conteúdo principal por padrão */
-        #main-content, #game-content {
-            display: none;
-        }
+        /* Não precisamos mais de display: none aqui, o Tailwind vai gerenciar */
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800 flex flex-col items-center justify-center min-h-screen p-4">
@@ -30,8 +27,8 @@
         Carregando...
     </div>
 
-    <!-- Conteúdo Principal do Aplicativo (inicialmente oculto) -->
-    <div id="main-content" class="w-full max-w-2xl bg-white p-8 rounded-xl shadow-lg text-center">
+    <!-- Conteúdo Principal do Aplicativo (inicialmente visível após carregamento) -->
+    <div id="main-content" class="w-full max-w-2xl bg-white p-8 rounded-xl shadow-lg text-center hidden">
         <h1 class="text-4xl font-extrabold mb-6 text-gray-900">Bem-vindo(a) ao Jogo de Gerência de Projetos!</h1>
         <p class="text-lg mb-8">
             O Firebase foi inicializado com sucesso e o aplicativo está pronto para uso.
@@ -46,7 +43,7 @@
         </div>
     </div>
 
-    <!-- Área do Jogo (inicialmente oculto) -->
+    <!-- Área do Jogo (inicialmente oculta com Tailwind) -->
     <div id="game-content" class="w-full max-w-4xl bg-white p-8 rounded-xl shadow-lg text-center hidden">
         <h2 class="text-3xl font-bold mb-6 text-gray-900">Área do Jogo</h2>
         <p class="text-lg mb-8">
@@ -71,11 +68,11 @@
         // Pega as referências dos elementos HTML
         const loadingScreen = document.getElementById('loading-screen');
         const mainContent = document.getElementById('main-content');
-        const gameContent = document.getElementById('game-content'); // Nova referência
+        const gameContent = document.getElementById('game-content');
         const displayUserId = document.getElementById('display-user-id');
         const displayAppId = document.getElementById('display-app-id');
-        const startButton = document.getElementById('startButton'); // Nova referência
-        const backButton = document.getElementById('backButton'); // Nova referência
+        const startButton = document.getElementById('startButton');
+        const backButton = document.getElementById('backButton');
 
         // Função assíncrona para iniciar o aplicativo após a inicialização do Firebase
         async function startApp() {
@@ -106,12 +103,13 @@
                     console.log("index.html: App ID atualizado para:", APP_ID);
                 }
 
+                // Esconde a tela de carregamento e mostra o conteúdo principal
                 if (loadingScreen) {
-                    loadingScreen.style.display = 'none';
+                    loadingScreen.classList.add('hidden'); // Usa classe hidden do Tailwind
                     console.log("index.html: Tela de carregamento escondida.");
                 }
                 if (mainContent) {
-                    mainContent.style.display = 'block'; // Mostra a tela de boas-vindas por padrão
+                    mainContent.classList.remove('hidden'); // Mostra a tela de boas-vindas removendo 'hidden'
                     console.log("index.html: Conteúdo principal exibido.");
                 }
 
@@ -130,10 +128,10 @@
             startButton.addEventListener('click', () => {
                 console.log("Botão 'Iniciar Jogo' clicado. Transicionando para a área do jogo.");
                 if (mainContent) {
-                    mainContent.style.display = 'none'; // Esconde a tela principal
+                    mainContent.classList.add('hidden'); // Esconde a tela principal
                 }
                 if (gameContent) {
-                    gameContent.style.display = 'block'; // Mostra a área do jogo
+                    gameContent.classList.remove('hidden'); // Mostra a área do jogo
                 }
             });
         }
@@ -143,10 +141,10 @@
             backButton.addEventListener('click', () => {
                 console.log("Botão 'Voltar' clicado. Transicionando de volta para a tela principal.");
                 if (gameContent) {
-                    gameContent.style.display = 'none'; // Esconde a área do jogo
+                    gameContent.classList.add('hidden'); // Esconde a área do jogo
                 }
                 if (mainContent) {
-                    mainContent.style.display = 'block'; // Mostra a tela principal
+                    mainContent.classList.remove('hidden'); // Mostra a tela principal
                 }
             });
         }
