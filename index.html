@@ -261,6 +261,8 @@
         console.log("Firebase inicializado com sucesso.");
 
         // --- Lógica de Tradução e UI ---
+        // As variáveis 'config' e 'translations' e a função 'updateContent' foram movidas para este local
+        // para garantir que sejam definidas antes de serem usadas.
         const config = {
             languages: [
                 { code: 'pt-BR', name: 'Português (BR)' },
@@ -408,25 +410,21 @@
             console.log("Botão 'Criar Nova Sessão' clicado. Iniciando autenticação anônima...");
             
             try {
-                // Autenticação anônima para obter um UID
                 const userCredential = await signInAnonymously(auth);
                 const userId = userCredential.user.uid;
                 console.log(`Autenticação anônima bem-sucedida. UID do usuário: ${userId}`);
 
-                // Criação do documento da sessão no Firestore
                 const sessionsCollectionRef = `artifacts/${APP_ID}/public/data/sessions`;
-                const newSessionRef = doc(db, sessionsCollectionRef, 'temp'); // Cria uma referência temporária para obter um ID
-                const sessionId = newSessionRef.id; // Obtém o ID gerado automaticamente
+                const newSessionRef = doc(db, sessionsCollectionRef);
+                const sessionId = newSessionRef.id;
                 console.log(`ID da nova sessão gerado: ${sessionId}`);
                 
-                // Salva o documento da sessão com o ID gerado
                 await setDoc(doc(db, sessionsCollectionRef, sessionId), {
                     createdAt: new Date(),
                     hostUserId: userId
                 });
                 console.log("Documento de sessão criado no Firestore com sucesso.");
 
-                // Atualiza a UI com o código da sessão
                 sessionCodeDisplay.textContent = sessionId;
                 sessionCodeInput.value = sessionId;
                 sessionDisplay.classList.add('visible');
@@ -456,19 +454,16 @@
             console.log(`Tentando entrar na sessão: '${sessionCode}' com o usuário: '${username}'`);
             
             try {
-                // Autenticação anônima para o jogador que está entrando
                 const userCredential = await signInAnonymously(auth);
                 const userId = userCredential.user.uid;
                 console.log(`Autenticação anônima bem-sucedida. UID do usuário: ${userId}`);
 
-                // Verifica se a sessão existe no Firestore
                 const sessionRef = doc(db, `artifacts/${APP_ID}/public/data/sessions/${sessionCode}`);
                 console.log(`Verificando o caminho: artifacts/${APP_ID}/public/data/sessions/${sessionCode}`);
                 const sessionSnap = await getDoc(sessionRef);
 
                 if (sessionSnap.exists()) {
                     console.log("Sessão encontrada. Adicionando jogador...");
-                    // Adiciona o jogador à subcoleção 'players'
                     const playerRef = doc(db, `artifacts/${APP_ID}/public/data/sessions/${sessionCode}/players/${userId}`);
                     await setDoc(playerRef, {
                         name: username,
@@ -478,7 +473,6 @@
                     console.log(`Jogador '${username}' adicionado à subcoleção 'players'.`);
 
                     showMessage(lang.joinSuccess, 'green');
-                    // Redireciona para o jogo
                     window.location.href = `game.html?session=${encodeURIComponent(sessionCode)}&username=${encodeURIComponent(username)}&lang=${encodeURIComponent(langCode)}&userId=${encodeURIComponent(userId)}`;
                 } else {
                     showMessage(lang.invalidSession, 'red');
