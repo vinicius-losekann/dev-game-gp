@@ -5,8 +5,8 @@ import { config } from './config.js';
 
 // Firebase SDKs
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, collection, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 console.log("Script.js iniciado. Versão do app:", config.appId);
 
@@ -19,24 +19,28 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 // Elementos do DOM
-const loginForm = document.getElementById('login-form');
-const usernameInput = document.getElementById('username');
-const languageSelect = document.getElementById('language');
+const newGameForm = document.getElementById('new-game-form');
+const joinSessionForm = document.getElementById('join-session-form');
+const usernameNewInput = document.getElementById('username-new');
+const usernameJoinInput = document.getElementById('username-join');
 const sessionCodeInput = document.getElementById('session-code');
-const createSessionButton = document.getElementById('create-session-btn');
-const joinSessionButton = document.getElementById('join-session-btn');
-const errorMessage = document.getElementById('error-message');
 
-// Carregar idiomas do arquivo de configuração
-config.languages.forEach(lang => {
-    const option = document.createElement('option');
-    option.value = lang.code;
-    option.textContent = lang.name;
-    if (lang.code === config.defaultLang) {
-        option.selected = true;
-    }
-    languageSelect.appendChild(option);
+const messageModal = document.getElementById('message-modal');
+const modalTitle = document.getElementById('modal-title');
+const modalMessage = document.getElementById('modal-message');
+const modalCloseButton = document.getElementById('modal-close-button');
+
+// Adiciona event listener para fechar o modal
+modalCloseButton.addEventListener('click', () => {
+    messageModal.classList.remove('active');
 });
+
+// Funções para manipulação do modal
+function showMessage(title, message) {
+    modalTitle.textContent = title;
+    modalMessage.textContent = message;
+    messageModal.classList.add('active');
+}
 
 // Autenticação anônima para obter um ID de usuário
 async function signInAnonymouslyUser() {
@@ -52,7 +56,7 @@ async function signInAnonymouslyUser() {
     }
 }
 
-// Criar uma nova sessão no Firestore
+// Cria uma nova sessão no Firestore
 async function createNewSession(user, playerName) {
     const sessionId = generateRandomId(6);
     const sessionRef = doc(db, 'artifacts', appId, 'public', 'data', 'sessions', sessionId);
@@ -63,7 +67,7 @@ async function createNewSession(user, playerName) {
             createdAt: serverTimestamp(),
             hostId: user.uid,
             status: 'waiting',
-            language: languageSelect.value
+            language: 'pt-BR' // Usando idioma fixo por enquanto
         });
 
         console.log("Sessão criada no Firestore. Adicionando jogador...");
@@ -74,14 +78,14 @@ async function createNewSession(user, playerName) {
         });
 
         console.log("Jogador adicionado à sessão. Redirecionando...");
-        window.location.href = `game.html?session=${sessionId}&user=${user.uid}&lang=${languageSelect.value}`;
+        window.location.href = `game.html?session=${sessionId}&user=${user.uid}&lang=pt-BR`;
     } catch (error) {
         console.error("Erro ao criar sessão:", error);
         showMessage("Erro ao Criar Sessão", "Não foi possível criar a sessão. Por favor, tente novamente.");
     }
 }
 
-// Entrar em uma sessão existente
+// Entra em uma sessão existente
 async function joinExistingSession(user, playerName, sessionId) {
     const sessionRef = doc(db, 'artifacts', appId, 'public', 'data', 'sessions', sessionId);
     console.log("Tentando entrar na sessão:", sessionId);
@@ -117,41 +121,7 @@ async function joinExistingSession(user, playerName, sessionId) {
     }
 }
 
-// Manipulador do formulário
-loginForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    console.log("Formulário submetido.");
-
-    const playerName = usernameInput.value.trim();
-    if (!playerName) {
-        showMessage("Campo Vazio", "Por favor, digite seu nome.");
-        return;
-    }
-    
-    // Autentica o usuário anonimamente e processa a requisição
-    const user = await signInAnonymouslyUser();
-    if (!user) {
-        return; // Sai da função se a autenticação falhar
-    }
-
-    const sessionId = sessionCodeInput.value.trim();
-
-    if (e.submitter.id === 'create-session-btn') {
-        await createNewSession(user, playerName);
-    } else if (e.submitter.id === 'join-session-btn') {
-        if (!sessionId) {
-            showMessage("Campo Vazio", "Por favor, digite o código da sessão.");
-            return;
-        }
-        await joinExistingSession(user, playerName, sessionId);
-    }
-});
-
-function showMessage(title, message) {
-    console.warn("Exibindo mensagem de erro:", title, message);
-    errorMessage.textContent = `${title}: ${message}`;
-}
-
+// Funções utilitárias
 function generateRandomId(length) {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let result = '';
@@ -160,3 +130,38 @@ function generateRandomId(length) {
     }
     return result;
 }
+
+// Event Listeners dos formulários
+newGameForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    console.log("Formulário de novo jogo submetido.");
+
+    const playerName = usernameNewInput.value.trim();
+    if (!playerName) {
+        showMessage("Campo Vazio", "Por favor, digite seu nome.");
+        return;
+    }
+    
+    const user = await signInAnonymouslyUser();
+    if (user) {
+        await createNewSession(user, playerName);
+    }
+});
+
+joinSessionForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    console.log("Formulário de entrar em sessão submetido.");
+
+    const playerName = usernameJoinInput.value.trim();
+    const sessionId = sessionCodeInput.value.trim();
+
+    if (!playerName || !sessionId) {
+        showMessage("Campos Vazios", "Por favor, preencha seu nome e o código da sessão.");
+        return;
+    }
+    
+    const user = await signInAnonymouslyUser();
+    if (user) {
+        await joinExistingSession(user, playerName, sessionId);
+    }
+});
