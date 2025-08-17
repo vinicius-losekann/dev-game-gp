@@ -19,82 +19,11 @@
     <!-- Este script DEVE ser carregado ANTES de qualquer script que dependa de suas variáveis. -->
     <script src="js/config.js"></script>
 
-    <!-- Script de inicialização do Firebase -->
-    <!-- Este script é um módulo para controle de escopo e imports. -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // Variável global para armazenar a promessa de inicialização do Firebase.
-        window.firebaseInitializedPromise = new Promise(async (resolve, reject) => {
-            let firebaseConfig = {};
-            let appId = 'default-app-id'; // Valor de fallback
-            let initialAuthToken = null;
-
-            // Função para tentar obter as variáveis globais do ambiente Canvas usando polling.
-            const pollForCanvasGlobals = () => new Promise(resolvePoll => {
-                const interval = setInterval(() => {
-                    if (typeof __app_id !== 'undefined' && typeof __firebase_config !== 'undefined' && typeof __initial_auth_token !== 'undefined') {
-                        clearInterval(interval);
-                        appId = __app_id;
-                        try {
-                            firebaseConfig = JSON.parse(__firebase_config);
-                        } catch (e) {
-                            console.error("Firebase (index.html): Erro ao analisar __firebase_config:", e);
-                        }
-                        initialAuthToken = __initial_auth_token;
-                        console.log("Firebase (index.html): Variáveis do Canvas obtidas via polling.");
-                        resolvePoll();
-                    } else {
-                        // console.log("Firebase (index.html): Aguardando variáveis do Canvas...", typeof __app_id, typeof __firebase_config, typeof __initial_auth_token);
-                    }
-                }, 100); // Tenta a cada 100ms
-            });
-
-            console.log("Firebase (index.html): Iniciando polling para variáveis do Canvas...");
-            await pollForCanvasGlobals(); // Espera até que as variáveis do Canvas estejam disponíveis
-
-            if (Object.keys(firebaseConfig).length > 0 && appId !== 'default-app-id') {
-                try {
-                    const appInstance = initializeApp(firebaseConfig);
-                    const authInstance = getAuth(appInstance);
-                    const dbInstance = getFirestore(appInstance);
-
-                    // Expõe as instâncias globalmente para outros scripts
-                    window.app = appInstance;
-                    window.auth = authInstance;
-                    window.db = dbInstance;
-                    window.appId = appId;
-                    window.currentUserId = null; // Será preenchido após a autenticação
-
-                    // Autenticação
-                    if (initialAuthToken) {
-                        await signInWithCustomToken(authInstance, initialAuthToken);
-                        console.log("Firebase (index.html): Autenticado com token personalizado.");
-                    } else {
-                        await signInAnonymously(authInstance);
-                        console.log("Firebase (index.html): Autenticado anonimamente.");
-                    }
-
-                    // Garante que currentUserId está definido após autenticação
-                    window.currentUserId = authInstance.currentUser?.uid;
-                    console.log(`Firebase (index.html): App inicializado e autenticado. ID do Usuário: ${window.currentUserId}`);
-                    resolve(); // Resolve a promessa indicando sucesso
-                } catch (error) {
-                    console.error("Firebase (index.html): Erro na inicialização ou autenticação:", error);
-                    reject(error); // Rejeita a promessa em caso de erro
-                }
-            } else {
-                const errorMessage = "Firebase (index.html): Configuração final inválida. Inicialização pulada.";
-                console.error(errorMessage);
-                reject(new Error(errorMessage));
-            }
-        }).catch(error => {
-            // Captura qualquer erro de inicialização para garantir que o overlay seja removido
-            console.error("Erro fatal na inicialização do Firebase:", error);
-        });
-    </script>
+    <!--
+        A inicialização do Firebase e a definição de window.firebaseInitializedPromise
+        são agora tratadas EXCLUSIVAMENTE por firebaseExports.js.
+        Não é necessário um bloco de script <type="module"> aqui para isso.
+    -->
     
     <!-- Inclua o script principal da lógica da página -->
     <script type="module" src="js/index.js"></script>
@@ -156,7 +85,7 @@
 
     <!-- Informações da Versão -->
     <div class="version-info">
-        <span>Versão 1.0.2</span>
+        <span>Versão 1.0.1</span>
         <span>&bull;</span>
         <span>&copy; 2025 Vinicius Losekann</span>
     </div>
