@@ -13,6 +13,7 @@ let app;
 let db;
 let auth;
 let currentUserId; // O ID do usuário autenticado (UID)
+let APP_ID; // O ID do aplicativo para caminhos do Firestore (agora uma let)
 let firebaseInitializedPromise; // Promessa que resolve quando o Firebase está pronto
 
 // Define as configurações do Firebase.
@@ -24,12 +25,9 @@ const manualFirebaseConfig = {
     projectId: "jogo-gerencia-de-projetos",
     storageBucket: "jogo-gerencia-de-projetos.firebasestorage.app",
     messagingSenderId: "356867532123",
-    appId: "1:356867532123:web:0657d84635a5849df2667e",
+    appId: "1:356867532123:web:0657d84635a5849df2667e", // SEU APP ID COMPLETO AQUI
     measurementId: "G-M5QYQ36Q9P"
 };
-
-// Define o ID do aplicativo. No Canvas, será __app_id. Localmente, use 'gameGP'.
-const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'gameGP'; // Seu appId para coleções Firestore
 
 // Função para inicializar o Firebase. Será chamada apenas uma vez.
 async function initializeFirebase() {
@@ -52,9 +50,8 @@ async function initializeFirebase() {
             const interval = setInterval(() => {
                 const elapsedTime = Date.now() - pollingStartTime;
 
-                // Verifica se TODAS as variáveis esperadas estão definidas
                 if (typeof __app_id !== 'undefined' && typeof __firebase_config !== 'undefined' && typeof __initial_auth_token !== 'undefined') {
-                    clearInterval(interval); // Para o polling
+                    clearInterval(interval);
                     canvasGlobalsFound = true;
                     try {
                         finalFirebaseConfig = JSON.parse(__firebase_config);
@@ -66,27 +63,27 @@ async function initializeFirebase() {
                     console.log("firebaseExports (polling): Variáveis do Canvas obtidas via polling. Finalizando polling.");
                     resolvePoll();
                 } else if (elapsedTime > pollingTimeoutMs) {
-                    clearInterval(interval); // Para o polling se o timeout for atingido
+                    clearInterval(interval);
                     console.warn("firebaseExports (polling): Timeout de polling atingido. Variáveis do Canvas não encontradas ou não injetadas a tempo.");
                     console.log("firebaseExports (polling debug): __app_id:", typeof __app_id !== 'undefined');
                     console.log("firebaseExports (polling debug): __firebase_config:", typeof __firebase_config !== 'undefined');
                     console.log("firebaseExports (polling debug): __initial_auth_token:", typeof __initial_auth_token !== 'undefined');
-                    resolvePoll(); // Resolve o polling para que o código possa tentar a config manual
-                } else {
-                    // console.log("firebaseExports (polling): Aguardando variáveis do Canvas...");
-                    // Comentado para evitar poluir o console, descomente se precisar de logs muito detalhados.
+                    resolvePoll();
                 }
-            }, 50); // Tenta a cada 50ms
+            }, 50);
         });
 
         console.log("firebaseExports: Iniciando polling para variáveis do Canvas...");
-        await pollForCanvasGlobals(); // Espera até que as variáveis do Canvas estejam disponíveis ou o timeout seja atingido
+        await pollForCanvasGlobals();
 
-        // Se, mesmo após o polling, as variáveis do Canvas não estiverem disponíveis, usa a config manual.
+        // Se as variáveis do Canvas não foram encontradas ou são inválidas, usa a config manual.
         if (!canvasGlobalsFound || Object.keys(finalFirebaseConfig).length === 0 || !finalFirebaseConfig.projectId) {
             console.warn("firebaseExports: Variáveis do Canvas não disponíveis ou inválidas. Usando configuração manual para testes locais ou fallback.");
             finalFirebaseConfig = manualFirebaseConfig;
         }
+
+        // AGORA DEFINIMOS O APP_ID BASEADO NA CONFIGURAÇÃO FINAL
+        APP_ID = finalFirebaseConfig.appId; // Pega o appId da configuração que foi realmente usada
 
         if (!finalFirebaseConfig || Object.keys(finalFirebaseConfig).length === 0 || !finalFirebaseConfig.projectId) {
             const errorMessage = "firebaseExports: Configuração do Firebase ausente ou inválida. Não foi possível inicializar.";
@@ -100,7 +97,6 @@ async function initializeFirebase() {
             auth = getAuth(app);
             db = getFirestore(app);
 
-            // Autenticação: tenta com token customizado (Canvas), senão anonimamente
             if (initialAuthToken) {
                 await signInWithCustomToken(auth, initialAuthToken);
                 console.log("firebaseExports: Autenticado com token personalizado.");
@@ -109,14 +105,14 @@ async function initializeFirebase() {
                 console.log("firebaseExports: Autenticado anonimamente.");
             }
 
-            // Define o UID do usuário autenticado para uso em toda a aplicação
             currentUserId = auth.currentUser?.uid || `anon-${crypto.randomUUID()}`;
             console.log("firebaseExports: Firebase inicializado e autenticado. UserID:", currentUserId);
-            resolve(); // Resolve a promessa.
+            console.log("firebaseExports: APP_ID final usado:", APP_ID); // Log do APP_ID final
+            resolve();
 
         } catch (error) {
             console.error("firebaseExports: Erro na inicialização ou autenticação do Firebase:", error);
-            reject(error); // Rejeita a promessa em caso de erro
+            reject(error);
         }
     });
     return firebaseInitializedPromise;
@@ -132,9 +128,8 @@ export {
     auth,
     APP_ID, // O ID do aplicativo para caminhos do Firestore
     currentUserId,
-    serverTimestamp, // Função do Firestore para timestamps do servidor
+    serverTimestamp,
 
-    // Funções do Firestore que serão usadas
     doc,
     getDoc,
     setDoc,
@@ -147,5 +142,5 @@ export {
     where,
     getDocs,
 
-    firebaseInitializedPromise // Promessa para garantir que o Firebase está pronto
+    firebaseInitializedPromise
 };
