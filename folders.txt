@@ -1,0 +1,15 @@
+.
+├── index.html
+├── game.html
+├── css/
+│   └── style.css
+├── js/
+│   ├── config.js
+│   ├── firebaseExports.js
+│   ├── gameLogic.js
+│   ├── index.js
+│   └── utils.js
+└── data/
+    └── translations/
+        ├── game_translations.json
+        └── index_translations.json
