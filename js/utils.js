@@ -2,6 +2,7 @@
 
 /**
  * Exibe uma mensagem temporária em uma caixa de mensagens pré-definida no HTML.
+ * Este módulo exporta a função.
  * @param {string} message - A mensagem a ser exibida.
  * @param {string} type - O tipo da mensagem ('info', 'success', 'error', 'warning').
  * As classes CSS para estes tipos devem estar definidas em style.css.
