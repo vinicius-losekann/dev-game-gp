@@ -55,11 +55,27 @@
         }
         .game-stats {
             text-align: right;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
         }
-        .game-stats h2, .game-stats p {
+        .game-stats p {
             margin: 0;
-            font-size: 1.2em;
+            font-size: 1.1em;
             color: #555;
+        }
+        .game-stats .exit-button {
+            background-color: #d32f2f;
+            color: #fff;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.3s;
+        }
+        .game-stats .exit-button:hover {
+            background-color: #b71c1c;
         }
         
         .game-area {
@@ -253,10 +269,12 @@
             <div class="user-info">
                 <h2>Jogador: <span id="player-name"></span></h2>
                 <p>Sessão: <span id="session-code"></span></p>
+                <p>Idioma: <span id="language-code"></span></p>
             </div>
             <div class="game-stats">
                 <p>Pontuação: <span id="score">0</span></p>
                 <p id="question-counter" style="display: none;">Pergunta <span id="current-question">1</span> de <span id="total-questions">10</span></p>
+                <button id="exit-button" class="exit-button">Sair do Jogo</button>
             </div>
         </div>
 
@@ -265,10 +283,10 @@
                 <h2 id="main-title">Selecione uma Área de Conhecimento</h2>
                 <p id="instruction-text">Clique em um dos botões abaixo para iniciar o desafio sobre a área selecionada.</p>
                 <div id="selection-buttons" class="options">
-                    </div>
+                </div>
                 <p id="question-text" class="question-text" style="display: none;"></p>
                 <div id="options-container" class="options" style="display: none;">
-                    </div>
+                </div>
                 <p id="result-message"></p>
                 <div id="explanation" style="display: none;"></div>
                 <div id="game-controls" class="action-buttons" style="display: none;">
@@ -287,6 +305,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const playerName = urlParams.get('username') || 'Anônimo';
         const sessionCode = urlParams.get('session') || 'N/A';
+        const langCode = urlParams.get('lang') || 'pt-BR'; // Busca o idioma da URL
 
         const gameData = {
             "Integração": [
@@ -391,6 +410,7 @@
 
         document.getElementById('player-name').textContent = playerName;
         document.getElementById('session-code').textContent = sessionCode;
+        document.getElementById('language-code').textContent = langCode.toUpperCase(); // Exibe o código do idioma
         document.getElementById('score').textContent = score;
 
         const mainTitleElement = document.getElementById('main-title');
@@ -407,6 +427,7 @@
         const nextQuestionButton = document.getElementById('next-question-button');
         const backButton = document.getElementById('back-button');
         const gameControls = document.getElementById('game-controls');
+        const exitButton = document.getElementById('exit-button');
 
         function showAreaSelection() {
             mainTitleElement.textContent = 'Selecione uma Área de Conhecimento';
@@ -507,6 +528,10 @@
 
         backButton.addEventListener('click', () => {
             showAreaSelection();
+        });
+
+        exitButton.addEventListener('click', () => {
+            window.location.href = 'index.html';
         });
 
         // Cria os botões de seleção de área
