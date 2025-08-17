@@ -7,6 +7,8 @@ let pageTranslations = {}; // Objeto para armazenar as traduções carregadas
 let newGameButton;
 let accessGameButton;
 let sessionIdInput;
+// REMOVIDO: let newGameUsernameInput; // Input para nome de usuário em novo jogo
+let existingGameUsernameInput; // Novo: Input para nome de usuário em jogo existente
 let messageBox; // Referência à caixa de mensagem
 let sessionInfo; // Novo elemento para informações da sessão
 let mainContentContainer; // Referência ao contêiner principal
@@ -126,32 +128,35 @@ function addEventListeners() {
     newGameButton = document.getElementById('newGameButton');
     accessGameButton = document.getElementById('accessGameButton');
     sessionIdInput = document.getElementById('sessionIdInput');
-    sessionInfo = document.getElementById('sessionInfo'); // Certifique-se de ter essa referência aqui também
+    // REMOVIDO: newGameUsernameInput = document.getElementById('newGameUsernameInput'); // Referência para o novo input
+    existingGameUsernameInput = document.getElementById('existingGameUsernameInput'); // Referência para o novo input
+    sessionInfo = document.getElementById('sessionInfo');
     const goToGameButton = document.getElementById('goToGameButton');
-    const usernameInput = document.getElementById('usernameInput');
+
 
     if (newGameButton) {
         newGameButton.addEventListener('click', async () => {
             hideMessage(); // Esconde qualquer mensagem anterior
             newGameButton.disabled = true;
             accessGameButton.disabled = true;
-            const username = usernameInput.value.trim();
-
-            if (!username) {
-                showMessage(pageTranslations.error_username_required || "Por favor, insira seu nome de usuário.", 'error');
-                newGameButton.disabled = false;
-                accessGameButton.disabled = false;
-                return;
-            }
+            // REMOVIDO: const username = newGameUsernameInput.value.trim(); // Usa o input específico para novo jogo
+            // REMOVIDO: if (!username) { ... }
 
             showMessage(pageTranslations.creating_session_message || 'Criando nova sessão...', 'info');
             console.log("New Game Button: Iniciando criação de nova sessão.");
 
-            // Adiciona o currentUserId à sessão de jogadores
-            const players = [{ id: window.currentUserId, name: username, isHost: true }];
+            // Adiciona o currentUserId à sessão de jogadores com um nome padrão para o host
+            const players = [{ id: window.currentUserId, name: "Host", isHost: true }]; // Nome padrão "Host"
             try {
                 if (window.db && window.firestore && window.firestore.collection) { // Verifica se Firestore está disponível
-                    const sessionsCollectionRef = window.firestore.collection(window.db, 'sessions'); // Referência à coleção 'sessions'
+                    // Usa __app_id do ambiente Canvas, se disponível.
+                    // Caso contrário, usa um fallback ou um ID de app padrão (poderia ser firebaseConfig.appId)
+                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+                    // Referência à coleção 'sessions' dentro do escopo público do seu aplicativo
+                    // Formato: /artifacts/{appId}/public/data/{your_collection_name}
+                    const sessionsCollectionRef = window.firestore.collection(window.db, `artifacts/${appId}/public/data/sessions`);
+
                     const newSessionRef = await window.firestore.addDoc(sessionsCollectionRef, { // Usa addDoc
                         createdAt: window.firestore.serverTimestamp(),
                         hostId: window.currentUserId,
@@ -162,9 +167,10 @@ function addEventListeners() {
                     });
 
                     const newSessionId = newSessionRef.id;
-                    const sessionShortId = newSessionId.substring(0, 4).toUpperCase() + currentLanguage.substring(3,5).toUpperCase() + currentLanguage.substring(0,2).toUpperCase(); // Ex: 1A2BBR
+                    // Gera um shortId mais robusto
+                    const sessionShortId = newSessionId.substring(0, 4).toUpperCase() + currentLanguage.substring(0,2).toUpperCase(); // Ex: 1A2BPT
 
-                    await window.firestore.updateDoc(window.firestore.doc(window.db, 'sessions', newSessionId), {
+                    await window.firestore.updateDoc(window.firestore.doc(window.db, `artifacts/${appId}/public/data/sessions`, newSessionId), {
                         shortId: sessionShortId
                     });
 
@@ -214,7 +220,7 @@ function addEventListeners() {
                 return;
             }
 
-            const username = usernameInput.value.trim();
+            const username = existingGameUsernameInput.value.trim(); // Usa o input específico para jogo existente
             if (!username) {
                 showMessage(pageTranslations.error_username_required || "Por favor, insira seu nome de usuário.", 'error');
                 newGameButton.disabled = false;
@@ -230,8 +236,8 @@ function addEventListeners() {
                     throw new Error("Firebase Firestore ou suas funções não estão disponíveis.");
                 }
 
-                // Busca a sessão pelo shortId
-                const sessionsCollectionRef = window.firestore.collection(window.db, 'sessions');
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                const sessionsCollectionRef = window.firestore.collection(window.db, `artifacts/${appId}/public/data/sessions`);
                 const q = window.firestore.query(sessionsCollectionRef, window.firestore.where('shortId', '==', enteredShortSessionId));
                 const querySnapshot = await window.firestore.getDocs(q);
 
@@ -251,7 +257,7 @@ function addEventListeners() {
 
                     if (!playerExists) {
                         currentPlayers.push({ id: window.currentUserId, name: username, isHost: false });
-                        await window.firestore.updateDoc(window.firestore.doc(window.db, 'sessions', sessionId), {
+                        await window.firestore.updateDoc(window.firestore.doc(window.db, `artifacts/${appId}/public/data/sessions`, sessionId), {
                             currentPlayers: currentPlayers
                         });
                         console.log(`Usuário ${username} adicionado à sessão ${sessionId}.`);
@@ -260,7 +266,7 @@ function addEventListeners() {
                         const playerIndex = currentPlayers.findIndex(player => player.id === window.currentUserId);
                         if (currentPlayers[playerIndex].name !== username) {
                             currentPlayers[playerIndex].name = username;
-                            await window.firestore.updateDoc(window.firestore.doc(window.db, 'sessions', sessionId), {
+                            await window.firestore.updateDoc(window.firestore.doc(window.db, `artifacts/${appId}/public/data/sessions`, sessionId), {
                                 currentPlayers: currentPlayers
                             });
                             console.log(`Nome do usuário ${window.currentUserId} atualizado para ${username} na sessão ${sessionId}.`);
@@ -309,10 +315,12 @@ async function initPageLogic() {
     newGameButton = document.getElementById('newGameButton');
     accessGameButton = document.getElementById('accessGameButton');
     sessionIdInput = document.getElementById('sessionIdInput');
+    // REMOVIDO: newGameUsernameInput = document.getElementById('newGameUsernameInput'); // Novo: Referência
+    existingGameUsernameInput = document.getElementById('existingGameUsernameInput'); // Novo: Referência
     messageBox = document.getElementById('messageBox');
     sessionInfo = document.getElementById('sessionInfo');
     languageSelectorButtonsContainer = document.getElementById('languageSelectorButtons');
-    const usernameInput = document.getElementById('usernameInput'); // Garante que o input de username seja referenciado
+
 
     // Verificar se os elementos principais foram encontrados
     if (!mainContentContainer) {
@@ -322,8 +330,9 @@ async function initPageLogic() {
     if (!loadingOverlay) {
         console.warn("initPageLogic: Elemento #loadingOverlay não encontrado no DOM. O overlay de carregamento não será gerenciado.");
     }
-    if (!usernameInput) {
-        console.error("initPageLogic: Elemento #usernameInput não encontrado no DOM! A entrada de nome de usuário não funcionará.");
+    // Verificado apenas existingGameUsernameInput, já que newGameUsernameInput foi removido
+    if (!existingGameUsernameInput) {
+        console.error("initPageLogic: O elemento de input 'existingGameUsernameInput' não foi encontrado no DOM! A entrada de nome de usuário para jogos existentes pode não funcionar.");
     }
 
 
