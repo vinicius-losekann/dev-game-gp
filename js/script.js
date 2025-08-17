@@ -50,11 +50,10 @@ function updateContent(langCode, translations) {
 
 // Lógica para carregar as traduções e inicializar a página
 document.addEventListener('DOMContentLoaded', () => {
-    // Carrega o arquivo de traduções dinamicamente
     fetch('data/translations/index_translations.json')
         .then(response => {
             if (!response.ok) {
-                throw new Error('Network response was not ok');
+                throw new Error(`Erro ao carregar o arquivo: ${response.status} ${response.statusText}`);
             }
             return response.json();
         })
@@ -70,10 +69,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             updateContent(config.defaultLang, translations);
         })
-        .catch(error => console.error('Erro ao carregar o arquivo de traduções:', error));
+        .catch(error => {
+            console.error('Falha ao carregar as traduções:', error);
+            alert('Não foi possível carregar o conteúdo do jogo. Verifique o console para mais detalhes.');
+        });
 
     document.getElementById('new-game-button').addEventListener('click', () => {
-        const newSessionCode = 'ABCDE'; // Código de sessão de exemplo
+        const newSessionCode = 'ABCDE';
         const sessionCodeInput = document.getElementById('session-code');
         sessionCodeInput.value = newSessionCode;
         alert('Nova sessão criada! O código foi preenchido no campo ao lado.');
