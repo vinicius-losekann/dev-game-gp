@@ -1,5 +1,12 @@
 // js/index.js
 
+// Importa as funções e instâncias do Firebase de firebaseExports.js
+// Isso garante que o Firebase seja inicializado e as instâncias estejam disponíveis.
+import { 
+    firebaseInitializedPromise, db, auth, APP_ID, currentUserId, serverTimestamp,
+    doc, getDoc, setDoc, collection, updateDoc, onSnapshot, query, where, getDocs
+} from './firebaseExports.js';
+
 // Idioma padrão lido do arquivo de configuração
 let currentLanguage = AppConfig.defaultLanguage;
 let pageTranslations = {}; // Objeto para armazenar as traduções carregadas
@@ -9,7 +16,6 @@ let accessGameButton;
 let sessionIdInput;
 let existingGameUsernameInput;
 let messageBox;
-let sessionInfo;
 let mainContentContainer;
 let languageSelectorButtonsContainer;
 const loadingOverlay = document.getElementById('loadingOverlay');
@@ -47,7 +53,6 @@ function hideLoadingOverlay() {
 // Função para gerar um UUID (Universally Unique Identifier) simples
 // Esta função é uma alternativa a `crypto.randomUUID()` para maior compatibilidade.
 function generateUUID() {
-    // Implementação simples de UUID v4
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
         const r = Math.random() * 16 | 0;
         const v = c === 'x' ? r : (r & 0x3 | 0x8);
@@ -55,11 +60,10 @@ function generateUUID() {
     });
 }
 
-// Carregar traduções
+// Carregar traduções (agora carrega index_translations.json)
 async function loadTranslations(lang) {
     try {
-        // CORREÇÃO: Carregar index_translations.json para a página inicial
-        const response = await fetch(`index_translations.json`);
+        const response = await fetch(`data/translations/index_translations.json`); // Caminho corrigido
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -161,14 +165,13 @@ function redirectToGame(sessionId, lang) {
 // Função para verificar se a sessão existe
 async function checkSessionExists(sessionId) {
     try {
-        const db = window.db; // Aceda à instância do Firestore a partir de window
-        if (!db) {
-            console.error("Firestore não está inicializado.");
+        if (!db) { // Usa a instância 'db' importada
+            console.error("Firestore não está inicializado (checkSessionExists).");
             showMessage(pageTranslations['error_firebase_init'] || "Erro: Firebase não inicializado.", 'error');
             return false;
         }
-        const sessionRef = window.firestore.doc(db, `artifacts/${window.appId}/public/data/sessions`, sessionId);
-        const sessionSnap = await window.firestore.getDoc(sessionRef);
+        const sessionRef = doc(db, `artifacts/${APP_ID}/public/data/sessions`, sessionId); // Usa doc e APP_ID importados
+        const sessionSnap = await getDoc(sessionRef); // Usa getDoc importado
         return sessionSnap.exists();
     } catch (error) {
         console.error("Erro ao verificar sessão:", error);
@@ -184,11 +187,7 @@ async function createNewSession(username) {
         return;
     }
 
-    const db = window.db; // Aceda à instância do Firestore
-    const currentUserId = window.currentUserId; // Aceda ao ID do utilizador autenticado
-    const appId = window.appId; // Aceda ao ID da aplicação
-
-    if (!db || !currentUserId || !appId) {
+    if (!db || !currentUserId || !APP_ID) { // Usa db, currentUserId, APP_ID importados
         console.error("Firebase Firestore, ID do utilizador ou ID da aplicação não estão inicializados. Impossível criar sessão.");
         showMessage(pageTranslations['error_firebase_init'] || "Erro: Firebase não inicializado ou utilizador não autenticado.", 'error');
         return;
@@ -196,32 +195,28 @@ async function createNewSession(username) {
 
     showMessage(pageTranslations['creating_session_message'] || "Criando nova sessão...", 'info');
 
-    // Gera um ID de sessão único (ex: 1234PTBR, 5678ENUS)
     const newSessionId = Math.floor(1000 + Math.random() * 9000).toString() + currentLanguage.replace('-', '').toUpperCase();
-    const sessionRef = window.firestore.doc(db, `artifacts/${appId}/public/data/sessions`, newSessionId);
+    const sessionRef = doc(db, `artifacts/${APP_ID}/public/data/sessions`, newSessionId); // Usa doc e APP_ID importados
 
     try {
-        // Verifica se o ID já existe para evitar colisões (improvável mas possível)
-        const docSnap = await window.firestore.getDoc(sessionRef);
+        const docSnap = await getDoc(sessionRef); // Usa getDoc importado
         if (docSnap.exists()) {
             console.warn(`Sessão ID ${newSessionId} já existe. Tentando novamente.`);
-            // Recursivamente tenta gerar um novo ID
             return createNewSession(username);
         }
 
-        await window.firestore.setDoc(sessionRef, {
-            createdAt: window.firestore.serverTimestamp(), // Adiciona timestamp do servidor
+        await setDoc(sessionRef, { // Usa setDoc importado
+            createdAt: serverTimestamp(), // Usa serverTimestamp importado
             hostId: currentUserId,
             hostName: username,
             language: currentLanguage,
-            status: 'waiting', // ou 'active', etc.
+            status: 'waiting',
             players: {
-                [currentUserId]: username // Adiciona o host como primeiro jogador
+                [currentUserId]: username
             }
         });
         showMessage(pageTranslations['session_created_message'] + newSessionId, 'success');
 
-        // Mostra a secção de "Entrar no Jogo"
         if (document.getElementById('displaySessionId')) {
             document.getElementById('displaySessionId').textContent = newSessionId;
         }
@@ -229,7 +224,6 @@ async function createNewSession(username) {
             document.getElementById('go-to-game-container').classList.remove('hidden');
         }
 
-        // Armazena o ID da sessão e o nome de utilizador localmente
         localStorage.setItem('pm_game_session_id', newSessionId);
         localStorage.setItem('pm_game_username', username);
 
@@ -247,36 +241,29 @@ async function accessExistingSession(sessionId, username) {
         return;
     }
 
-    const db = window.db;
-    const currentUserId = window.currentUserId;
-    const appId = window.appId;
-
-    if (!db || !currentUserId || !appId) {
+    if (!db || !currentUserId || !APP_ID) { // Usa db, currentUserId, APP_ID importados
         console.error("Firebase Firestore, ID do utilizador ou ID da aplicação não estão inicializados. Impossível aceder à sessão.");
         showMessage(pageTranslations['error_firebase_init'] || "Erro: Firebase não inicializado ou utilizador não autenticado.", 'error');
         return;
     }
 
     showMessage(pageTranslations['joining_session_message'] + sessionId + "...", 'info');
-    const sessionRef = window.firestore.doc(db, `artifacts/${appId}/public/data/sessions`, sessionId);
+    const sessionRef = doc(db, `artifacts/${APP_ID}/public/data/sessions`, sessionId); // Usa doc e APP_ID importados
 
     try {
-        const sessionSnap = await window.firestore.getDoc(sessionRef);
+        const sessionSnap = await getDoc(sessionRef); // Usa getDoc importado
 
         if (sessionSnap.exists()) {
             const sessionData = sessionSnap.data();
-            // Adiciona o utilizador à lista de jogadores da sessão
             const players = sessionData.players || {};
-            if (!players[currentUserId]) { // Adiciona apenas se ainda não estiver na lista
+            if (!players[currentUserId]) {
                 players[currentUserId] = username;
-                await window.firestore.updateDoc(sessionRef, {
+                await updateDoc(sessionRef, { // Usa updateDoc importado
                     players: players
                 });
             }
-            // Armazena o ID da sessão e o nome de utilizador localmente
             localStorage.setItem('pm_game_session_id', sessionId);
             localStorage.setItem('pm_game_username', username);
-            // Redireciona para a página do jogo, usando o idioma da sessão se disponível, ou o atual
             redirectToGame(sessionId, sessionData.language || currentLanguage);
         } else {
             showMessage(pageTranslations['session_not_found_error'] + sessionId, 'error');
@@ -290,29 +277,43 @@ async function accessExistingSession(sessionId, username) {
 
 // Adicionar event listeners aos botões
 function addEventListeners() {
-    newGameButton.addEventListener('click', () => {
-        // Gera um nome de utilizador automático para novo jogo
-        const autoUsername = `Jogador${Math.floor(Math.random() * 10000)}`;
-        createNewSession(autoUsername);
-    });
+    newGameButton = document.getElementById('newGameButton');
+    accessGameButton = document.getElementById('accessGameButton');
+    sessionIdInput = document.getElementById('sessionIdInput');
+    existingGameUsernameInput = document.getElementById('existingGameUsernameInput');
+    messageBox = document.getElementById('messageBox');
+    const goToGameButton = document.getElementById('goToGameButton'); // Apenas para este escopo
+    mainContentContainer = document.getElementById('main-content-container');
+    languageSelectorButtonsContainer = document.getElementById('language-selector-buttons');
 
-    accessGameButton.addEventListener('click', () => {
-        const sessionId = sessionIdInput.value.trim();
-        const username = existingGameUsernameInput.value.trim();
-        if (sessionId && username) {
-            accessExistingSession(sessionId, username);
-        } else {
-            showMessage(pageTranslations['error_invalid_session_id'] || "Por favor, digite o ID da sessão e o seu nome de utilizador.", 'warning');
-        }
-    });
 
-    // Listener para o botão "Entrar no Jogo" após criar sessão
-    const goToGameButton = document.getElementById('goToGameButton');
+    if (newGameButton) {
+        newGameButton.addEventListener('click', () => {
+            const autoUsername = `Jogador${Math.floor(Math.random() * 10000)}`;
+            createNewSession(autoUsername);
+        });
+    } else {
+        console.warn("Elemento #newGameButton não encontrado.");
+    }
+
+    if (accessGameButton) {
+        accessGameButton.addEventListener('click', () => {
+            const sessionId = sessionIdInput.value.trim();
+            const username = existingGameUsernameInput.value.trim();
+            if (sessionId && username) {
+                accessExistingSession(sessionId, username);
+            } else {
+                showMessage(pageTranslations['error_invalid_session_id'] || "Por favor, digite o ID da sessão e o seu nome de utilizador.", 'warning');
+            }
+        });
+    } else {
+        console.warn("Elemento #accessGameButton não encontrado.");
+    }
+
     if (goToGameButton) {
         goToGameButton.addEventListener('click', () => {
             const sessionId = localStorage.getItem('pm_game_session_id');
             if (sessionId) {
-                // Usa o idioma que foi definido na criação da sessão (que é o currentLanguage)
                 redirectToGame(sessionId, currentLanguage);
             } else {
                 showMessage(pageTranslations['error_no_session_id'] || "Nenhum ID de sessão encontrado para entrar no jogo.", 'error');
@@ -336,18 +337,32 @@ async function initPageLogic() {
     mainContentContainer = document.getElementById('main-content-container');
     languageSelectorButtonsContainer = document.getElementById('language-selector-buttons');
 
-    // Verificações para elementos DOM
-    if (!newGameButton || !accessGameButton || !sessionIdInput) {
-        console.error("initPageLogic: Um ou mais botões/inputs principais não foram encontrados no DOM! A página pode não funcionar corretamente.");
+
+    // Validação de elementos DOM para depuração
+    if (!messageBox) {
+        console.error("initPageLogic: Elemento #messageBox não encontrado no DOM! Mensagens ao utilizador não serão exibidas.");
     }
-    if (!loadingOverlay) {
-        console.warn("initPageLogic: Elemento #loadingOverlay não encontrado no DOM. O overlay de carregamento não será gerido.");
+    if (!document.getElementById('go-to-game-container')) {
+        console.warn("initPageLogic: Elemento #go-to-game-container não encontrado no DOM. O contentor do botão 'Entrar no Jogo' não será gerido.");
+    }
+    if (!mainContentContainer) {
+        console.warn("initPageLogic: Elemento #main-content-container não encontrado no DOM. O conteúdo principal pode ter FOUC.");
+    }
+    if (!languageSelectorButtonsContainer) {
+        console.warn("initPageLogic: O elemento 'language-selector-buttons' não foi encontrado no DOM. O seletor de idioma não funcionará.");
     }
     if (!existingGameUsernameInput) {
         console.error("initPageLogic: O elemento de input 'existingGameUsernameInput' não foi encontrado no DOM! A entrada de nome de utilizador para jogos existentes pode não funcionar.");
     }
-    if (!languageSelectorButtonsContainer) {
-        console.error("initPageLogic: O elemento 'language-selector-buttons' não foi encontrado no DOM. O seletor de idioma não funcionará.");
+
+
+    // Tenta carregar o idioma salvo no localStorage, caso contrário, usa o padrão
+    const savedLanguage = localStorage.getItem('pm_game_language');
+    if (savedLanguage && AppConfig.supportedLanguages.some(lang => lang.code === savedLanguage)) {
+        currentLanguage = savedLanguage;
+    } else {
+        currentLanguage = AppConfig.defaultLanguage;
+        localStorage.setItem('pm_game_language', currentLanguage);
     }
 
     // Carregar traduções e configurar seletor de idioma
@@ -379,18 +394,20 @@ async function initPageLogic() {
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("DOMContentLoaded disparado em index.js.");
     try {
-        await window.firebaseInitializedPromise;
+        // Aguarda a promessa global de inicialização do Firebase definida em firebaseExports.js
+        await firebaseInitializedPromise;
         console.log("Firebase inicializado e autenticado. Iniciando a lógica da página...");
         await initPageLogic();
     } catch (error) {
         console.error("Erro na inicialização do Firebase, pulando a lógica da página:", error);
+        // Exibe uma mensagem de erro na UI
         showMessage("Erro ao iniciar a aplicação. Por favor, tente novamente. " + error.message, 'error');
-        hideLoadingOverlay(); // Garante que o overlay seja escondido mesmo em caso de erro
-        // Pode-se exibir uma mensagem de erro persistente ou uma tela de erro aqui
-        if (mainContentContainer) {
-            mainContentContainer.innerHTML = `<div class="text-red-500 text-center text-lg p-4">Ocorreu um erro crítico ao carregar a aplicação. Por favor, recarregue a página.</div>`;
-            mainContentContainer.style.opacity = '1';
-            mainContentContainer.style.visibility = 'visible';
+        hideLoadingOverlay(); // Garante que o overlay seja escondido
+        // Pode-se exibir uma tela de erro mais amigável aqui
+        if (document.getElementById('main-content-container')) {
+            document.getElementById('main-content-container').innerHTML = `<div class="text-red-500 text-center text-lg p-4">Ocorreu um erro crítico ao carregar a aplicação. Por favor, recarregue a página.</div>`;
+            document.getElementById('main-content-container').style.opacity = '1';
+            document.getElementById('main-content-container').style.visibility = 'visible';
         }
     }
 });
