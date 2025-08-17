@@ -3,66 +3,44 @@ body {
     font-family: "Inter", sans-serif; /* Usando a fonte Inter */
     background-color: #f0f9ff; /* Um azul muito claro para o fundo */
     display: flex;
-    flex-direction: column; /* Adicionado para game.html para empilhar elementos */
-    justify-content: center;
-    align-items: center;
+    flex-direction: column; /* Para empilhar elementos verticalmente */
+    justify-content: center; /* Centraliza verticalmente o conteúdo */
+    align-items: center; /* Centraliza horizontalmente o conteúdo */
     min-height: 100vh; /* Garante que o corpo ocupa a altura total da viewport */
     margin: 0;
     color: #333;
-    background-image: linear-gradient(to top, #cfd9ed 0%, #e2e8f0 100%); /* Gradiente sutil */
+    background-image: linear-gradient(to bottom, #e0f2fe 0%, #a7d9f7 100%); /* Gradiente azul suave */
     padding-bottom: 40px; /* Adiciona padding na parte inferior para o texto da versão */
     position: relative; /* Necessário para posicionamento absoluto de elementos filhos */
+    overflow-x: hidden; /* Evita rolagem horizontal */
 }
-/* Estilos para o contêiner principal na index.html para evitar o FOUC */
+
+/* Estilos para o contêiner principal na index.html para evitar o FOUC (Flash of Unstyled Content) */
 #main-content-container {
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
     /* Certifique-se de que o contêiner principal tenha um padding suficiente para não ser coberto */
-    padding-bottom: 2rem;
-    max-width: 960px; /* Limita a largura máxima para melhor leitura */
-    width: 90%; /* Ajuste para ocupar a largura disponível */
-    margin: 2rem auto; /* Centraliza e adiciona margem superior */
+    padding: 2rem; /* Aumenta o padding geral do container */
+    max-width: 900px; /* Largura máxima para centralizar melhor em telas maiores */
+    width: 100%; /* Ocupa a largura total disponível até o max-width */
+    box-sizing: border-box; /* Garante que padding não adicione largura extra */
+    display: flex; /* Usa flexbox para organizar o conteúdo interno */
+    flex-direction: column; /* Empilha os elementos do container verticalmente */
+    align-items: center; /* Centraliza os itens do container */
 }
-
-/* Overlay de carregamento */
-.loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.9);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 1.5rem;
-    color: #0d9488; /* teal-600 */
-    z-index: 1000;
-    transition: opacity 0.5s ease-in-out;
-    opacity: 1;
-    visibility: visible;
-}
-
-.loading-overlay.hidden {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none; /* Garante que não interfira com cliques quando escondido */
-}
-
 
 /* Estilos para os botões com um efeito visual agradável */
 .game-button {
     transition: all 0.2s ease-in-out;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
-    border: none;
-    cursor: pointer;
-    font-family: "Inter", sans-serif;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem; /* Arredonda as bordas dos botões */
+    text-align: center;
 }
 
 .game-button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 .game-button:active {
@@ -70,292 +48,136 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.game-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: translateY(0);
-    box-shadow: none;
+/* Estilos para o botão de idioma */
+.lang-button {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #4b5563; /* gray-700 */
+    background-color: #f3f4f6; /* gray-100 */
+    border: 1px solid #d1d5db; /* gray-300 */
+    cursor: pointer;
+    white-space: nowrap; /* Evita que o texto quebre */
 }
 
-/* Estilos para os botões de idioma */
-.lang-button {
-    min-width: 150px; /* Garante que os botões de idioma tenham uma largura mínima */
+.lang-button:hover {
+    background-color: #e5e7eb; /* gray-200 */
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.lang-button.selected {
+    background-color: #10b981; /* teal-500 */
+    color: white;
+    border-color: #069c73; /* teal-600 */
+    box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);
 }
 
 /* Estilos para campos de input */
 .input-field {
-    width: 100%; /* Garante que o input ocupe a largura total do seu contêiner */
-    max-width: 400px; /* Limita a largura máxima para inputs em desktops */
-    box-sizing: border-box; /* Inclui padding e border no cálculo da largura */
+    width: 100%; /* Garante que o input ocupe a largura total de seu contêiner */
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
     border: 1px solid #d1d5db; /* gray-300 */
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease-in-out;
 }
 
 .input-field:focus {
     border-color: #10b981; /* teal-500 */
     box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+    outline: none;
 }
-
 
 /* Estilos para a caixa de mensagens */
 .message-box {
     padding: 1rem;
     border-radius: 0.5rem;
-    margin-top: 1.5rem;
-    font-weight: 500;
+    margin-top: 1rem;
+    font-weight: 600;
     text-align: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: opacity 0.3s ease-in-out;
-}
-
-.message-box.hidden {
-    opacity: 0;
-    pointer-events: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    width: 100%; /* Ajusta a largura para o container principal */
+    max-width: 480px; /* Limita a largura máxima da caixa de mensagem */
+    box-sizing: border-box;
 }
 
 .message-box.info {
-    background-color: #e0f7fa; /* cyan-50 */
-    color: #006064; /* cyan-800 */
-    border: 1px solid #80deea; /* cyan-200 */
+    background-color: #e0f2fe; /* light blue */
+    color: #0c4a6e; /* dark blue */
+    border: 1px solid #7dd3fc; /* blue-300 */
 }
 
 .message-box.success {
-    background-color: #e8f5e9; /* green-50 */
-    color: #2e7d32; /* green-800 */
-    border: 1px solid #a5d6a7; /* green-200 */
-}
-
-.message-box.error {
-    background-color: #ffebee; /* red-50 */
-    color: #c62828; /* red-800 */
-    border: 1px solid #ef9a9a; /* red-200 */
-}
-
-.message-box.warning {
-    background-color: #fff8e1; /* amber-50 */
-    color: #ff8f00; /* amber-800 */
-    border: 1px solid #ffd54f; /* amber-200 */
-}
-
-/* Estilos para os "cards" de ação no index.html */
-.action-card {
-    background-color: #ffffff;
-    border-radius: 12px; /* Cantos mais arredondados */
-    padding: 2.5rem; /* Mais padding */
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.action-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 20px -3px rgba(0, 0, 0, 0.15), 0 6px 10px -2px rgba(0, 0, 0, 0.08);
-}
-
-/* Estilos para o grupo de inputs dentro dos cards */
-.input-group {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Centraliza os inputs */
-}
-
-
-/* Estilos específicos para a página do jogo (game.html) */
-.game-container {
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
-    max-width: 960px;
-    width: 90%;
-    background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    padding: 2rem;
-    margin: 2rem auto;
-}
-
-.game-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid #e5e7eb; /* gray-200 */
-}
-
-.player-list-section {
-    background-color: #f9fafb; /* gray-50 */
-    border-radius: 8px;
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    border: 1px solid #eff6ff; /* blue-50 */
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.game-area-selector,
-.game-card {
-    background-color: #f0f9ff; /* blue-50 */
-    border-radius: 8px;
-    padding: 2rem;
-    text-align: center;
-    min-height: 300px; /* Garante altura mínima para um bom visual */
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-.area-buttons-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); /* Layout responsivo de grid */
-    gap: 1rem;
-    margin-top: 1.5rem;
-    width: 100%;
-}
-
-.area-button {
-    background-color: #3b82f6; /* blue-500 */
-    color: white;
-    font-weight: 600;
-    padding: 1rem;
-    border-radius: 0.5rem;
-    transition: background-color 0.2s ease, transform 0.2s ease;
-}
-
-.area-button:hover {
-    background-color: #2563eb; /* blue-600 */
-    transform: translateY(-2px);
-}
-
-.random-card-button {
-    background-color: #f97316; /* orange-500 */
-    color: white;
-    font-weight: 600;
-    padding: 1rem 2rem;
-    margin-top: 1.5rem;
-}
-
-.random-card-button:hover {
-    background-color: #ea580c; /* orange-600 */
-}
-
-/* Estilos para a carta da pergunta */
-.question-display {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-bottom: 1.5rem;
-    color: #1a202c; /* gray-900 */
-}
-
-.options-container {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    width: 100%;
-    max-width: 500px;
-    margin: 0 auto 1.5rem auto;
-}
-
-.option-button {
-    background-color: #f0f4f8; /* blue-gray-100 */
-    color: #4a5568; /* gray-700 */
-    padding: 0.75rem 1rem;
-    text-align: left;
-    border: 2px solid transparent; /* Adiciona borda transparente para o estado normal */
-    transition: all 0.2s ease-in-out;
-}
-
-.option-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    background-color: #e2e8f0;
-}
-.option-button.selected {
-    border: 2px solid #10b981; /* green-500 */
-    background-color: #ecfdf5; /* green-50 */
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3); /* Anel de foco verde */
-}
-.feedback {
-    padding: 1rem;
-    border-radius: 0.5rem;
-    margin-top: 1rem;
-    font-weight: 600; /* Mais negrito */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-.feedback.correct {
     background-color: #d1fae5; /* green-100 */
     color: #065f46; /* green-800 */
     border: 1px solid #34d399; /* green-300 */
 }
-.feedback.incorrect {
+
+.message-box.error {
     background-color: #fee2e2; /* red-100 */
     color: #991b1b; /* red-800 */
     border: 1px solid #f87171; /* red-300 */
 }
-.explanation {
-    margin-top: 0.75rem;
-    font-style: italic;
-    color: #4a5568; /* gray-700 */
-    font-size: 0.95rem;
-}
 
-.game-controls {
+/* Estilos para o overlay de carregamento */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.95); /* Fundo branco semi-transparente */
     display: flex;
     justify-content: center;
-    gap: 1rem;
-    margin-top: 1.5rem;
+    align-items: center;
+    font-size: 1.5rem;
+    color: #333;
+    z-index: 1000;
+    transition: opacity 0.3s ease-in-out;
 }
 
-/* Esconder elementos */
-.hidden {
-    display: none !important;
+.loading-overlay.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none; /* Garante que não interfira com cliques */
 }
 
-/* Versão Info */
+/* Estilos para as "action-cards" (Novo Jogo e Acessar Jogo) */
+.action-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%; /* Ocupa a largura total de seu container pai */
+    box-sizing: border-box;
+}
+
+/* Estilos para a informação de versão */
 .version-info {
     position: absolute;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    text-align: center;
-    font-size: 0.8rem;
+    bottom: 15px;
     color: #6b7280; /* gray-500 */
+    font-size: 0.875rem; /* text-sm */
     display: flex;
-    gap: 5px;
+    gap: 8px; /* Espaço entre os spans */
 }
 
-/* Estilos responsivos */
+/* Responsividade básica para telas menores */
 @media (max-width: 768px) {
-    .container, .game-container {
-        width: 95%;
-        padding: 1rem;
-    }
-
-    h1 {
-        font-size: 2rem;
+    .container {
+        padding: 1rem; /* Menos padding em telas pequenas */
     }
 
     .action-card {
-        padding: 1.5rem;
+        padding: 1.5rem; /* Menos padding nos cards em telas pequenas */
     }
 
-    .game-button {
-        padding: 0.75rem 1.25rem;
-        font-size: 0.9rem;
+    h1 {
+        font-size: 2.5rem; /* Ajusta o tamanho do título principal */
     }
 
-    .area-buttons-container {
-        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-    }
-
-    .question-display {
-        font-size: 1.25rem;
-    }
-
-    .option-button {
-        padding: 0.6rem 0.8rem;
+    .select-group, .input-group, .action-card {
+        max-width: 95%; /* Ocupa quase a largura total em telas pequenas */
     }
 }
