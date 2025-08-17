@@ -42,38 +42,49 @@ async function initializeFirebase() {
 
         let finalFirebaseConfig = {};
         let initialAuthToken = null;
+        let canvasGlobalsFound = false;
 
         // Função para tentar obter as variáveis globais do ambiente Canvas usando polling.
-        // Este método é crucial porque as variáveis __app_id, __firebase_config e __initial_auth_token
-        // podem não estar disponíveis imediatamente no carregamento inicial do script,
-        // especialmente em ambientes como o Canvas que injetam variáveis de forma assíncrona.
-        const pollForCanvasGlobals = () => new Promise(resolvePoll => {
+        const pollForCanvasGlobals = () => new Promise((resolvePoll) => {
+            const pollingStartTime = Date.now();
+            const pollingTimeoutMs = 5000; // 5 segundos de timeout para o polling
+
             const interval = setInterval(() => {
+                const elapsedTime = Date.now() - pollingStartTime;
+
                 // Verifica se TODAS as variáveis esperadas estão definidas
                 if (typeof __app_id !== 'undefined' && typeof __firebase_config !== 'undefined' && typeof __initial_auth_token !== 'undefined') {
                     clearInterval(interval); // Para o polling
+                    canvasGlobalsFound = true;
                     try {
                         finalFirebaseConfig = JSON.parse(__firebase_config);
                     } catch (e) {
                         console.error("firebaseExports (polling): Erro ao analisar __firebase_config:", e);
-                        finalFirebaseConfig = {}; // Garante que a configuração seja um objeto vazio em caso de erro
+                        finalFirebaseConfig = {};
                     }
                     initialAuthToken = __initial_auth_token;
-                    console.log("firebaseExports (polling): Variáveis do Canvas obtidas via polling.");
-                    resolvePoll(); // Resolve a promessa interna de polling
+                    console.log("firebaseExports (polling): Variáveis do Canvas obtidas via polling. Finalizando polling.");
+                    resolvePoll();
+                } else if (elapsedTime > pollingTimeoutMs) {
+                    clearInterval(interval); // Para o polling se o timeout for atingido
+                    console.warn("firebaseExports (polling): Timeout de polling atingido. Variáveis do Canvas não encontradas ou não injetadas a tempo.");
+                    console.log("firebaseExports (polling debug): __app_id:", typeof __app_id !== 'undefined');
+                    console.log("firebaseExports (polling debug): __firebase_config:", typeof __firebase_config !== 'undefined');
+                    console.log("firebaseExports (polling debug): __initial_auth_token:", typeof __initial_auth_token !== 'undefined');
+                    resolvePoll(); // Resolve o polling para que o código possa tentar a config manual
                 } else {
                     // console.log("firebaseExports (polling): Aguardando variáveis do Canvas...");
+                    // Comentado para evitar poluir o console, descomente se precisar de logs muito detalhados.
                 }
-            }, 50); // Tenta a cada 50ms (ajustado para ser mais rápido)
+            }, 50); // Tenta a cada 50ms
         });
 
         console.log("firebaseExports: Iniciando polling para variáveis do Canvas...");
-        await pollForCanvasGlobals(); // Espera até que as variáveis do Canvas estejam disponíveis
+        await pollForCanvasGlobals(); // Espera até que as variáveis do Canvas estejam disponíveis ou o timeout seja atingido
 
         // Se, mesmo após o polling, as variáveis do Canvas não estiverem disponíveis, usa a config manual.
-        // Isso é principalmente para desenvolvimento local. No Canvas, devem estar disponíveis.
-        if (Object.keys(finalFirebaseConfig).length === 0 || !finalFirebaseConfig.projectId) {
-            console.warn("firebaseExports: Variáveis do Canvas não disponíveis ou inválidas. Usando configuração manual para testes locais.");
+        if (!canvasGlobalsFound || Object.keys(finalFirebaseConfig).length === 0 || !finalFirebaseConfig.projectId) {
+            console.warn("firebaseExports: Variáveis do Canvas não disponíveis ou inválidas. Usando configuração manual para testes locais ou fallback.");
             finalFirebaseConfig = manualFirebaseConfig;
         }
 
@@ -105,8 +116,7 @@ async function initializeFirebase() {
 
         } catch (error) {
             console.error("firebaseExports: Erro na inicialização ou autenticação do Firebase:", error);
-            // Se houver um erro grave, reject a promessa.
-            reject(error);
+            reject(error); // Rejeita a promessa em caso de erro
         }
     });
     return firebaseInitializedPromise;
