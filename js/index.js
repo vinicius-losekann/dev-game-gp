@@ -13,10 +13,9 @@ let accessGameButton;
 let newGameCard; // Referência ao card "Iniciar Novo Jogo"
 let accessGameCard; // Referência ao card "Acessar Jogo Existente"
 let sessionIdInput;
-// REMOVIDO: let newGameUsernameInput; // Não é mais necessário para "Iniciar Novo Jogo"
 let existingGameUsernameInput; // Input para nome de usuário em jogo existente
 let messageBox; // Referência à caixa de mensagem
-let sessionInfo; // Elemento para informações da sessão
+// REMOVIDO: let sessionInfo; // Elemento para informações da sessão - Removido pois não está no HTML
 let goToGameButton; // Botão para ir para o jogo
 let goBackToHomeButtonContainer; // Container do botão "Entrar no Jogo"
 let mainContentContainer; // Referência ao contêiner principal
@@ -92,7 +91,6 @@ function updateContentLanguage() {
 
     // Atualiza placeholders manualmente, pois textContent não funciona para eles
     const usernameInputPlaceholder = pageTranslations[currentLanguage]?.input_username_placeholder || 'Digite seu Nome de Usuário';
-    // REMOVIDO: newGameUsernameInput.placeholder = usernameInputPlaceholder;
     if (existingGameUsernameInput) {
         existingGameUsernameInput.placeholder = usernameInputPlaceholder;
     }
@@ -268,10 +266,9 @@ function addEventListeners() {
     newGameButton = document.getElementById('newGameButton');
     accessGameButton = document.getElementById('accessGameButton');
     sessionIdInput = document.getElementById('sessionIdInput');
-    // REMOVIDO: newGameUsernameInput = document.getElementById('newGameUsernameInput');
     existingGameUsernameInput = document.getElementById('existingGameUsernameInput');
     messageBox = document.getElementById('messageBox');
-    sessionInfo = document.getElementById('sessionInfo'); // Certifique-se de que este elemento existe
+    // REMOVIDO: sessionInfo = document.getElementById('sessionInfo'); // Removido
     goToGameButton = document.getElementById('goToGameButton');
     goBackToHomeButtonContainer = document.getElementById('go-to-game-container');
     mainContentContainer = document.getElementById('main-content-container');
@@ -328,10 +325,9 @@ async function initPageLogic() {
     newGameButton = document.getElementById('newGameButton');
     accessGameButton = document.getElementById('accessGameButton');
     sessionIdInput = document.getElementById('sessionIdInput');
-    // REMOVIDO: newGameUsernameInput = document.getElementById('newGameUsernameInput');
     existingGameUsernameInput = document.getElementById('existingGameUsernameInput');
     messageBox = document.getElementById('messageBox');
-    sessionInfo = document.getElementById('sessionInfo');
+    // REMOVIDO: sessionInfo = document.getElementById('sessionInfo'); // Removido
     goToGameButton = document.getElementById('goToGameButton');
     goBackToHomeButtonContainer = document.getElementById('go-to-game-container');
     mainContentContainer = document.getElementById('main-content-container');
@@ -344,9 +340,7 @@ async function initPageLogic() {
     if (!messageBox) {
         console.error("initPageLogic: Elemento #messageBox não encontrado no DOM! Mensagens ao usuário não serão exibidas.");
     }
-    if (!sessionInfo) {
-        console.warn("initPageLogic: Elemento #sessionInfo não encontrado no DOM. As informações de sessão não serão exibidas.");
-    }
+    // REMOVIDO: if (!sessionInfo) { console.warn("initPageLogic: Elemento #sessionInfo não encontrado no DOM. As informações de sessão não serão exibidas."); }
     if (!goToGameButton) {
         console.warn("initPageLogic: Elemento #goToGameButton não encontrado no DOM. O botão 'Entrar no Jogo' não funcionará.");
     }
