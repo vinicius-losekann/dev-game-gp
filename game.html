@@ -39,6 +39,10 @@
             flex-direction: column;
             gap: 1.5rem;
         }
+        /* Estilo para o botão "Acessar Sessão" no game.html - corrigido */
+        #accessGameButton {
+            color: #ffffff; /* Cor do texto branco */
+        }
     </style>
 </head>
 <body>
@@ -46,6 +50,80 @@
     <div id="loadingOverlay" class="loading-overlay">
         Carregando jogo...
     </div>
+
+    <!-- Script para carregar configurações globais da aplicação (AppConfig) -->
+    <script src="js/config.js"></script>
+
+    <!-- Script de inicialização do Firebase para game.html -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Define uma promessa global para sinalizar quando o Firebase estiver inicializado
+        window.firebaseInitializedPromise = new Promise(async (resolve, reject) => {
+            let firebaseConfig = {};
+            let appId = 'default-app-id'; // Valor de fallback
+            let initialAuthToken = null;
+
+            // Função para tentar obter as variáveis globais do ambiente Canvas.
+            const pollForCanvasGlobals = () => new Promise(resolvePoll => {
+                const interval = setInterval(() => {
+                    if (typeof __app_id !== 'undefined' && typeof __firebase_config !== 'undefined') {
+                        clearInterval(interval);
+                        appId = __app_id;
+                        try {
+                            firebaseConfig = JSON.parse(__firebase_config);
+                        } catch (e) {
+                            console.error("Erro ao analisar __firebase_config:", e);
+                        }
+                        initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                        resolvePoll();
+                    }
+                }, 50); // Tenta a cada 50ms
+            });
+
+            console.log("Firebase (game.html): Aguardando variáveis do ambiente Canvas...");
+            await pollForCanvasGlobals(); // Espera até que as variáveis do Canvas estejam disponíveis
+            console.log("Firebase (game.html): Variáveis do Canvas obtidas.");
+
+            if (Object.keys(firebaseConfig).length > 0 && appId !== 'default-app-id') {
+                try {
+                    const appInstance = initializeApp(firebaseConfig);
+                    const authInstance = getAuth(appInstance);
+                    const dbInstance = getFirestore(appInstance);
+
+                    // Expõe as instâncias globalmente para outros scripts
+                    window.app = appInstance;
+                    window.auth = authInstance;
+                    window.db = dbInstance;
+                    window.appId = appId; // Garante que appId também esteja no window
+
+                    // Autenticação
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(authInstance, initialAuthToken);
+                        console.log("Firebase (game.html): Autenticado com token personalizado.");
+                    } else {
+                        await signInAnonymously(authInstance);
+                        console.log("Firebase (game.html): Autenticado anonimamente.");
+                    }
+
+                    // Garante que currentUserId está definido após autenticação
+                    window.currentUserId = authInstance.currentUser?.uid;
+                    console.log(`Firebase (game.html): App inicializado e autenticado. ID do Usuário: ${window.currentUserId}`);
+                    resolve(); // Resolve a promessa indicando sucesso
+                } catch (error) {
+                    console.error("Firebase (game.html): Erro na inicialização ou autenticação:", error);
+                    reject(error); // Rejeita a promessa em caso de erro
+                }
+            } else {
+                console.error("Firebase (game.html): Configuração final inválida. Inicialização pulada.");
+                reject(new Error("Configuração do Firebase ausente ou inválida."));
+            }
+        });
+    </script>
+    <!-- Inclua o script da lógica do jogo (gameLogic.js) como um módulo -->
+    <script type="module" src="js/gameLogic.js"></script>
 
     <!-- Container principal do jogo, inicialmente oculto com display: none via classe 'hidden' -->
     <div class="container hidden" id="gameContainer">
@@ -111,13 +189,6 @@
 
         <div id="messageBox" class="message-box hidden"></div>
     </div>
-    <div class="version-text">Versão: 1.0.2</div>
-
-    <!-- Inclua o arquivo de configuração PRIMEIRO -->
-    <script src="js/config.js"></script>
-    <!-- Inclua o novo arquivo firebaseExports.js AQUI -->
-    <script type="module" src="js/firebaseExports.js"></script>
-    <!-- Inclua o script da lógica do jogo (gameLogic.js) como um módulo -->
-    <script type="module" src="js/gameLogic.js"></script>
+    <div class="version-text">Versão: 1.0.1</div>
 </body>
 </html>
