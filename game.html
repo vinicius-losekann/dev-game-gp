@@ -39,7 +39,7 @@
             flex-direction: column;
             gap: 1.5rem;
         }
-        /* Estilo para o botão "Acessar Sessão" no game.html - corrigido */
+        /* Estilo para o botão "Aceder Sessão" no game.html - corrigido */
         #accessGameButton {
             color: #ffffff; /* Cor do texto branco */
         }
@@ -66,26 +66,18 @@
             let appId = 'default-app-id'; // Valor de fallback
             let initialAuthToken = null;
 
-            // Função para tentar obter as variáveis globais do ambiente Canvas.
-            const pollForCanvasGlobals = () => new Promise(resolvePoll => {
-                const interval = setInterval(() => {
-                    if (typeof __app_id !== 'undefined' && typeof __firebase_config !== 'undefined') {
-                        clearInterval(interval);
-                        appId = __app_id;
-                        try {
-                            firebaseConfig = JSON.parse(__firebase_config);
-                        } catch (e) {
-                            console.error("Erro ao analisar __firebase_config:", e);
-                        }
-                        initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-                        resolvePoll();
-                    }
-                }, 50); // Tenta a cada 50ms
-            });
-
-            console.log("Firebase (game.html): Aguardando variáveis do ambiente Canvas...");
-            await pollForCanvasGlobals(); // Espera até que as variáveis do Canvas estejam disponíveis
-            console.log("Firebase (game.html): Variáveis do Canvas obtidas.");
+            try {
+                if (typeof __app_id !== 'undefined' && typeof __firebase_config !== 'undefined') {
+                    appId = __app_id;
+                    firebaseConfig = JSON.parse(__firebase_config);
+                    initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                    console.log("Firebase (game.html): Variáveis do Canvas obtidas diretamente.");
+                } else {
+                    console.warn("Firebase (game.html): Variáveis __app_id ou __firebase_config não definidas no ambiente Canvas. Usando fallbacks.");
+                }
+            } catch (e) {
+                console.error("Firebase (game.html): Erro ao tentar obter variáveis do Canvas:", e);
+            }
 
             if (Object.keys(firebaseConfig).length > 0 && appId !== 'default-app-id') {
                 try {
@@ -97,7 +89,7 @@
                     window.app = appInstance;
                     window.auth = authInstance;
                     window.db = dbInstance;
-                    window.appId = appId; // Garante que appId também esteja no window
+                    window.appId = appId;
 
                     // Autenticação
                     if (initialAuthToken) {
@@ -117,9 +109,13 @@
                     reject(error); // Rejeita a promessa em caso de erro
                 }
             } else {
-                console.error("Firebase (game.html): Configuração final inválida. Inicialização pulada.");
-                reject(new Error("Configuração do Firebase ausente ou inválida."));
+                const errorMessage = "Firebase (game.html): Configuração final inválida. Inicialização pulada.";
+                console.error(errorMessage);
+                reject(new Error(errorMessage));
             }
+        }).catch(error => {
+            // Captura qualquer erro de inicialização para garantir que o overlay seja removido
+            console.error("Erro fatal na inicialização do Firebase em game.html:", error);
         });
     </script>
     <!-- Inclua o script da lógica do jogo (gameLogic.js) como um módulo -->
@@ -189,6 +185,6 @@
 
         <div id="messageBox" class="message-box hidden"></div>
     </div>
-    <div class="version-text">Versão: 1.0.1</div>
+    <div class="version-text">Versão: 1.0.2</div>
 </body>
 </html>
