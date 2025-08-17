@@ -16,89 +16,9 @@
     </div>
 
     <!-- Script para carregar configurações globais da aplicação (AppConfig) -->
-    <!-- Este script DEVE ser carregado antes de qualquer script que dependa de suas variáveis,
-         exceto pelas variáveis intrínsecas do ambiente Canvas como __firebase_config e __app_id. -->
+    <!-- Este script DEVE ser carregado antes de qualquer script que dependa de suas variáveis. -->
     <script src="js/config.js"></script>
-
-    <!-- Script para inicializar o Firebase e definir a promessa de inicialização -->
-    <!-- Este script DEVE ser carregado antes de 'index.js' para garantir que window.firebaseInitializedPromise exista -->
-    <script type="module">
-        // Importa as funções necessárias do Firebase
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        // IMPORTAÇÃO CORRIGIDA: Adicionando collection, query, where, addDoc, getDocs
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayRemove, arrayUnion, serverTimestamp, collection, query, where, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // Define uma promessa que será resolvida quando o Firebase for inicializado e autenticado.
-        // Esta promessa é global e pode ser aguardada por outros scripts.
-        window.firebaseInitializedPromise = new Promise(async (resolve, reject) => {
-            console.log("Firebase Init Script: Iniciando a promessa de inicialização.");
-
-            // **CORREÇÃO AQUI:** Acesse __firebase_config e __app_id diretamente do ambiente Canvas.
-            const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-            const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-            // Certifique-se de que a configuração do Firebase foi carregada corretamente.
-            if (!firebaseConfig || Object.keys(firebaseConfig).length === 0) {
-                console.error("Firebase Init Script: Configuração do Firebase ausente ou inválida. Pulando inicialização.");
-                reject(new Error("Firebase configuration missing or invalid.")); // Rejeita a promessa.
-                return; // Impede a execução do restante do script de inicialização.
-            }
-
-            console.log("Firebase Init Script: Configurações encontradas. Inicializando app...");
-            const app = initializeApp(firebaseConfig);
-            const db = getFirestore(app);
-            const auth = getAuth(app);
-
-            // Autenticação: tenta com token customizado primeiro, depois anonimamente.
-            if (initialAuthToken) {
-                try {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                    console.log("Firebase Init Script: Autenticado com token personalizado.");
-                } catch (error) {
-                    console.warn("Firebase Init Script: Erro ao autenticar com token personalizado, tentando anonimamente:", error);
-                    await signInAnonymously(auth);
-                }
-            } else {
-                console.log("Firebase Init Script: initialAuthToken não definido ou vazio, autenticando anonimamente.");
-                await signInAnonymously(auth);
-            }
-
-            // Define o userId globalmente após a autenticação.
-            // Usa o UID do Firebase se disponível, ou um UUID anônimo de fallback.
-            window.currentUserId = auth.currentUser?.uid || `anon-${crypto.randomUUID()}`;
-            console.log("Firebase Init Script: UserID definido:", window.currentUserId);
-
-            // Expõe instâncias de Firebase para outros scripts de forma global.
-            window.app = app; // Adiciona a instância do app
-            window.db = db;
-            // EXPOSIÇÃO CORRIGIDA: Adicionando collection, query, where, addDoc, getDocs
-            window.firestore = { doc, getDoc, setDoc, updateDoc, arrayRemove, arrayUnion, serverTimestamp, collection, query, where, addDoc, getDocs }; // Exporta funções específicas do firestore
-            window.auth = auth; // Expõe a instância de autenticação
-            window.__app_id = appId; // Garante que appId também esteja global para gameLogic.js
-
-            console.log("Firebase Init Script: Firebase inicializado e autenticado. Resolvendo promessa.");
-            resolve(); // Resolve a promessa indicando que o Firebase está pronto.
-        });
-
-        // Opcional: listener para mudanças de estado de autenticação.
-        window.firebaseInitializedPromise.then(() => {
-            if (window.auth) {
-                onAuthStateChanged(window.auth, (user) => {
-                    if (user) {
-                        console.log("onAuthStateChanged: Usuário logado:", user.uid);
-                    } else {
-                        console.log("onAuthStateChanged: Usuário deslogado.");
-                    }
-                });
-            }
-        }).catch(error => {
-            console.error("Erro na inicialização da promessa do Firebase:", error);
-            // Poderia mostrar uma mensagem de erro ao usuário aqui.
-        });
-    </script>
-
+    
     <!-- Container principal do jogo, agora sendo o "card" branco grande -->
     <div id="main-content-container" class="main-card-wrapper opacity-0 invisible">
         <h1 data-lang-key="main_title" class="text-4xl font-extrabold text-teal-800 mb-6 text-center">Jogo de Gerenciamento de Projetos</h1>
@@ -168,7 +88,7 @@
     </div>
 
     <!-- Carrega o script principal do jogo (index.js) com type="module" -->
-    <!-- Este script depende da inicialização do Firebase acima -->
+    <!-- Este script AGORA importa Firebase, AppConfig e Utils -->
     <script src="js/index.js" type="module"></script>
 </body>
 </html>
