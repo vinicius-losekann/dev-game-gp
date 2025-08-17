@@ -1,7 +1,7 @@
 // js/index.js
 
 // Importa as funções necessárias do Firebase Firestore
-import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // Idioma padrão lido do arquivo de configuração
 let currentLanguage = AppConfig.defaultLanguage;
@@ -15,14 +15,13 @@ let accessGameCard; // Referência ao card "Acessar Jogo Existente"
 let sessionIdInput;
 let existingGameUsernameInput; // Input para nome de usuário em jogo existente
 let messageBox; // Referência à caixa de mensagem
-// REMOVIDO: let sessionInfo; // Elemento para informações da sessão - Removido pois não está no HTML
 let goToGameButton; // Botão para ir para o jogo
 let goBackToHomeButtonContainer; // Container do botão "Entrar no Jogo"
 let mainContentContainer; // Referência ao contêiner principal
 let languageSelectorButtonsContainer; // Referência ao contêiner dos botões de idioma
 const loadingOverlay = document.getElementById('loadingOverlay'); // Referência ao overlay de carregamento
 
-// Variáveis para as instâncias do Firebase
+// Variáveis para as instâncias do Firebase (agora acessadas via window)
 let db;
 let auth;
 
@@ -268,7 +267,6 @@ function addEventListeners() {
     sessionIdInput = document.getElementById('sessionIdInput');
     existingGameUsernameInput = document.getElementById('existingGameUsernameInput');
     messageBox = document.getElementById('messageBox');
-    // REMOVIDO: sessionInfo = document.getElementById('sessionInfo'); // Removido
     goToGameButton = document.getElementById('goToGameButton');
     goBackToHomeButtonContainer = document.getElementById('go-to-game-container');
     mainContentContainer = document.getElementById('main-content-container');
@@ -317,8 +315,9 @@ async function initPageLogic() {
     }
 
     // Atribui as instâncias do Firebase, que são garantidas pelo window.firebaseInitializedPromise
-    db = getFirestore(window.app); // Obtém a instância do Firestore a partir do app global
-    auth = window.auth; // A instância de autenticação já está global em window.auth
+    // AGORA db e auth são inicializados no index.html e expostos em window
+    db = window.db;
+    auth = window.auth;
 
     // Garante que todos os elementos DOM necessários estão disponíveis
     // Re-obtem as referências caso o initPageLogic seja chamado novamente
@@ -327,7 +326,6 @@ async function initPageLogic() {
     sessionIdInput = document.getElementById('sessionIdInput');
     existingGameUsernameInput = document.getElementById('existingGameUsernameInput');
     messageBox = document.getElementById('messageBox');
-    // REMOVIDO: sessionInfo = document.getElementById('sessionInfo'); // Removido
     goToGameButton = document.getElementById('goToGameButton');
     goBackToHomeButtonContainer = document.getElementById('go-to-game-container');
     mainContentContainer = document.getElementById('main-content-container');
@@ -340,7 +338,6 @@ async function initPageLogic() {
     if (!messageBox) {
         console.error("initPageLogic: Elemento #messageBox não encontrado no DOM! Mensagens ao usuário não serão exibidas.");
     }
-    // REMOVIDO: if (!sessionInfo) { console.warn("initPageLogic: Elemento #sessionInfo não encontrado no DOM. As informações de sessão não serão exibidas."); }
     if (!goToGameButton) {
         console.warn("initPageLogic: Elemento #goToGameButton não encontrado no DOM. O botão 'Entrar no Jogo' não funcionará.");
     }
