@@ -65,7 +65,7 @@
             color: #555;
         }
         .game-stats .exit-button {
-            background-color: #d32f2f;
+            background-color: #607d8b; /* Nova cor cinza/azul */
             color: #fff;
             padding: 8px 15px;
             border: none;
@@ -73,9 +73,10 @@
             cursor: pointer;
             font-size: 0.9em;
             transition: background-color 0.3s;
+            margin-bottom: 10px; /* Adicionado para separar da pontuação */
         }
         .game-stats .exit-button:hover {
-            background-color: #b71c1c;
+            background-color: #455a64;
         }
         
         .game-area {
@@ -272,9 +273,9 @@
                 <p>Idioma: <span id="language-code"></span></p>
             </div>
             <div class="game-stats">
+                <button id="exit-button" class="exit-button">Sair do Jogo</button>
                 <p>Pontuação: <span id="score">0</span></p>
                 <p id="question-counter" style="display: none;">Pergunta <span id="current-question">1</span> de <span id="total-questions">10</span></p>
-                <button id="exit-button" class="exit-button">Sair do Jogo</button>
             </div>
         </div>
 
@@ -410,7 +411,7 @@
 
         document.getElementById('player-name').textContent = playerName;
         document.getElementById('session-code').textContent = sessionCode;
-        document.getElementById('language-code').textContent = langCode.toUpperCase(); // Exibe o código do idioma
+        document.getElementById('language-code').textContent = langCode.toUpperCase();
         document.getElementById('score').textContent = score;
 
         const mainTitleElement = document.getElementById('main-title');
