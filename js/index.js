@@ -21,9 +21,8 @@ let mainContentContainer; // Referência ao contêiner principal
 let languageSelectorButtonsContainer; // Referência ao contêiner dos botões de idioma
 const loadingOverlay = document.getElementById('loadingOverlay'); // Referência ao overlay de carregamento
 
-// Variáveis para as instâncias do Firebase (agora acessadas via window)
-let db;
-let auth;
+// Removidas as declarações 'let db;' e 'let auth;' pois acessarão diretamente window.db e window.auth
+
 
 // Função para mostrar mensagens na tela
 function showMessage(message, type = 'info') {
@@ -129,20 +128,20 @@ async function createNewSession() {
 
     showMessage(pageTranslations[currentLanguage].creating_session_message, 'info');
 
-    // As instâncias 'db' e 'auth' SÃO GARANTIDAS aqui pelo await no DOMContentLoaded
-    if (!db || !auth) {
+    // Acessa diretamente window.db e window.auth
+    if (!window.db || !window.auth) {
         showMessage(pageTranslations[currentLanguage].error_firebase_init, 'error');
         console.error("Firebase Firestore ou Auth NÃO ESTÃO INICIALIZADOS no createNewSession. Isso é inesperado!");
         return;
     }
 
     try {
-        const userId = auth.currentUser?.uid || crypto.randomUUID();
+        const userId = window.auth.currentUser?.uid || crypto.randomUUID();
         // Gerar um nome de usuário padrão se não for fornecido no início do jogo
         const defaultUsername = `Usuário-${userId.substring(0, 5)}`;
 
         const sessionId = generateSessionId(); // Gera um ID de sessão
-        const sessionDocRef = doc(db, "artifacts", window.appId, "public", "data", "sessions", sessionId);
+        const sessionDocRef = doc(window.db, "artifacts", window.appId, "public", "data", "sessions", sessionId);
         const playerDocRef = doc(sessionDocRef, "players", userId);
 
         // Cria a sessão com os dados iniciais
@@ -215,16 +214,16 @@ async function accessExistingSession() {
 
     showMessage(`${pageTranslations[currentLanguage].joining_session_message} ${sessionId}...`, 'info');
 
-    // As instâncias 'db' e 'auth' SÃO GARANTIDAS aqui pelo await no DOMContentLoaded
-    if (!db || !auth) {
+    // Acessa diretamente window.db e window.auth
+    if (!window.db || !window.auth) {
         showMessage(pageTranslations[currentLanguage].error_firebase_init, 'error');
         console.error("Firebase Firestore ou Auth NÃO ESTÃO INICIALIZADOS no accessExistingSession. Isso é inesperado!");
         return;
     }
 
     try {
-        const userId = auth.currentUser?.uid || crypto.randomUUID();
-        const sessionDocRef = doc(db, "artifacts", window.appId, "public", "data", "sessions", sessionId);
+        const userId = window.auth.currentUser?.uid || crypto.randomUUID();
+        const sessionDocRef = doc(window.db, "artifacts", window.appId, "public", "data", "sessions", sessionId);
         const sessionDoc = await getDoc(sessionDocRef);
 
         if (!sessionDoc.exists()) {
@@ -312,14 +311,10 @@ async function initPageLogic() {
         localStorage.setItem('pm_game_language', currentLanguage);
     }
 
-    // AGORA db e auth são atribuídos APÓS o Firebase estar pronto
-    // (a promessa window.firebaseInitializedPromise foi resolvida)
-    db = window.db;
-    auth = window.auth;
-
-    // Adiciona logs para verificar se db e auth estão definidos
-    console.log("initPageLogic: Instância de DB:", db);
-    console.log("initPageLogic: Instância de Auth:", auth);
+    // Acessando window.db e window.auth diretamente.
+    // Adiciona logs para verificar se window.db e window.auth estão definidos
+    console.log("initPageLogic: Instância de window.db:", window.db);
+    console.log("initPageLogic: Instância de window.auth:", window.auth);
 
 
     // Garante que todos os elementos DOM necessários estão disponíveis
