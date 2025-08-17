@@ -129,11 +129,10 @@ async function createNewSession() {
 
     showMessage(pageTranslations[currentLanguage].creating_session_message, 'info');
 
-    // As instâncias 'db' e 'auth' são garantidas como inicializadas pelo 'window.firebaseInitializedPromise'
-    // e setadas no `initPageLogic`.
+    // As instâncias 'db' e 'auth' SÃO GARANTIDAS aqui pelo await no DOMContentLoaded
     if (!db || !auth) {
         showMessage(pageTranslations[currentLanguage].error_firebase_init, 'error');
-        console.error("Firebase Firestore ou Auth não estão inicializados no createNewSession.");
+        console.error("Firebase Firestore ou Auth NÃO ESTÃO INICIALIZADOS no createNewSession. Isso é inesperado!");
         return;
     }
 
@@ -216,11 +215,10 @@ async function accessExistingSession() {
 
     showMessage(`${pageTranslations[currentLanguage].joining_session_message} ${sessionId}...`, 'info');
 
-    // As instâncias 'db' e 'auth' são garantidas como inicializadas pelo 'window.firebaseInitializedPromise'
-    // e setadas no `initPageLogic`.
+    // As instâncias 'db' e 'auth' SÃO GARANTIDAS aqui pelo await no DOMContentLoaded
     if (!db || !auth) {
         showMessage(pageTranslations[currentLanguage].error_firebase_init, 'error');
-        console.error("Firebase Firestore ou Auth não estão inicializados no accessExistingSession.");
+        console.error("Firebase Firestore ou Auth NÃO ESTÃO INICIALIZADOS no accessExistingSession. Isso é inesperado!");
         return;
     }
 
@@ -314,10 +312,15 @@ async function initPageLogic() {
         localStorage.setItem('pm_game_language', currentLanguage);
     }
 
-    // Atribui as instâncias do Firebase, que são garantidas pelo window.firebaseInitializedPromise
-    // AGORA db e auth são inicializados no index.html e expostos em window
+    // AGORA db e auth são atribuídos APÓS o Firebase estar pronto
+    // (a promessa window.firebaseInitializedPromise foi resolvida)
     db = window.db;
     auth = window.auth;
+
+    // Adiciona logs para verificar se db e auth estão definidos
+    console.log("initPageLogic: Instância de DB:", db);
+    console.log("initPageLogic: Instância de Auth:", auth);
+
 
     // Garante que todos os elementos DOM necessários estão disponíveis
     // Re-obtem as referências caso o initPageLogic seja chamado novamente
