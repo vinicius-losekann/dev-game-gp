@@ -1,16 +1,21 @@
-// js/config.js
+// config.js
 
-// Configurações específicas do seu aplicativo
+// Assegura que AppConfig é carregado globalmente.
+// __app_id e __firebase_config são fornecidos globalmente pelo ambiente Canvas e
+// serão acessados no index.html para a inicialização do Firebase.
+
+// Configurações específicas do seu aplicativo, como idiomas suportados
 const AppConfig = {
-    // Idioma padrão do aplicativo (corrigido para 'pt-BR' para consistência)
-    defaultLanguage: 'pt-BR', 
+    defaultLanguage: 'pt-BR', // Garante que é 'pt-BR' para corresponder aos seus arquivos de tradução
     supportedLanguages: [
         { code: 'pt-BR', name: 'Português' },
         { code: 'en-US', name: 'English' },
         { code: 'es-ES', name: 'Español' }
     ],
-    maxSessionIdAttempts: 100 // Número máximo de tentativas para gerar um ID de sessão único
+    // Outras configurações do aplicativo aqui...
 };
 
-// Torna AppConfig acessível globalmente (para outros scripts que não são módulos ou para conveniência)
+// Torna as configurações acessíveis globalmente
 window.AppConfig = AppConfig;
+// O appId será obtido diretamente no index.html e game.html
+// e atribuído a window.appId lá, garantindo que __app_id esteja disponível.
