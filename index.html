@@ -15,8 +15,9 @@
         Carregando...
     </div>
 
-    <!-- Script para carregar configurações globais do Firebase e da aplicação -->
-    <!-- Este script DEVE ser carregado antes de qualquer script que dependa de suas variáveis -->
+    <!-- Script para carregar configurações globais da aplicação (AppConfig) -->
+    <!-- Este script DEVE ser carregado antes de qualquer script que dependa de suas variáveis,
+         exceto pelas variáveis intrínsecas do ambiente Canvas como __firebase_config e __app_id. -->
     <script src="js/config.js"></script>
 
     <!-- Script para inicializar o Firebase e definir a promessa de inicialização -->
@@ -32,46 +33,53 @@
         // Esta promessa é global e pode ser aguardada por outros scripts.
         window.firebaseInitializedPromise = new Promise(async (resolve, reject) => {
             console.log("Firebase Init Script: Iniciando a promessa de inicialização.");
-            // Garante que as configurações globais estejam disponíveis.
-            // window.firebaseConfig e window.appId são definidos por config.js.
-            if (window.firebaseConfig && window.appId) {
-                console.log("Firebase Init Script: Configurações encontradas. Inicializando app...");
-                const app = initializeApp(window.firebaseConfig);
-                const db = getFirestore(app);
-                const auth = getAuth(app);
 
-                // Autenticação: tenta com token customizado primeiro, depois anonimamente.
-                if (typeof window.initialAuthToken !== 'undefined' && window.initialAuthToken) {
-                    try {
-                        await signInWithCustomToken(auth, window.initialAuthToken);
-                        console.log("Firebase Init Script: Autenticado com token personalizado.");
-                    } catch (error) {
-                        console.warn("Firebase Init Script: Erro ao autenticar com token personalizado, tentando anonimamente:", error);
-                        await signInAnonymously(auth);
-                    }
-                } else {
-                    console.log("Firebase Init Script: initialAuthToken não definido ou vazio, autenticando anonimamente.");
+            // **CORREÇÃO AQUI:** Acesse __firebase_config e __app_id diretamente do ambiente Canvas.
+            const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+            // Certifique-se de que a configuração do Firebase foi carregada corretamente.
+            if (!firebaseConfig || Object.keys(firebaseConfig).length === 0) {
+                console.error("Firebase Init Script: Configuração do Firebase ausente ou inválida. Pulando inicialização.");
+                reject(new Error("Firebase configuration missing or invalid.")); // Rejeita a promessa.
+                return; // Impede a execução do restante do script de inicialização.
+            }
+
+            console.log("Firebase Init Script: Configurações encontradas. Inicializando app...");
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+            const auth = getAuth(app);
+
+            // Autenticação: tenta com token customizado primeiro, depois anonimamente.
+            if (initialAuthToken) {
+                try {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                    console.log("Firebase Init Script: Autenticado com token personalizado.");
+                } catch (error) {
+                    console.warn("Firebase Init Script: Erro ao autenticar com token personalizado, tentando anonimamente:", error);
                     await signInAnonymously(auth);
                 }
-
-                // Define o userId globalmente após a autenticação.
-                // Usa o UID do Firebase se disponível, ou um UUID anônimo de fallback.
-                window.currentUserId = auth.currentUser?.uid || `anon-${crypto.randomUUID()}`;
-                console.log("Firebase Init Script: UserID definido:", window.currentUserId);
-
-                // Expõe instâncias de Firebase para outros scripts de forma global.
-                window.app = app; // Adiciona a instância do app
-                window.db = db;
-                // EXPOSIÇÃO CORRIGIDA: Adicionando collection, query, where, addDoc, getDocs
-                window.firestore = { doc, getDoc, setDoc, updateDoc, arrayRemove, arrayUnion, serverTimestamp, collection, query, where, addDoc, getDocs }; // Exporta funções específicas do firestore
-                window.auth = auth; // Expõe a instância de autenticação
-
-                console.log("Firebase Init Script: Firebase inicializado e autenticado. Resolvendo promessa.");
-                resolve(); // Resolve a promessa indicando que o Firebase está pronto.
             } else {
-                console.error("Firebase Init Script: Configuração não encontrada ou inválida. Pulando inicialização.");
-                reject(new Error("Firebase configuration missing or invalid.")); // Rejeita a promessa.
+                console.log("Firebase Init Script: initialAuthToken não definido ou vazio, autenticando anonimamente.");
+                await signInAnonymously(auth);
             }
+
+            // Define o userId globalmente após a autenticação.
+            // Usa o UID do Firebase se disponível, ou um UUID anônimo de fallback.
+            window.currentUserId = auth.currentUser?.uid || `anon-${crypto.randomUUID()}`;
+            console.log("Firebase Init Script: UserID definido:", window.currentUserId);
+
+            // Expõe instâncias de Firebase para outros scripts de forma global.
+            window.app = app; // Adiciona a instância do app
+            window.db = db;
+            // EXPOSIÇÃO CORRIGIDA: Adicionando collection, query, where, addDoc, getDocs
+            window.firestore = { doc, getDoc, setDoc, updateDoc, arrayRemove, arrayUnion, serverTimestamp, collection, query, where, addDoc, getDocs }; // Exporta funções específicas do firestore
+            window.auth = auth; // Expõe a instância de autenticação
+            window.__app_id = appId; // Garante que appId também esteja global para gameLogic.js
+
+            console.log("Firebase Init Script: Firebase inicializado e autenticado. Resolvendo promessa.");
+            resolve(); // Resolve a promessa indicando que o Firebase está pronto.
         });
 
         // Opcional: listener para mudanças de estado de autenticação.
@@ -135,13 +143,13 @@
             <div class="input-group mb-4 w-full">
                 <label for="existingGameUsernameInput" class="block text-gray-700 text-lg font-semibold mb-3 text-center" data-lang-key="label_username">Seu Nome de Usuário:</label>
                 <input type="text" id="existingGameUsernameInput" placeholder="Digite seu nome"
-                       class="input-field p-3 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-center" required>
+                        class="input-field p-3 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-center" required>
             </div>
             <!-- Campo para ID da sessão existente -->
             <div class="input-group mb-6 w-full">
                 <label for="sessionIdInput" class="block text-gray-700 text-lg font-semibold mb-3 text-center" data-lang-key="label_session_id">ID da Sessão:</label>
                 <input type="text" id="sessionIdInput" placeholder="Digite o ID da Sessão (Ex: 1234PTBR)"
-                       class="input-field p-3 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-center" required>
+                        class="input-field p-3 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-center" required>
             </div>
             <button id="accessGameButton" class="game-button bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out w-full transform hover:scale-105">
                 <span data-lang-key="button_access_game">Acessar Jogo</span>
