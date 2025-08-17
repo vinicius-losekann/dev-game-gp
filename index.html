@@ -8,406 +8,134 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #e8f0f2;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            color: #333;
-        }
-        .container {
-            background-color: #fff;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-            max-width: 600px;
-            width: 100%;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .header {
-            margin-bottom: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-        }
-        .header img {
-            width: 100%;
-            height: auto;
-            margin-bottom: 20px;
-            display: block;
-        }
-        .header h1 {
-            font-family: 'Poppins', sans-serif;
-            color: #2e7d32;
-            font-size: 2.5em;
-            margin: 0;
-        }
-        .header .game-objective {
-            margin-top: 10px;
-            line-height: 1.6;
-        }
-        .header .instructions-list {
-            text-align: left;
-            margin-top: 10px;
-            line-height: 1.6;
-            padding-left: 20px;
-            list-style-type: decimal;
-        }
-        .header .instructions-list li {
-            margin-bottom: 8px;
-        }
-        .language-selection {
-            margin: 20px 0;
-        }
-        .language-selection button {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f5f5f5;
-            border: 1px solid #ddd;
-            padding: 10px 20px;
-            margin: 0 5px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        .language-selection button:hover,
-        .language-selection button.selected {
-            background-color: #e0e0e0;
-        }
-        .cards {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            margin-top: 30px;
-        }
-        .card {
-            background-color: #f9f9f9;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            width: 100%;
-            box-sizing: border-box;
-            text-align: left;
-        }
-        .card h2 {
-            font-family: 'Poppins', sans-serif;
-            margin-top: 0;
-            color: #555;
-            font-size: 1.5em;
-        }
-        .card form {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        .card input[type="text"] {
-            font-family: 'Roboto', sans-serif;
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            box-sizing: border-box;
-        }
-        .card button {
-            font-family: 'Roboto', sans-serif;
-            background-color: #43a047;
-            color: #fff;
-            padding: 12px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1em;
-            transition: background-color 0.3s;
-        }
-        .card button:hover {
-            background-color: #388e3c;
-        }
-        .footer {
-            margin-top: 40px;
-            color: #999;
-            font-size: 0.9em;
-        }
-        #error-message {
-            color: red;
-            margin-top: 10px;
-            font-size: 0.9em;
-            text-align: center;
-        }
-        /* Novo estilo para o "quadradinho" do código */
-        .session-display {
-            background-color: #e8f5e9; /* Verde clarinho */
-            color: #388e3c;
-            padding: 15px;
-            margin-top: 15px;
-            border-radius: 8px;
-            text-align: center;
-            display: none; /* Escondido por padrão */
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            transition: opacity 0.3s ease-in-out;
-            opacity: 0;
-        }
-        .session-display.visible {
-            display: flex;
-            opacity: 1;
-        }
-        .session-display h3 {
-            font-family: 'Poppins', sans-serif;
-            color: #2e7d32;
-            margin: 0;
-            font-size: 1.2em;
-        }
-        .session-display p {
-            margin: 0;
-            font-size: 0.9em;
-            color: #555;
-        }
-        .session-display .code {
-            font-family: 'Poppins', sans-serif;
-            font-size: 2em;
-            font-weight: bold;
-            color: #388e3c;
-            letter-spacing: 2px;
-        }
-        @media (max-width: 768px) {
-            .container {
-                padding: 20px;
-            }
-        }
+        /* ... seu CSS existente ... */
     </style>
 </head>
 <body>
 
     <div class="container">
-        <div class="header">
-            <img src="https://github.com/vinicius-losekann/dev-game-gp/blob/refatorado/data/imgs/logo-jogo.png?raw=true" alt="Logo do Jogo de Gerência de Projetos">
-            <h1 id="main-title">Jogo de Gerência de Projetos</h1>
-            
-            <p id="game-objective" class="game-objective">
-                Este jogo foi criado para ajudar você a aprender, revisar e aplicar conceitos fundamentais de gerenciamento de projetos de forma interativa e divertida. Teste suas habilidades e conhecimentos em diversas áreas para se tornar um gerente de projetos de sucesso.
-            </p>
-
-            <p class="instructions-heading">
-                <b id="instructions-title">Instruções:</b>
-            </p>
-
-            <ol class="instructions-list" id="instructions-list">
-                <li>Escolha seu idioma.</li>
-                <li>Inicie uma nova sessão ou junte-se a uma já existente.</li>
-                <li>Teste suas habilidades em diversas áreas de conhecimento.</li>
-            </ol>
         </div>
 
-        <div class="language-selection" id="language-selection">
-        </div>
+    <script type="module">
+        // Importa as funções do Firebase SDK
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-        <div class="cards">
-            <div class="card">
-                <h2 id="new-game-title">Iniciar um Novo Jogo</h2>
-                <form id="new-game-form">
-                    <button type="button" id="new-game-button">Criar Nova Sessão</button>
-                </form>
-                <div id="session-display" class="session-display">
-                    <h3 id="session-title">Sessão Criada! 🎉</h3>
-                    <p id="session-message">Compartilhe o código da sessão com os outros jogadores:</p>
-                    <span class="code" id="session-code-display"></span>
-                </div>
-            </div>
-            
-            <div class="card">
-                <h2 id="join-session-title">Entrar em uma Sessão Existente</h2>
-                <form id="join-session-form">
-                    <input type="text" id="username-join" placeholder="Seu nome de usuário" required>
-                    <input type="text" id="session-code" placeholder="Código da sessão" required>
-                    <button type="submit" id="join-session-button">Entrar na Sessão</button>
-                </form>
-            </div>
-        </div>
-        
-        <p id="error-message"></p>
-
-        <div class="footer">
-            <p><span id="game-version-text">Versão do Jogo:</span> <span id="game-version">1.0.0</span></p>
-        </div>
-    </div>
-
-    <script>
-        const config = {
-            languages: [
-                { code: 'pt-BR', name: 'Português (BR)' },
-                { code: 'en-US', name: 'Inglês (US)' },
-                { code: 'es-ES', name: 'Espanhol (ES)' }
-            ]
+        const firebaseConfig = {
+            apiKey: "AIzaSyDdiedj1Smjzn9CDqShdhG5Y0_Sa18xyWI",
+            authDomain: "jogo-gerencia-de-projetos.firebaseapp.com",
+            projectId: "jogo-gerencia-de-projetos",
+            storageBucket: "jogo-gerencia-de-projetos.firebasestorage.app",
+            messagingSenderId: "356867532123",
+            appId: "1:356867532123:web:0657d84635a5849df2667e"
         };
 
+        // Inicializa o Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const APP_ID = firebaseConfig.appId;
+
         const translations = {
-            'pt-BR': {
-                title: 'Jogo de Gerência de Projetos',
-                objective: 'Este jogo foi criado para ajudar você a aprender, revisar e aplicar conceitos fundamentais de gerenciamento de projetos de forma interativa e divertida. Teste suas habilidades e conhecimentos em diversas áreas para se tornar um gerente de projetos de sucesso.',
-                instructionsTitle: 'Instruções:',
-                instructions: [
-                    'Escolha seu idioma.',
-                    'Inicie uma nova sessão ou junte-se a uma já existente.',
-                    'Teste suas habilidades em diversas áreas de conhecimento.'
-                ],
-                newGameTitle: 'Iniciar um Novo Jogo',
-                newGameButton: 'Criar Nova Sessão',
-                joinSessionTitle: 'Entrar em uma Sessão Existente',
-                usernamePlaceholder: 'Seu nome de usuário',
-                sessionCodePlaceholder: 'Código da sessão',
-                joinSessionButton: 'Entrar na Sessão',
-                versionText: 'Versão do Jogo: '
-            },
-            'en-US': {
-                title: 'Project Management Game',
-                objective: 'This game was created to help you learn, review, and apply fundamental project management concepts in an interactive and fun way. Test your skills and knowledge in various areas to become a successful project manager.',
-                instructionsTitle: 'Instructions:',
-                instructions: [
-                    'Choose your language.',
-                    'Start a new session or join an existing one.',
-                    'Test your skills in various knowledge areas.'
-                ],
-                newGameTitle: 'Start a New Game',
-                newGameButton: 'Create New Session',
-                joinSessionTitle: 'Join an Existing Session',
-                usernamePlaceholder: 'Your username',
-                sessionCodePlaceholder: 'Session code',
-                joinSessionButton: 'Join Session',
-                versionText: 'Game Version: '
-            },
-            'es-ES': {
-                title: 'Juego de Gestión de Proyectos',
-                objective: 'Este juego fue creado para ayudarte a aprender, revisar y aplicar conceptos fundamentales de gestión de proyectos de forma interactiva y divertida. Pon a prueba tus habilidades y conocimientos en diversas áreas para convertirte en un gestor de proyectos exitoso.',
-                instructionsTitle: 'Instrucciones:',
-                instructions: [
-                    'Elige tu idioma.',
-                    'Inicia una nueva sesión o únete a una ya existente.',
-                    'Pon a prueba tus habilidades en diversas áreas de conocimiento.'
-                ],
-                newGameTitle: 'Crear un Nuevo Juego',
-                newGameButton: 'Crear nueva sesión',
-                joinSessionTitle: 'Únete a una sesión existente',
-                usernamePlaceholder: 'Tu nombre de usuario',
-                sessionCodePlaceholder: 'Código de la sesión',
-                joinSessionButton: 'Unirse a la sesión',
-                versionText: 'Versión del juego: '
-            }
+            // ... suas traduções existentes ...
         };
 
         function updateContent(langCode) {
-            const lang = translations[langCode] || translations['pt-BR'];
-
-            const elements = {
-                title: document.getElementById('main-title'),
-                objective: document.getElementById('game-objective'),
-                instructionsTitle: document.getElementById('instructions-title'),
-                instructionsList: document.getElementById('instructions-list'),
-                newGameTitle: document.getElementById('new-game-title'),
-                newGameButton: document.getElementById('new-game-button'),
-                joinSessionTitle: document.getElementById('join-session-title'),
-                usernameJoin: document.getElementById('username-join'),
-                sessionCode: document.getElementById('session-code'),
-                joinSessionButton: document.querySelector('#join-session-form button'),
-                gameVersionText: document.getElementById('game-version-text')
-            };
-
-            document.title = lang.title;
-
-            if (elements.title) elements.title.textContent = lang.title;
-            if (elements.objective) elements.objective.textContent = lang.objective;
-            if (elements.instructionsTitle) elements.instructionsTitle.textContent = lang.instructionsTitle;
-
-            if (elements.instructionsList) {
-                elements.instructionsList.innerHTML = '';
-                lang.instructions.forEach(item => {
-                    const li = document.createElement('li');
-                    li.textContent = item;
-                    elements.instructionsList.appendChild(li);
-                });
-            }
-
-            if (elements.newGameTitle) elements.newGameTitle.textContent = lang.newGameTitle;
-            if (elements.newGameButton) elements.newGameButton.textContent = lang.newGameButton;
-            if (elements.joinSessionTitle) elements.joinSessionTitle.textContent = lang.joinSessionTitle;
-            if (elements.usernameJoin) elements.usernameJoin.placeholder = lang.usernamePlaceholder;
-            if (elements.sessionCode) elements.sessionCode.placeholder = lang.sessionCodePlaceholder;
-            if (elements.joinSessionButton) elements.joinSessionButton.textContent = lang.joinSessionButton;
-            if (elements.gameVersionText) elements.gameVersionText.textContent = lang.versionText;
-
-            document.querySelectorAll('.language-selection button').forEach(button => {
-                button.classList.remove('selected');
-            });
-            const selectedButton = document.querySelector(`button[data-lang="${langCode}"]`);
-            if (selectedButton) {
-                selectedButton.classList.add('selected');
-            }
+            // ... sua função updateContent existente ...
         }
 
         const langContainer = document.getElementById('language-selection');
         config.languages.forEach(lang => {
-            const button = document.createElement('button');
-            button.textContent = lang.name;
-            button.setAttribute('data-lang', lang.code);
-            button.onclick = () => updateContent(lang.code);
-            langContainer.appendChild(button);
+            // ... sua lógica para criar botões de idioma existente ...
         });
 
-        // Elementos para exibir o código da sessão no card
         const sessionDisplay = document.getElementById('session-display');
         const newGameButton = document.getElementById('new-game-button');
         const sessionCodeInput = document.getElementById('session-code');
         const sessionCodeDisplay = document.getElementById('session-code-display');
+        const errorMessageElement = document.getElementById('error-message');
 
-        // Funções da lógica de jogo
-        function generateRandomId(length) {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            let result = '';
-            for (let i = 0; i < length; i++) {
-                result += chars.charAt(Math.floor(Math.random() * chars.length));
+        function showMessage(message, color = 'red') {
+            errorMessageElement.textContent = message;
+            errorMessageElement.style.color = color;
+            setTimeout(() => {
+                errorMessageElement.textContent = '';
+            }, 5000);
+        }
+
+        newGameButton.addEventListener('click', async () => {
+            showMessage("Criando nova sessão...", 'green');
+            try {
+                // 1. Autenticação Anônima
+                const userCredential = await signInAnonymously(auth);
+                const user = userCredential.user;
+                const userId = user.uid;
+
+                // 2. Criação do Documento no Firestore
+                // O Firebase gera um ID de documento aleatório se o setDoc for chamado sem um ID.
+                const newSessionRef = doc(db, `artifacts/${APP_ID}/public/data/sessions/`);
+                await setDoc(newSessionRef, {
+                    createdAt: new Date(),
+                    hostUserId: userId
+                });
+                const sessionId = newSessionRef.id;
+
+                // 3. Exibe o código da sessão gerado
+                sessionCodeDisplay.textContent = sessionId;
+                sessionCodeInput.value = sessionId;
+                sessionDisplay.classList.add('visible');
+                showMessage("Sessão criada! Compartilhe o código.", 'green');
+
+            } catch (error) {
+                console.error("Erro ao criar sessão: ", error);
+                showMessage("Erro ao criar a sessão. Tente novamente mais tarde.");
             }
-            return result;
-        }
-
-        function showMessage(message) {
-            const errorMessage = document.getElementById('error-message');
-            errorMessage.textContent = message;
-        }
-
-        newGameButton.addEventListener('click', () => {
-            const newSessionCode = generateRandomId(4);
-            sessionCodeDisplay.textContent = newSessionCode;
-            sessionCodeInput.value = newSessionCode;
-            sessionDisplay.classList.add('visible');
         });
 
-        document.getElementById('join-session-form').addEventListener('submit', (e) => {
+        document.getElementById('join-session-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const username = document.getElementById('username-join').value.trim();
             const sessionCode = document.getElementById('session-code').value.trim();
             const langCode = document.querySelector('.language-selection button.selected').getAttribute('data-lang') || 'pt-BR';
-            
-            if (!username) {
-                showMessage('Por favor, digite seu nome de usuário.');
+
+            if (!username || !sessionCode) {
+                showMessage('Por favor, preencha todos os campos.');
                 return;
             }
-            
-            if (!sessionCode) {
-                showMessage('Por favor, digite o código da sessão.');
-                return;
+
+            showMessage("Verificando sessão...", 'green');
+            try {
+                // Autentica o usuário anonimamente antes de tentar se juntar
+                const userCredential = await signInAnonymously(auth);
+                const userId = userCredential.user.uid;
+
+                // Verifica se a sessão existe
+                const sessionRef = doc(db, `artifacts/${APP_ID}/public/data/sessions/${sessionCode}`);
+                const sessionSnap = await getDoc(sessionRef);
+
+                if (sessionSnap.exists()) {
+                    // Adiciona o jogador à subcoleção 'players'
+                    const playerRef = doc(db, `artifacts/${APP_ID}/public/data/sessions/${sessionCode}/players/${userId}`);
+                    await setDoc(playerRef, {
+                        name: username,
+                        score: 0,
+                        lastActive: new Date(),
+                        answeredQuestions: {}
+                    });
+
+                    // Redireciona para game.html com os parâmetros na URL
+                    window.location.href = `game.html?session=${encodeURIComponent(sessionCode)}&username=${encodeURIComponent(username)}&lang=${encodeURIComponent(langCode)}&userId=${encodeURIComponent(userId)}`;
+                } else {
+                    showMessage("O código da sessão não é válido. Verifique e tente novamente.");
+                }
+            } catch (error) {
+                console.error("Erro ao entrar na sessão: ", error);
+                showMessage("Erro ao entrar na sessão. Verifique sua conexão e o código.");
             }
-            
-            // Redireciona para game.html com os parâmetros na URL
-            window.location.href = `game.html?session=${encodeURIComponent(sessionCode)}&username=${encodeURIComponent(username)}&lang=${encodeURIComponent(langCode)}`;
         });
-        
+
         updateContent('pt-BR');
     </script>
 </body>
