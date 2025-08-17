@@ -147,16 +147,34 @@
             margin-top: 15px;
             border-radius: 8px;
             text-align: center;
-            font-family: 'Poppins', sans-serif;
-            font-size: 1.8em;
-            font-weight: bold;
             display: none; /* Escondido por padrão */
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
             transition: opacity 0.3s ease-in-out;
             opacity: 0;
         }
         .session-display.visible {
-            display: block;
+            display: flex;
             opacity: 1;
+        }
+        .session-display h3 {
+            font-family: 'Poppins', sans-serif;
+            color: #2e7d32;
+            margin: 0;
+            font-size: 1.2em;
+        }
+        .session-display p {
+            margin: 0;
+            font-size: 0.9em;
+            color: #555;
+        }
+        .session-display .code {
+            font-family: 'Poppins', sans-serif;
+            font-size: 2em;
+            font-weight: bold;
+            color: #388e3c;
+            letter-spacing: 2px;
         }
         @media (max-width: 768px) {
             .container {
@@ -196,7 +214,11 @@
                 <form id="new-game-form">
                     <button type="button" id="new-game-button">Criar Nova Sessão</button>
                 </form>
-                <div id="session-display" class="session-display"></div>
+                <div id="session-display" class="session-display">
+                    <h3 id="session-title">Sessão Criada! 🎉</h3>
+                    <p id="session-message">Compartilhe o código da sessão com os outros jogadores:</p>
+                    <span class="code" id="session-code-display"></span>
+                </div>
             </div>
             
             <div class="card">
@@ -341,6 +363,7 @@
         const sessionDisplay = document.getElementById('session-display');
         const newGameButton = document.getElementById('new-game-button');
         const sessionCodeInput = document.getElementById('session-code');
+        const sessionCodeDisplay = document.getElementById('session-code-display');
 
         // Funções da lógica de jogo
         function generateRandomId(length) {
@@ -359,7 +382,7 @@
 
         newGameButton.addEventListener('click', () => {
             const newSessionCode = generateRandomId(4);
-            sessionDisplay.textContent = newSessionCode;
+            sessionCodeDisplay.textContent = newSessionCode;
             sessionCodeInput.value = newSessionCode;
             sessionDisplay.classList.add('visible');
         });
