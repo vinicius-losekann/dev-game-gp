@@ -25,6 +25,7 @@
         // Importa as funções necessárias do Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"; // Importa getFirestore aqui
 
         // Cria uma promessa que será resolvida quando o Firebase for inicializado e autenticado.
         // Isso permite que outros scripts esperem pela inicialização.
@@ -40,10 +41,12 @@
                 if (Object.keys(firebaseConfig).length > 0) {
                     const appInstance = initializeApp(firebaseConfig);
                     const authInstance = getAuth(appInstance);
+                    const dbInstance = getFirestore(appInstance); // Inicializa getFirestore aqui
 
                     // Torna as instâncias do Firebase acessíveis globalmente
                     window.app = appInstance;
                     window.auth = authInstance;
+                    window.db = dbInstance; // Expõe a instância do Firestore globalmente
 
                     // Adiciona as variáveis globais que são usadas em outros scripts
                     window.appId = appId; // Garante que appId esteja acessível globalmente
