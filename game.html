@@ -265,10 +265,10 @@
                 <h2 id="main-title">Selecione uma Área de Conhecimento</h2>
                 <p id="instruction-text">Clique em um dos botões abaixo para iniciar o desafio sobre a área selecionada.</p>
                 <div id="selection-buttons" class="options">
-                </div>
+                    </div>
                 <p id="question-text" class="question-text" style="display: none;"></p>
                 <div id="options-container" class="options" style="display: none;">
-                </div>
+                    </div>
                 <p id="result-message"></p>
                 <div id="explanation" style="display: none;"></div>
                 <div id="game-controls" class="action-buttons" style="display: none;">
@@ -283,34 +283,93 @@
         </div>
     </div>
 
-    <div id="message-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content">
-            <h3 id="modal-title"></h3>
-            <p id="modal-message"></p>
-            <button id="modal-close-button">OK</button>
-        </div>
-    </div>
-    
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, updateDoc, collection, query, where, getDocs, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        
-        // --- Configurações e Variáveis Globais ---
+    <script>
         const urlParams = new URLSearchParams(window.location.search);
-        const userId = urlParams.get('user');
-        const sessionId = urlParams.get('session');
-        const language = urlParams.get('lang') || 'pt-BR'; // Assume pt-BR como padrão
+        const playerName = urlParams.get('username') || 'Anônimo';
+        const sessionCode = urlParams.get('session') || 'N/A';
 
-        // Variáveis do Firebase
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        
-        let app, db;
-        let playerName, playerScore;
-        let questionsByArea = {};
-        let currentQuestionsList = [];
-        let currentQuestionIndex = 0;
-        let selectedArea = '';
+        const gameData = {
+            "Integração": [
+                {
+                    question: "Qual documento descreve a visão geral e os objetivos do projeto, autorizando formalmente o seu início?",
+                    options: ["Plano de Comunicação", "Termo de Abertura do Projeto (Project Charter)", "Estrutura Analítica do Projeto (EAP)", "Cronograma do Projeto"],
+                    answer: "Termo de Abertura do Projeto (Project Charter)",
+                    explanation: "O Termo de Abertura do Projeto, ou Project Charter, é o documento formal que autoriza a existência de um projeto, nomeia o gerente de projeto e concede-lhe autoridade para aplicar recursos. Ele estabelece a visão e os objetivos iniciais."
+                }
+            ],
+            "Escopo": [
+                {
+                    question: "O que é um 'stakeholder' em um projeto?",
+                    options: ["Uma parte interessada no projeto", "Um software de gestão", "O líder da equipe técnica", "O orçamento disponível"],
+                    answer: "Uma parte interessada no projeto",
+                    explanation: "Um stakeholder é qualquer indivíduo, grupo ou organização que pode afetar ou ser afetado por uma decisão, atividade ou resultado de um projeto."
+                }
+            ],
+            "Cronograma": [
+                {
+                    question: "Qual é a técnica que estima a duração de uma atividade baseada em valores otimistas, pessimistas e mais prováveis?",
+                    options: ["Análise de Monte Carlo", "Método do Caminho Crítico (CPM)", "Técnica de Estimativa de Três Pontos (PERT)", "Análise de Variância"],
+                    answer: "Técnica de Estimativa de Três Pontos (PERT)",
+                    explanation: "A Técnica de Estimativa de Três Pontos (PERT) utiliza três estimativas de duração (otimista, pessimista e mais provável) para calcular uma estimativa de duração mais precisa. É útil quando há incerteza sobre a duração de uma atividade."
+                }
+            ],
+            "Custos": [
+                {
+                    question: "Em gerenciamento de custos, o que a sigla 'EAC' representa?",
+                    options: ["Custo Estimado na Conclusão", "Análise de Custo Estimado", "Custo Estimado de Aquisição", "Previsão de Custo e Ações"],
+                    answer: "Custo Estimado na Conclusão",
+                    explanation: "EAC (Estimate At Completion) é uma previsão do custo total final do projeto quando ele estiver concluído. É uma ferramenta fundamental para o controle do desempenho financeiro."
+                }
+            ],
+            "Qualidade": [
+                {
+                    question: "Qual dos seguintes não é um princípio fundamental da gestão da qualidade total (TQM)?",
+                    options: ["Foco no cliente", "Melhoria contínua", "Decisões baseadas em fatos", "Minimizar o envolvimento da equipe"],
+                    answer: "Minimizar o envolvimento da equipe",
+                    explanation: "A Gestão da Qualidade Total (TQM) é uma abordagem que exige o envolvimento de todos os membros da organização, desde a alta gerência até os colaboradores, para melhorar a qualidade dos produtos e serviços. Minimizar o envolvimento da equipe vai contra este princípio."
+                }
+            ],
+            "Recursos": [
+                {
+                    question: "O que o Gráfico de Gantt é mais utilizado para visualizar?",
+                    options: ["Riscos do projeto", "Cadeia de valor", "Atividades e cronograma", "Análise de custos"],
+                    answer: "Atividades e cronograma",
+                    explanation: "O Gráfico de Gantt é uma ferramenta visual que representa as atividades de um projeto ao longo do tempo. É amplamente utilizado para planejar e acompanhar o cronograma e os recursos do projeto."
+                }
+            ],
+            "Comunicação": [
+                {
+                    question: "Qual é o principal propósito do 'Plano de Gerenciamento de Comunicações'?",
+                    options: ["Definir a estrutura organizacional", "Determinar como e quando as informações do projeto serão distribuídas", "Gerenciar conflitos da equipe", "Monitorar o orçamento"],
+                    answer: "Determinar como e quando as informações do projeto serão distribuídas",
+                    explanation: "O Plano de Gerenciamento de Comunicações define quem precisa de quais informações, quando, como e por quem elas serão entregues. Ele é essencial para garantir um fluxo de informações eficiente durante o projeto."
+                }
+            ],
+            "Riscos": [
+                {
+                    question: "Em gerenciamento de riscos, o que significa 'Mitigar'?",
+                    options: ["Aceitar o risco", "Transferir o risco", "Reduzir a probabilidade ou o impacto de um risco", "Ignorar o risco"],
+                    answer: "Reduzir a probabilidade ou o impacto de um risco",
+                    explanation: "Mitigar um risco envolve a tomada de ações para diminuir a probabilidade de sua ocorrência ou para reduzir o seu impacto caso ele aconteça. É uma das principais estratégias de resposta a riscos."
+                }
+            ],
+            "Aquisições": [
+                {
+                    question: "Em qual fase do projeto é realizada a seleção de fornecedores e a negociação de contratos?",
+                    options: ["Planejamento", "Iniciação", "Execução", "Encerramento"],
+                    answer: "Execução",
+                    explanation: "As atividades de seleção de fornecedores e negociação de contratos ocorrem durante a fase de execução do projeto, após o planejamento ter sido concluído. É quando o trabalho para contratar os vendedores é realizado."
+                }
+            ],
+            "Stakeholders": [
+                {
+                    question: "Qual é a principal função de um 'Mapa de Stakeholders'?",
+                    options: ["Medir a satisfação do cliente", "Identificar e analisar o interesse e a influência dos envolvidos", "Rastrear o progresso das tarefas", "Gerenciar o cronograma"],
+                    answer: "Identificar e analisar o interesse e a influência dos envolvidos",
+                    explanation: "O Mapa de Stakeholders, ou Matriz de Poder/Interesse, é uma ferramenta usada para identificar e classificar os stakeholders com base em seu nível de interesse e poder sobre o projeto, ajudando a planejar a melhor estratégia de engajamento."
+                }
+            ]
+        };
 
         const areaColors = {
             "Integração": "btn-integ",
@@ -324,16 +383,22 @@
             "Aquisições": "btn-aquisicoes",
             "Stakeholders": "btn-stakeholders"
         };
+        
+        const areas = Object.keys(gameData);
+        let selectedArea = '';
+        let currentQuestionIndex = 0;
+        let score = 0;
 
-        // --- Elementos do DOM ---
-        const playerNameElement = document.getElementById('player-name');
-        const sessionCodeElement = document.getElementById('session-code');
-        const scoreElement = document.getElementById('score');
+        document.getElementById('player-name').textContent = playerName;
+        document.getElementById('session-code').textContent = sessionCode;
+        document.getElementById('score').textContent = score;
+
         const mainTitleElement = document.getElementById('main-title');
         const instructionTextElement = document.getElementById('instruction-text');
         const selectionButtonsContainer = document.getElementById('selection-buttons');
         const questionTextElement = document.getElementById('question-text');
         const optionsContainer = document.getElementById('options-container');
+        const scoreElement = document.getElementById('score');
         const questionCounterElement = document.getElementById('question-counter');
         const currentQuestionElement = document.getElementById('current-question');
         const totalQuestionsElement = document.getElementById('total-questions');
@@ -342,18 +407,6 @@
         const nextQuestionButton = document.getElementById('next-question-button');
         const backButton = document.getElementById('back-button');
         const gameControls = document.getElementById('game-controls');
-        
-        // --- Funções de UI ---
-        function showMessage(title, message) {
-            const modal = document.getElementById('message-modal');
-            document.getElementById('modal-title').textContent = title;
-            document.getElementById('modal-message').textContent = message;
-            modal.style.display = 'flex';
-        }
-        
-        function hideMessage() {
-            document.getElementById('message-modal').style.display = 'none';
-        }
 
         function showAreaSelection() {
             mainTitleElement.textContent = 'Selecione uma Área de Conhecimento';
@@ -366,13 +419,16 @@
             gameControls.style.display = 'none';
             questionCounterElement.style.display = 'none';
             document.querySelector('.game-card').style.justifyContent = 'center';
+            score = 0;
+            scoreElement.textContent = score;
         }
 
         function loadQuestion() {
-            if (currentQuestionIndex < currentQuestionsList.length) {
-                const currentQuestion = currentQuestionsList[currentQuestionIndex];
+            const questions = gameData[selectedArea];
+            if (currentQuestionIndex < questions.length) {
+                const currentQuestion = questions[currentQuestionIndex];
                 
-                mainTitleElement.textContent = `Área: ${selectedArea}`;
+                mainTitleElement.textContent = `${selectedArea}`;
                 instructionTextElement.style.display = 'none';
                 selectionButtonsContainer.style.display = 'none';
                 questionCounterElement.style.display = 'block';
@@ -380,185 +436,93 @@
                 optionsContainer.style.display = 'flex';
                 resultMessageElement.style.display = 'none';
                 explanationElement.style.display = 'none';
-                gameControls.style.display = 'none';
+                gameControls.style.display = 'flex';
                 nextQuestionButton.style.display = 'none';
 
                 questionTextElement.textContent = currentQuestion.question;
                 optionsContainer.innerHTML = '';
-                
-                const optionKeys = Object.keys(currentQuestion.options).sort();
-                optionKeys.forEach(key => {
+
+                currentQuestion.options.forEach(option => {
                     const optionDiv = document.createElement('div');
-                    optionDiv.textContent = `${key}. ${currentQuestion.options[key]}`;
+                    optionDiv.textContent = option;
                     optionDiv.classList.add('option-item');
-                    optionDiv.addEventListener('click', () => checkAnswer(key, currentQuestion.correct, currentQuestion.explanation, optionDiv));
+                    optionDiv.addEventListener('click', () => checkAnswer(option, currentQuestion.answer, currentQuestion.explanation, optionDiv));
                     optionsContainer.appendChild(optionDiv);
                 });
                 
                 currentQuestionElement.textContent = currentQuestionIndex + 1;
-                totalQuestionsElement.textContent = currentQuestionsList.length;
+                totalQuestionsElement.textContent = questions.length;
                 document.querySelector('.game-card').style.justifyContent = 'flex-start';
-
             } else {
                 endGame();
             }
         }
 
-        async function checkAnswer(selectedOptionKey, correctAnswerKey, explanation, clickedElement) {
-            const isCorrect = selectedOptionKey === correctAnswerKey;
-            
+        function checkAnswer(selectedOption, correctAnswer, explanation, clickedElement) {
             const allOptions = optionsContainer.querySelectorAll('.option-item');
             allOptions.forEach(option => {
                 option.classList.add('disabled');
-                // Encontra e destaca a resposta correta
-                const optionKey = option.textContent.substring(0, 1);
-                if (optionKey === correctAnswerKey) {
-                    option.classList.add('correct-answer');
-                }
             });
             
-            if (isCorrect) {
-                playerScore++;
-                scoreElement.textContent = playerScore;
+            if (selectedOption === correctAnswer) {
+                score++;
+                scoreElement.textContent = score;
                 resultMessageElement.textContent = 'Correto! 🎉';
                 resultMessageElement.classList.remove('incorrect');
                 resultMessageElement.classList.add('correct');
+                clickedElement.classList.add('correct-answer');
             } else {
-                resultMessageElement.textContent = `Incorreto. A resposta correta era: ${correctAnswerKey}`;
+                resultMessageElement.textContent = `Incorreto. A resposta correta era: ${correctAnswer}`;
                 resultMessageElement.classList.remove('correct');
                 resultMessageElement.classList.add('incorrect');
                 clickedElement.classList.add('incorrect-answer');
+                const correctOption = Array.from(allOptions).find(opt => opt.textContent === correctAnswer);
+                if (correctOption) {
+                    correctOption.classList.add('correct-answer');
+                }
             }
             
             resultMessageElement.style.display = 'block';
             explanationElement.innerHTML = `<strong>Explicação:</strong> ${explanation}`;
             explanationElement.style.display = 'block';
             nextQuestionButton.style.display = 'block';
-
-            // Atualiza a pontuação do jogador no Firestore
-            try {
-                const playerRef = doc(db, 'artifacts', appId, 'public', 'data', 'sessions', sessionId, 'players', userId);
-                await updateDoc(playerRef, { score: playerScore });
-            } catch (error) {
-                console.error("Erro ao atualizar a pontuação no Firestore:", error);
-            }
         }
 
         function endGame() {
             mainTitleElement.textContent = 'Fim do Desafio!';
-            questionTextElement.textContent = `Você completou as perguntas desta área. Sua pontuação final é ${playerScore} de ${currentQuestionsList.length}.`;
+            questionTextElement.textContent = 'Você completou as perguntas desta área.';
             optionsContainer.innerHTML = '';
             gameControls.style.display = 'flex';
             nextQuestionButton.style.display = 'none';
             explanationElement.style.display = 'none';
-            resultMessageElement.style.display = 'none';
+            resultMessageElement.style.display = 'block';
+            resultMessageElement.textContent = `Sua pontuação final é ${score} de ${gameData[selectedArea].length}.`;
+            resultMessageElement.classList.remove('correct', 'incorrect');
         }
 
-        // --- Funções Firebase ---
-        async function fetchQuestionsByArea() {
-            try {
-                const questionsRef = collection(db, 'artifacts', appId, 'public', 'data', 'questions');
-                const q = query(questionsRef, where("language", "==", language));
-                const querySnapshot = await getDocs(q);
-                
-                querySnapshot.forEach(doc => {
-                    const questionData = doc.data();
-                    const area = questionData.area;
-                    if (!questionsByArea[area]) {
-                        questionsByArea[area] = [];
-                    }
-                    questionsByArea[area].push(questionData);
-                });
-
-                createAreaButtons();
-            } catch (error) {
-                console.error("Erro ao buscar perguntas:", error);
-                showMessage('Erro', 'Não foi possível carregar as perguntas do jogo. Verifique sua conexão.');
-            }
-        }
-
-        async function fetchPlayerInfo() {
-            try {
-                const playerRef = doc(db, 'artifacts', appId, 'public', 'data', 'sessions', sessionId, 'players', userId);
-                const playerSnap = await getDoc(playerRef);
-
-                if (playerSnap.exists()) {
-                    const data = playerSnap.data();
-                    playerName = data.name;
-                    playerScore = data.score || 0;
-                    playerNameElement.textContent = playerName;
-                    scoreElement.textContent = playerScore;
-                    sessionCodeElement.textContent = sessionId;
-                } else {
-                    showMessage('Erro', 'Dados do jogador não encontrados.');
-                    setTimeout(() => window.location.href = 'index.html', 3000);
-                }
-            } catch (error) {
-                console.error("Erro ao buscar dados do jogador:", error);
-                showMessage('Erro', 'Não foi possível carregar as informações do seu perfil.');
-                setTimeout(() => window.location.href = 'index.html', 3000);
-            }
-        }
-
-        // --- Inicialização e Event Listeners ---
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Verifica se os parâmetros essenciais estão presentes
-            if (!userId || !sessionId) {
-                showMessage('Erro', 'Sessão inválida. Você será redirecionado para a página inicial.');
-                setTimeout(() => window.location.href = 'index.html', 3000);
-                return;
-            }
-
-            // Inicializa o Firebase
-            try {
-                app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-            } catch (error) {
-                console.error("Erro ao inicializar Firebase:", error);
-                showMessage('Erro', `Não foi possível iniciar o Firebase: ${error.message}`);
-                return;
-            }
-
-            // Fecha o modal de mensagens
-            document.getElementById('modal-close-button').addEventListener('click', hideMessage);
-
-            // Carrega os dados do jogador e as perguntas
-            await fetchPlayerInfo();
-            await fetchQuestionsByArea();
-
-            // Sincroniza a tela com o estado inicial
-            showAreaSelection();
-
-            // Adiciona os event listeners
-            nextQuestionButton.addEventListener('click', () => {
-                currentQuestionIndex++;
-                loadQuestion();
-            });
-
-            backButton.addEventListener('click', () => {
-                showAreaSelection();
-                playerScore = 0; // Reseta a pontuação ao voltar
-                scoreElement.textContent = playerScore;
-            });
+        nextQuestionButton.addEventListener('click', () => {
+            currentQuestionIndex++;
+            loadQuestion();
         });
 
-        // Cria os botões de seleção de área após carregar as perguntas
-        function createAreaButtons() {
-            selectionButtonsContainer.innerHTML = '';
-            const areas = Object.keys(questionsByArea);
-            areas.forEach(area => {
-                const button = document.createElement('button');
-                button.textContent = area;
-                button.classList.add(areaColors[area] || 'btn-default');
-                button.addEventListener('click', () => {
-                    selectedArea = area;
-                    currentQuestionsList = questionsByArea[selectedArea];
-                    currentQuestionIndex = 0;
-                    loadQuestion();
-                });
-                selectionButtonsContainer.appendChild(button);
+        backButton.addEventListener('click', () => {
+            showAreaSelection();
+        });
+
+        // Cria os botões de seleção de área
+        areas.forEach(area => {
+            const button = document.createElement('button');
+            button.textContent = area;
+            button.classList.add(areaColors[area]);
+            button.addEventListener('click', () => {
+                selectedArea = area;
+                currentQuestionIndex = 0;
+                loadQuestion();
             });
-        }
+            selectionButtonsContainer.appendChild(button);
+        });
+        
+        showAreaSelection();
     </script>
 </body>
 </html>
