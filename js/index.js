@@ -21,10 +21,13 @@ let mainContentContainer; // Referência ao contêiner principal
 let languageSelectorButtonsContainer; // Referência ao contêiner dos botões de idioma
 const loadingOverlay = document.getElementById('loadingOverlay'); // Referência ao overlay de carregamento
 
-// Removidas as declarações 'let db;' e 'let auth;' pois acessarão diretamente window.db e window.auth
+// Funções utilitárias
 
-
-// Função para mostrar mensagens na tela
+/**
+ * Exibe uma mensagem temporária em uma caixa de mensagens pré-definida no HTML.
+ * @param {string} message - A mensagem a ser exibida.
+ * @param {string} type - O tipo da mensagem ('info', 'success', 'error', 'warning').
+ */
 function showMessage(message, type = 'info') {
     if (messageBox) {
         messageBox.textContent = message;
@@ -35,14 +38,18 @@ function showMessage(message, type = 'info') {
     }
 }
 
-// Função para esconder a caixa de mensagem
+/**
+ * Esconde a caixa de mensagem.
+ */
 function hideMessage() {
     if (messageBox) {
         messageBox.classList.add('hidden');
     }
 }
 
-// Função para esconder o overlay de carregamento
+/**
+ * Esconde o overlay de carregamento.
+ */
 function hideLoadingOverlay() {
     if (loadingOverlay) {
         console.log("hideLoadingOverlay: Escondendo overlay de carregamento. Adicionando classe 'hidden'.");
@@ -50,7 +57,10 @@ function hideLoadingOverlay() {
     }
 }
 
-// Função para gerar um ID de sessão aleatório
+/**
+ * Gera um ID de sessão aleatório com sufixo de idioma.
+ * @returns {string} O ID de sessão gerado.
+ */
 function generateSessionId() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let result = '';
@@ -61,7 +71,11 @@ function generateSessionId() {
     return result + currentLanguage.toUpperCase().replace('-', '');
 }
 
-// Função para carregar as traduções
+/**
+ * Carrega as traduções do arquivo JSON.
+ * @param {string} lang - O código do idioma a ser carregado.
+ * @returns {boolean} Verdadeiro se as traduções forem carregadas com sucesso, falso caso contrário.
+ */
 async function loadTranslations(lang) {
     try {
         const response = await fetch(`data/translations/index_translations.json`);
@@ -78,7 +92,9 @@ async function loadTranslations(lang) {
     }
 }
 
-// Função para atualizar o conteúdo da página com base no idioma selecionado
+/**
+ * Atualiza o conteúdo da página com base no idioma selecionado.
+ */
 function updateContentLanguage() {
     document.querySelectorAll('[data-lang-key]').forEach(element => {
         const key = element.getAttribute('data-lang-key');
@@ -99,7 +115,9 @@ function updateContentLanguage() {
     }
 }
 
-// Função para configurar os botões de seleção de idioma
+/**
+ * Configura os botões de seleção de idioma.
+ */
 function setupLanguageSelector() {
     if (!languageSelectorButtonsContainer) {
         console.warn("Elemento #language-selector-buttons não encontrado. Seletor de idioma não será configurado.");
@@ -122,9 +140,15 @@ function setupLanguageSelector() {
     });
 }
 
-// Função para manipular a criação de uma nova sessão de jogo
+/**
+ * Manipula a criação de uma nova sessão de jogo.
+ */
 async function createNewSession() {
     hideMessage(); // Esconde qualquer mensagem anterior
+
+    // Adiciona uma asserção para garantir que window.db e window.auth existam
+    console.assert(window.db, "Erro de Asserção: window.db não está definido em createNewSession!");
+    console.assert(window.auth, "Erro de Asserção: window.auth não está definido em createNewSession!");
 
     showMessage(pageTranslations[currentLanguage].creating_session_message, 'info');
 
@@ -137,58 +161,48 @@ async function createNewSession() {
 
     try {
         const userId = window.auth.currentUser?.uid || crypto.randomUUID();
-        // Gerar um nome de usuário padrão se não for fornecido no início do jogo
         const defaultUsername = `Usuário-${userId.substring(0, 5)}`;
 
         const sessionId = generateSessionId(); // Gera um ID de sessão
         const sessionDocRef = doc(window.db, "artifacts", window.appId, "public", "data", "sessions", sessionId);
         const playerDocRef = doc(sessionDocRef, "players", userId);
 
-        // Cria a sessão com os dados iniciais
         await setDoc(sessionDocRef, {
             createdAt: serverTimestamp(),
             hostId: userId,
             currentQuestionIndex: 0,
-            questionArea: null, // Para a primeira pergunta aleatória
+            questionArea: null,
             language: currentLanguage
         });
 
-        // Adiciona o jogador à subcoleção 'players'
         await setDoc(playerDocRef, {
-            username: defaultUsername, // Usa o nome de usuário padrão
+            username: defaultUsername,
             score: 0,
             lastActivity: serverTimestamp()
         });
 
-        // Armazena o ID da sessão e o nome de usuário (padrão) no localStorage para game.html
         localStorage.setItem('pm_game_session_id', sessionId);
-        localStorage.setItem('pm_game_username', defaultUsername); // Salva o nome de usuário padrão
+        localStorage.setItem('pm_game_username', defaultUsername);
 
-        // Preenche o campo de ID da sessão automaticamente
         if (sessionIdInput) {
             sessionIdInput.value = sessionId;
         }
-        // Coloca o foco no campo de nome de usuário existente para o usuário digitar
         if (existingGameUsernameInput) {
-            existingGameUsernameInput.value = ''; // Garante que esteja vazio
+            existingGameUsernameInput.value = '';
             existingGameUsernameInput.focus();
         }
 
-        // Oculta o card de novo jogo e mostra a mensagem e botão para ir ao jogo
         if (newGameCard) {
-            newGameCard.classList.add('hidden'); // Oculta o card de criar novo jogo
+            newGameCard.classList.add('hidden');
         }
-        // Garante que o card de acessar jogo esteja visível (pode já estar)
         if (accessGameCard) {
              accessGameCard.classList.remove('hidden');
         }
         if (goBackToHomeButtonContainer) {
-            goBackToHomeButtonContainer.classList.remove('hidden'); // Mostra o container do botão "Entrar no Jogo"
-            // Atualiza o texto da mensagem do prompt
+            goBackToHomeButtonContainer.classList.remove('hidden');
             goBackToHomeButtonContainer.querySelector('p').textContent = pageTranslations[currentLanguage].session_id_prompt;
         }
 
-        // Atualiza a mensagem da caixa de mensagens para instruir o usuário
         showMessage(`${pageTranslations[currentLanguage].session_created_message}${sessionId}`, 'success');
 
     } catch (e) {
@@ -197,11 +211,17 @@ async function createNewSession() {
     }
 }
 
-// Função para manipular o acesso a uma sessão existente
+/**
+ * Manipula o acesso a uma sessão de jogo existente.
+ */
 async function accessExistingSession() {
     hideMessage(); // Esconde qualquer mensagem anterior
     const sessionId = sessionIdInput.value.trim();
     const username = existingGameUsernameInput.value.trim();
+
+    // Adiciona uma asserção para garantir que window.db e window.auth existam
+    console.assert(window.db, "Erro de Asserção: window.db não está definido em accessExistingSession!");
+    console.assert(window.auth, "Erro de Asserção: window.auth não está definido em accessExistingSession!");
 
     if (!sessionId) {
         showMessage(pageTranslations[currentLanguage].error_invalid_session_id, 'error');
@@ -231,23 +251,19 @@ async function accessExistingSession() {
             return;
         }
 
-        // Adiciona ou atualiza o jogador na subcoleção 'players' da sessão
         const playerDocRef = doc(sessionDocRef, "players", userId);
         await setDoc(playerDocRef, {
             username: username,
-            score: 0, // Reinicia ou mantém o score
+            score: 0,
             lastActivity: serverTimestamp()
-        }, { merge: true }); // Usa merge para não sobrescrever outros dados do jogador se existirem
+        }, { merge: true });
 
-        // Armazena o ID da sessão e o nome de usuário no localStorage para game.html
         localStorage.setItem('pm_game_session_id', sessionId);
         localStorage.setItem('pm_game_username', username);
 
-        // Determina o idioma da sessão para passar para a página do jogo
         const sessionData = sessionDoc.data();
-        const sessionLanguage = sessionData.language || AppConfig.defaultLanguage; // Usa o idioma da sessão ou padrão
+        const sessionLanguage = sessionData.language || AppConfig.defaultLanguage;
 
-        // Redireciona para a página do jogo
         window.location.href = `game.html?session=${sessionId}&lang=${sessionLanguage}`;
 
     } catch (e) {
@@ -256,7 +272,11 @@ async function accessExistingSession() {
     }
 }
 
-// Função para adicionar os event listeners aos botões
+/**
+ * Adiciona os event listeners aos botões.
+ * Esta função deve ser chamada APÓS a inicialização do Firebase para garantir que as funções de callback
+ * (createNewSession, accessExistingSession) tenham acesso às instâncias de Firebase.
+ */
 function addEventListeners() {
     // Garante que os elementos existem antes de adicionar listeners
     newGameButton = document.getElementById('newGameButton');
@@ -268,8 +288,8 @@ function addEventListeners() {
     goBackToHomeButtonContainer = document.getElementById('go-to-game-container');
     mainContentContainer = document.getElementById('main-content-container');
     languageSelectorButtonsContainer = document.getElementById('language-selector-buttons');
-    newGameCard = document.getElementById('newGameCard'); // Obtém referência ao novo card
-    accessGameCard = document.getElementById('accessGameCard'); // Obtém referência ao novo card
+    newGameCard = document.getElementById('newGameCard');
+    accessGameCard = document.getElementById('accessGameCard');
 
     if (newGameButton) {
         newGameButton.addEventListener('click', createNewSession);
@@ -286,7 +306,7 @@ function addEventListeners() {
     if (goToGameButton) {
         goToGameButton.addEventListener('click', () => {
             const sessionId = localStorage.getItem('pm_game_session_id');
-            const sessionLanguage = localStorage.getItem('pm_game_language') || currentLanguage; // Usa o idioma salvo ou o atual
+            const sessionLanguage = localStorage.getItem('pm_game_language') || currentLanguage;
             if (sessionId) {
                 window.location.href = `game.html?session=${sessionId}&lang=${sessionLanguage}`;
             } else {
@@ -298,7 +318,9 @@ function addEventListeners() {
     }
 }
 
-// Função de inicialização da lógica da página
+/**
+ * Função de inicialização da lógica da página.
+ */
 async function initPageLogic() {
     console.log("initPageLogic: Iniciando...");
 
@@ -311,14 +333,12 @@ async function initPageLogic() {
         localStorage.setItem('pm_game_language', currentLanguage);
     }
 
-    // Acessando window.db e window.auth diretamente.
     // Adiciona logs para verificar se window.db e window.auth estão definidos
     console.log("initPageLogic: Instância de window.db:", window.db);
     console.log("initPageLogic: Instância de window.auth:", window.auth);
 
 
     // Garante que todos os elementos DOM necessários estão disponíveis
-    // Re-obtem as referências caso o initPageLogic seja chamado novamente
     newGameButton = document.getElementById('newGameButton');
     accessGameButton = document.getElementById('accessGameButton');
     sessionIdInput = document.getElementById('sessionIdInput');
@@ -361,7 +381,8 @@ async function initPageLogic() {
         console.error("initPageLogic: Falha ao carregar traduções. A interface pode não exibir texto.");
     }
 
-    addEventListeners(); // Adiciona os listeners para os botões e inputs
+    // Adiciona os listeners APÓS toda a lógica de inicialização, incluindo a verificação do Firebase
+    addEventListeners();
 
     // Esconde o overlay de carregamento APÓS tudo estar pronto
     console.log("initPageLogic: Chamando hideLoadingOverlay()...");
