@@ -32,21 +32,28 @@
             let appId = 'default-app-id'; // Valor de fallback
             let initialAuthToken = null;
 
-            // Tentar obter as variáveis globais do ambiente Canvas.
-            // O ambiente Canvas deve injetar estas variáveis antes que este script seja executado.
-            // Se elas não estiverem definidas aqui, é um problema do ambiente Canvas.
-            try {
-                if (typeof __app_id !== 'undefined' && typeof __firebase_config !== 'undefined') {
-                    appId = __app_id;
-                    firebaseConfig = JSON.parse(__firebase_config);
-                    initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-                    console.log("Firebase (index.html): Variáveis do Canvas obtidas diretamente.");
-                } else {
-                    console.warn("Firebase (index.html): Variáveis __app_id ou __firebase_config não definidas no ambiente Canvas. Usando fallbacks.");
-                }
-            } catch (e) {
-                console.error("Firebase (index.html): Erro ao tentar obter variáveis do Canvas:", e);
-            }
+            // Função para tentar obter as variáveis globais do ambiente Canvas usando polling.
+            const pollForCanvasGlobals = () => new Promise(resolvePoll => {
+                const interval = setInterval(() => {
+                    if (typeof __app_id !== 'undefined' && typeof __firebase_config !== 'undefined' && typeof __initial_auth_token !== 'undefined') {
+                        clearInterval(interval);
+                        appId = __app_id;
+                        try {
+                            firebaseConfig = JSON.parse(__firebase_config);
+                        } catch (e) {
+                            console.error("Firebase (index.html): Erro ao analisar __firebase_config:", e);
+                        }
+                        initialAuthToken = __initial_auth_token;
+                        console.log("Firebase (index.html): Variáveis do Canvas obtidas via polling.");
+                        resolvePoll();
+                    } else {
+                        // console.log("Firebase (index.html): Aguardando variáveis do Canvas...", typeof __app_id, typeof __firebase_config, typeof __initial_auth_token);
+                    }
+                }, 100); // Tenta a cada 100ms
+            });
+
+            console.log("Firebase (index.html): Iniciando polling para variáveis do Canvas...");
+            await pollForCanvasGlobals(); // Espera até que as variáveis do Canvas estejam disponíveis
 
             if (Object.keys(firebaseConfig).length > 0 && appId !== 'default-app-id') {
                 try {
