@@ -10,132 +10,167 @@
     <style>
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #e8f0f2;
+            background-color: #f0f2f5;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            height: 100vh;
             margin: 0;
             color: #333;
         }
         .container {
             background-color: #fff;
             padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-            max-width: 600px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
             width: 100%;
+            max-width: 450px;
             text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            box-sizing: border-box;
         }
-        .header {
-            margin-bottom: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
+        h1 {
+            font-family: 'Poppins', sans-serif;
+            color: #1a73e8;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            font-weight: 600;
         }
-        .header img {
-            width: 100%;
-            height: auto;
+        p {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        .form-group {
+            text-align: left;
             margin-bottom: 20px;
+        }
+        label {
             display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
         }
-        .header h1 {
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        input[type="text"]:focus {
+            border-color: #1a73e8;
+            outline: none;
+        }
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .button-group button {
+            flex: 1 1 45%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        #create-session-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        #create-session-btn:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+        #join-session-btn {
+            background-color: #1a73e8;
+            color: white;
+        }
+        #join-session-btn:hover {
+            background-color: #155bb5;
+            transform: translateY(-2px);
+        }
+        #error-message {
+            color: #d32f2f;
+            margin-top: 15px;
+            font-size: 0.9em;
+            font-weight: 500;
+            min-height: 20px;
+        }
+        .footer {
+            margin-top: 40px;
+            color: #aaa;
+            font-size: 0.85em;
+        }
+        /* Estilos do Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0s, opacity 0.3s;
+        }
+        .modal-overlay.active {
+            visibility: visible;
+            opacity: 1;
+        }
+        .modal-content {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            position: relative;
+        }
+        .modal-content h3 {
             font-family: 'Poppins', sans-serif;
             color: #2e7d32;
-            font-size: 2.5em;
-            margin: 0;
-        }
-        .header .game-objective {
-            margin-top: 10px;
-            line-height: 1.6;
-        }
-        .header .instructions-list {
-            text-align: left;
-            margin-top: 10px;
-            line-height: 1.6;
-            padding-left: 20px;
-            list-style-type: decimal;
-        }
-        .header .instructions-list li {
-            margin-bottom: 8px;
-        }
-        .language-selection {
-            margin: 20px 0;
-        }
-        .language-selection button {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f5f5f5;
-            border: 1px solid #ddd;
-            padding: 10px 20px;
-            margin: 0 5px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        .language-selection button:hover,
-        .language-selection button.selected {
-            background-color: #e0e0e0;
-        }
-        .cards {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            margin-top: 30px;
-        }
-        .card {
-            background-color: #f9f9f9;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            width: 100%;
-            box-sizing: border-box;
-            text-align: left;
-        }
-        .card h2 {
-            font-family: 'Poppins', sans-serif;
             margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+        .modal-content p {
+            font-size: 1.1em;
+            margin-bottom: 25px;
+            line-height: 1.5;
             color: #555;
-            font-size: 1.5em;
         }
-        .card form {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        .card input[type="text"] {
-            font-family: 'Roboto', sans-serif;
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            box-sizing: border-box;
-        }
-        .card button {
-            font-family: 'Roboto', sans-serif;
+        .modal-content button {
             background-color: #43a047;
             color: #fff;
-            padding: 12px;
+            padding: 10px 25px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             font-size: 1em;
             transition: background-color 0.3s;
         }
-        .card button:hover {
+        .modal-content button:hover {
             background-color: #388e3c;
         }
-        .footer {
-            margin-top: 40px;
-            color: #999;
-            font-size: 0.9em;
-        }
-        @media (max-width: 768px) {
+        @media (max-width: 500px) {
             .container {
-                padding: 20px;
+                margin: 20px;
+                padding: 30px;
+            }
+            .button-group {
+                flex-direction: column;
             }
         }
     </style>
@@ -143,179 +178,100 @@
 <body>
 
     <div class="container">
-        <div class="header">
-            <img src="https://github.com/vinicius-losekann/dev-game-gp/blob/refatorado/data/imgs/logo-jogo.png?raw=true" alt="Logo do Jogo de Gerência de Projetos">
-            <h1 id="main-title">Jogo de Gerência de Projetos</h1>
-           
-            <p id="game-objective" class="game-objective">
-                Este jogo foi criado para ajudar você a aprender, revisar e aplicar conceitos fundamentais de gerenciamento de projetos de forma interativa e divertida. Teste suas habilidades e conhecimentos em diversas áreas para se tornar um gerente de projetos de sucesso.
-            </p>
+        <h1>Gerência de Projetos</h1>
+        <p>Um jogo para testar seus conhecimentos sobre o PMBOK.</p>
 
-            <p class="instructions-heading">
-                <b id="instructions-title">Instruções:</b>
-            </p>
-
-            <ol class="instructions-list" id="instructions-list">
-                <li>Escolha seu idioma.</li>
-                <li>Inicie uma nova sessão ou junte-se a uma já existente.</li>
-                <li>Teste suas habilidades em diversas áreas de conhecimento.</li>
-            </ol>
-        </div>
-
-        <div class="language-selection" id="language-selection">
-        </div>
-
-        <div class="cards">
-            <div class="card">
-                <h2 id="new-game-title">Iniciar um Novo Jogo</h2>
-                <form id="new-game-form">
-                    <button id="new-game-button">Criar Nova Sessão</button>
-                </form>
+        <form id="login-form">
+            <div class="form-group">
+                <label for="username">Seu Nome:</label>
+                <input type="text" id="username" placeholder="Digite seu nome" required>
             </div>
-           
-            <div class="card">
-                <h2 id="join-session-title">Entrar em uma Sessão Existente</h2>
-                <form id="join-session-form">
-                    <input type="text" id="username-join" placeholder="Seu nome de usuário" required>
-                    <input type="text" id="session-code" placeholder="Código da sessão" required>
-                    <button type="submit">Entrar na Sessão</button>
-                </form>
+            
+            <div class="form-group">
+                <label for="session-code">Código da Sessão:</label>
+                <input type="text" id="session-code" placeholder="Opcional">
             </div>
-        </div>
-       
+
+            <div class="button-group">
+                <button type="button" id="create-session-btn">Criar Nova Sessão</button>
+                <button type="submit" id="join-session-btn">Entrar em Sessão</button>
+            </div>
+
+            <p id="error-message"></p>
+        </form>
+
         <div class="footer">
-            <p><span id="game-version-text">Versão do Jogo:</span> <span id="game-version">1.0.0</span></p>
+            <p>Jogo de Gerência de Projetos v1.0.0</p>
+        </div>
+    </div>
+    
+    <div id="session-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Sessão Criada! 🎉</h3>
+            <p>Compartilhe o código da sessão com seus amigos:</p>
+            <h2 id="modal-session-code"></h2>
+            <button id="modal-close-button">OK</button>
         </div>
     </div>
 
     <script>
-        const config = {
-            languages: [
-                { code: 'pt-BR', name: 'Português (BR)' },
-                { code: 'en-US', name: 'Inglês (US)' },
-                { code: 'es-ES', name: 'Espanhol (ES)' }
-            ]
-        };
+        // Elementos do DOM
+        const createSessionButton = document.getElementById('create-session-btn');
+        const joinSessionButton = document.getElementById('join-session-btn');
+        const usernameInput = document.getElementById('username');
+        const sessionCodeInput = document.getElementById('session-code');
+        const errorMessage = document.getElementById('error-message');
+        const sessionModal = document.getElementById('session-modal');
+        const modalSessionCode = document.getElementById('modal-session-code');
+        const modalCloseButton = document.getElementById('modal-close-button');
 
-        const translations = {
-            'pt-BR': {
-                title: 'Jogo de Gerência de Projetos',
-                objective: 'Este jogo foi criado para ajudar você a aprender, revisar e aplicar conceitos fundamentais de gerenciamento de projetos de forma interativa e divertida. Teste suas habilidades e conhecimentos em diversas áreas para se tornar um gerente de projetos de sucesso.',
-                instructionsTitle: 'Instruções:',
-                instructions: [
-                    'Escolha seu idioma.',
-                    'Inicie uma nova sessão ou junte-se a uma já existente.',
-                    'Teste suas habilidades em diversas áreas de conhecimento.'
-                ],
-                newGameTitle: 'Iniciar um Novo Jogo',
-                newGameButton: 'Criar Nova Sessão',
-                joinSessionTitle: 'Entrar em uma Sessão Existente',
-                usernamePlaceholder: 'Seu nome de usuário',
-                sessionCodePlaceholder: 'Código da sessão',
-                joinSessionButton: 'Entrar na Sessão',
-                versionText: 'Versão do Jogo: '
-            },
-            'en-US': {
-                title: 'Project Management Game',
-                objective: 'This game was created to help you learn, review, and apply fundamental project management concepts in an interactive and fun way. Test your skills and knowledge in various areas to become a successful project manager.',
-                instructionsTitle: 'Instructions:',
-                instructions: [
-                    'Choose your language.',
-                    'Start a new session or join an existing one.',
-                    'Test your skills in various knowledge areas.'
-                ],
-                newGameTitle: 'Start a New Game',
-                newGameButton: 'Create New Session',
-                joinSessionTitle: 'Join an Existing Session',
-                usernamePlaceholder: 'Your username',
-                sessionCodePlaceholder: 'Session code',
-                joinSessionButton: 'Join Session',
-                versionText: 'Game Version: '
-            },
-            'es-ES': {
-                title: 'Juego de Gestión de Proyectos',
-                objective: 'Este juego fue creado para ayudarte a aprender, revisar y aplicar conceptos fundamentales de gestión de proyectos de forma interactiva y divertida. Pon a prueba tus habilidades y conocimientos en diversas áreas para convertirte en un gestor de proyectos exitoso.',
-                instructionsTitle: 'Instrucciones:',
-                instructions: [
-                    'Elige tu idioma.',
-                    'Inicia una nueva sesión o únete a una ya existente.',
-                    'Pon a prueba tus habilidades en diversas áreas de conocimiento.'
-                ],
-                newGameTitle: 'Crear un Nuevo Juego',
-                newGameButton: 'Crear nueva sesión',
-                joinSessionTitle: 'Únete a una sesión existente',
-                usernamePlaceholder: 'Tu nombre de usuario',
-                sessionCodePlaceholder: 'Código de la sesión',
-                joinSessionButton: 'Unirse a la sesión',
-                versionText: 'Versión del juego: '
+        // Funções utilitárias
+        function generateRandomId(length) {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
             }
-        };
-
-        function updateContent(langCode) {
-            const lang = translations[langCode] || translations['pt-BR'];
-
-            const elements = {
-                title: document.getElementById('main-title'),
-                objective: document.getElementById('game-objective'),
-                instructionsTitle: document.getElementById('instructions-title'),
-                instructionsList: document.getElementById('instructions-list'),
-                newGameTitle: document.getElementById('new-game-title'),
-                newGameButton: document.getElementById('new-game-button'),
-                joinSessionTitle: document.getElementById('join-session-title'),
-                usernameJoin: document.getElementById('username-join'),
-                sessionCode: document.getElementById('session-code'),
-                joinSessionButton: document.querySelector('#join-session-form button'),
-                gameVersionText: document.getElementById('game-version-text')
-            };
-
-            document.title = lang.title;
-
-            if (elements.title) elements.title.textContent = lang.title;
-            if (elements.objective) elements.objective.textContent = lang.objective;
-            if (elements.instructionsTitle) elements.instructionsTitle.textContent = lang.instructionsTitle;
-
-            if (elements.instructionsList) {
-                elements.instructionsList.innerHTML = '';
-                lang.instructions.forEach(item => {
-                    const li = document.createElement('li');
-                    li.textContent = item;
-                    elements.instructionsList.appendChild(li);
-                });
-            }
-
-            if (elements.newGameTitle) elements.newGameTitle.textContent = lang.newGameTitle;
-            if (elements.newGameButton) elements.newGameButton.textContent = lang.newGameButton;
-            if (elements.joinSessionTitle) elements.joinSessionTitle.textContent = lang.joinSessionTitle;
-            if (elements.usernameJoin) elements.usernameJoin.placeholder = lang.usernamePlaceholder;
-            if (elements.sessionCode) elements.sessionCode.placeholder = lang.sessionCodePlaceholder;
-            if (elements.joinSessionButton) elements.joinSessionButton.textContent = lang.joinSessionButton;
-            if (elements.gameVersionText) elements.gameVersionText.textContent = lang.versionText;
-
-            document.querySelectorAll('.language-selection button').forEach(button => {
-                button.classList.remove('selected');
-            });
-            const selectedButton = document.querySelector(`button[data-lang="${langCode}"]`);
-            if (selectedButton) {
-                selectedButton.classList.add('selected');
-            }
+            return result;
         }
 
-        const langContainer = document.getElementById('language-selection');
-        config.languages.forEach(lang => {
-            const button = document.createElement('button');
-            button.textContent = lang.name;
-            button.setAttribute('data-lang', lang.code);
-            button.onclick = () => updateContent(lang.code);
-            langContainer.appendChild(button);
+        function showMessage(message) {
+            errorMessage.textContent = message;
+        }
+        
+        // Manipuladores de eventos
+        createSessionButton.addEventListener('click', () => {
+            const newSessionId = generateRandomId(4);
+            modalSessionCode.textContent = newSessionId;
+            sessionModal.classList.add('active');
         });
 
-        document.getElementById('new-game-button').addEventListener('click', () => {
-            const newSessionCode = 'ABCDE';
-            document.getElementById('session-code').value = newSessionCode;
-            alert('Nova sessão criada! O código foi preenchido no campo ao lado.');
+        modalCloseButton.addEventListener('click', () => {
+            sessionModal.classList.remove('active');
+            sessionCodeInput.value = modalSessionCode.textContent;
         });
-       
-        updateContent('pt-BR');
+
+        joinSessionButton.addEventListener('click', (e) => {
+            e.preventDefault(); // Evita o recarregamento da página
+
+            const playerName = usernameInput.value.trim();
+            const sessionCode = sessionCodeInput.value.trim();
+
+            if (!playerName) {
+                showMessage("Por favor, digite seu nome.");
+                return;
+            }
+
+            if (!sessionCode) {
+                showMessage("Por favor, digite o código da sessão.");
+                return;
+            }
+
+            // Redireciona para a página do jogo com os parâmetros na URL
+            const language = 'pt-BR'; // Idioma fixo por enquanto
+            window.location.href = `game.html?username=${encodeURIComponent(playerName)}&session=${encodeURIComponent(sessionCode)}&lang=${encodeURIComponent(language)}`;
+        });
     </script>
+
 </body>
 </html>
