@@ -1,298 +1,360 @@
 // js/index.js
 
-// Importa todas as exportações do módulo firebaseExports.js
-import * as Firebase from './firebaseExports.js';
-// Importa a função showMessage do módulo utils.js
-import { showMessage, getLanguageFromSessionIdString } from './utils.js';
-
 // Idioma padrão lido do arquivo de configuração
-let currentLanguage = AppConfig.defaultLanguage; 
+let currentLanguage = AppConfig.defaultLanguage;
 let pageTranslations = {}; // Objeto para armazenar as traduções carregadas
 
+// Referências a elementos DOM
 let newGameButton;
 let accessGameButton;
+let newGameCard; // Referência ao card "Iniciar Novo Jogo"
+let accessGameCard; // Referência ao card "Acessar Jogo Existente"
 let sessionIdInput;
-let existingGameUsernameInput;
-let messageBox; 
-let sessionInfo; 
-let mainContentContainer; 
-let languageSelectorButtonsContainer; 
-const loadingOverlay = document.getElementById('loadingOverlay');
+let newGameUsernameInput; // Input para nome de usuário em novo jogo
+let existingGameUsernameInput; // Input para nome de usuário em jogo existente
+let messageBox; // Referência à caixa de mensagem
+let sessionInfo; // Elemento para informações da sessão
+let goToGameButton; // Botão para ir para o jogo
+let goBackToHomeButtonContainer; // Container do botão "Entrar no Jogo"
+let mainContentContainer; // Referência ao contêiner principal
+let languageSelectorButtonsContainer; // Referência ao contêiner dos botões de idioma
+const loadingOverlay = document.getElementById('loadingOverlay'); // Referência ao overlay de carregamento
+
+// Função para mostrar mensagens na tela
+function showMessage(message, type = 'info') {
+    if (messageBox) {
+        messageBox.textContent = message;
+        messageBox.className = `message-box ${type}`; // Resetar classes e adicionar a nova
+        messageBox.classList.remove('hidden');
+    } else {
+        console.warn('Elemento messageBox não encontrado.');
+    }
+}
+
+// Função para esconder a caixa de mensagem
+function hideMessage() {
+    if (messageBox) {
+        messageBox.classList.add('hidden');
+    }
+}
 
 // Função para esconder o overlay de carregamento
 function hideLoadingOverlay() {
     if (loadingOverlay) {
-        console.log("hideLoadingOverlay: Escondendo overlay de carregamento.");
-        loadingOverlay.classList.add('hidden'); 
-    } else {
-        console.warn("hideLoadingOverlay: Elemento loadingOverlay não encontrado.");
+        console.log("hideLoadingOverlay: Escondendo overlay de carregamento. Adicionando classe 'hidden'.");
+        loadingOverlay.classList.add('hidden');
     }
 }
 
-// Função para carregar as traduções do arquivo JSON
+// Função para gerar um ID de sessão aleatório
+function generateSessionId() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < 4; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    // Adiciona o sufixo do idioma atual (ex: PTBR, ENUS)
+    return result + currentLanguage.toUpperCase().replace('-', '');
+}
+
+// Função para carregar as traduções
 async function loadTranslations(lang) {
-    let success = false;
     try {
-        const response = await fetch(`data/translations/index_translations.json`); // Caminho ajustado
+        const response = await fetch(`data/translations/index_translations.json`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        
-        if (data[lang]) {
-            pageTranslations = data[lang];
-            currentLanguage = lang; 
-            success = true;
-            console.log(`loadTranslations: Traduções para '${lang}' carregadas com sucesso.`);
-        } else {
-            console.warn(`loadTranslations: Idioma '${lang}' não encontrado no arquivo de tradução. Usando idioma padrão.`);
-            if (data[AppConfig.defaultLanguage]) {
-                pageTranslations = data[AppConfig.defaultLanguage];
-                currentLanguage = AppConfig.defaultLanguage;
-                success = true;
-            } else {
-                console.error("loadTranslations: Idioma padrão também não encontrado. As traduções podem estar vazias.");
-            }
-        }
+        pageTranslations = data; // Armazena todas as traduções
+        console.log(`Traduções para ${lang} carregadas.`, pageTranslations[lang]);
+        return true;
     } catch (error) {
-        console.error('loadTranslations: Erro ao carregar traduções:', error);
-        showMessage('Erro ao carregar traduções. Por favor, recarregue a página.', 'error');
+        console.error("Erro ao carregar o arquivo de traduções:", error);
+        return false;
     }
-    return success;
 }
 
 // Função para atualizar o conteúdo da página com base no idioma selecionado
 function updateContentLanguage() {
-    console.log("updateContentLanguage: Atualizando conteúdo para o idioma:", currentLanguage);
     document.querySelectorAll('[data-lang-key]').forEach(element => {
         const key = element.getAttribute('data-lang-key');
-        if (pageTranslations[key]) {
-            element.innerHTML = pageTranslations[key];
+        if (pageTranslations[currentLanguage] && pageTranslations[currentLanguage][key]) {
+            element.textContent = pageTranslations[currentLanguage][key];
         }
     });
-    // Atualiza o placeholder do input de sessão separadamente
-    if (sessionIdInput && pageTranslations.input_session_placeholder) {
-        sessionIdInput.placeholder = pageTranslations.input_session_placeholder;
+
+    // Atualiza placeholders manualmente, pois textContent não funciona para eles
+    const usernameInputPlaceholder = pageTranslations[currentLanguage]?.input_username_placeholder || 'Digite seu Nome de Usuário';
+    if (newGameUsernameInput) {
+        newGameUsernameInput.placeholder = usernameInputPlaceholder;
     }
-    // Atualiza o título da página
-    const pageTitleElement = document.querySelector('title[data-lang-key="main_page_title"]');
-    if (pageTitleElement && pageTranslations.main_page_title) {
-        pageTitleElement.textContent = pageTranslations.main_page_title;
+    if (existingGameUsernameInput) {
+        existingGameUsernameInput.placeholder = usernameInputPlaceholder;
+    }
+
+    const sessionIdPlaceholder = pageTranslations[currentLanguage]?.input_session_placeholder || 'Digite o ID da Sessão (Ex: 1234PTBR)';
+    if (sessionIdInput) {
+        sessionIdInput.placeholder = sessionIdPlaceholder;
     }
 }
 
-// Configura os botões de seleção de idioma dinamicamente
+// Função para configurar os botões de seleção de idioma
 function setupLanguageSelector() {
-    if (languageSelectorButtonsContainer) {
-        languageSelectorButtonsContainer.innerHTML = ''; 
-        AppConfig.supportedLanguages.forEach(lang => {
-            const button = document.createElement('button');
-            button.className = `lang-button game-button ${currentLanguage === lang.code ? 'selected' : ''}`;
-            button.dataset.langCode = lang.code;
-            button.textContent = pageTranslations[`lang_${lang.code.replace('-', '_').toLowerCase()}`] || lang.name; 
-            button.addEventListener('click', async () => {
-                if (currentLanguage !== lang.code) {
-                    console.log(`setupLanguageSelector: Idioma alterado para ${lang.code}`);
-                    currentLanguage = lang.code; 
-                    await loadTranslations(lang.code); 
-                    updateContentLanguage(); 
-                    document.querySelectorAll('.lang-button').forEach(btn => btn.classList.remove('selected'));
-                    button.classList.add('selected');
-                }
-            });
-            languageSelectorButtonsContainer.appendChild(button);
+    if (!languageSelectorButtonsContainer) {
+        console.warn("Elemento #language-selector-buttons não encontrado. Seletor de idioma não será configurado.");
+        return;
+    }
+    languageSelectorButtonsContainer.innerHTML = ''; // Limpa botões existentes
+
+    AppConfig.supportedLanguages.forEach(lang => {
+        const button = document.createElement('button');
+        button.textContent = pageTranslations[lang.code]?.['lang_' + lang.code.replace('-', '_').toLowerCase()] || lang.name;
+        button.className = `lang-button px-4 py-2 rounded-lg font-semibold transition duration-300 ease-in-out transform hover:scale-105 ${currentLanguage === lang.code ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'}`;
+        button.setAttribute('data-lang', lang.code);
+        button.addEventListener('click', () => {
+            currentLanguage = lang.code;
+            localStorage.setItem('pm_game_language', currentLanguage); // Salva o idioma selecionado
+            updateContentLanguage();
+            setupLanguageSelector(); // Recria os botões para atualizar o estilo do ativo
         });
-        console.log("setupLanguageSelector: Botões de idioma configurados.");
-    } else {
-        console.warn("setupLanguageSelector: Elemento 'languageSelectorButtonsContainer' não encontrado.");
+        languageSelectorButtonsContainer.appendChild(button);
+    });
+}
+
+// Função para manipular a criação de uma nova sessão de jogo
+async function createNewSession() {
+    hideMessage(); // Esconde qualquer mensagem anterior
+    const username = newGameUsernameInput.value.trim();
+
+    if (!username) {
+        showMessage(pageTranslations[currentLanguage].error_empty_username, 'error');
+        return;
+    }
+
+    showMessage(pageTranslations[currentLanguage].creating_session_message, 'info');
+
+    // Verifica se as instâncias do Firebase estão prontas
+    if (!window.db || !window.auth) {
+        showMessage(pageTranslations[currentLanguage].error_firebase_init, 'error');
+        console.error("Firebase Firestore ou Auth não estão inicializados.");
+        return;
+    }
+
+    try {
+        const userId = window.auth.currentUser?.uid || crypto.randomUUID();
+        const sessionId = generateSessionId(); // Gera um ID de sessão
+        const sessionDocRef = window.firestore.doc(window.db, "artifacts", window.appId, "public", "data", "sessions", sessionId);
+        const playerDocRef = window.firestore.doc(sessionDocRef, "players", userId);
+
+        // Cria a sessão com os dados iniciais
+        await window.firestore.setDoc(sessionDocRef, {
+            createdAt: window.firestore.serverTimestamp(),
+            hostId: userId,
+            currentQuestionIndex: 0,
+            questionArea: null, // Para a primeira pergunta aleatória
+            language: currentLanguage
+        });
+
+        // Adiciona o jogador à subcoleção 'players'
+        await window.firestore.setDoc(playerDocRef, {
+            username: username,
+            score: 0,
+            lastActivity: window.firestore.serverTimestamp()
+        });
+
+        // Armazena o ID da sessão e o nome de usuário no localStorage para game.html
+        localStorage.setItem('pm_game_session_id', sessionId);
+        localStorage.setItem('pm_game_username', username);
+
+        // *** NOVO: Preenche o campo de ID da sessão e o nome de usuário existente ***
+        if (sessionIdInput) {
+            sessionIdInput.value = sessionId;
+        }
+        if (existingGameUsernameInput) {
+            existingGameUsernameInput.value = username; // Preenche com o nome usado na criação
+            existingGameUsernameInput.focus(); // Coloca o foco no campo de nome de usuário
+        }
+
+        // *** NOVO: Oculta o card de novo jogo e mostra a mensagem e botão para ir ao jogo ***
+        if (newGameCard) {
+            newGameCard.classList.add('hidden'); // Oculta o card de criar novo jogo
+        }
+        // Garante que o card de acessar jogo esteja visível (pode já estar)
+        if (accessGameCard) {
+             accessGameCard.classList.remove('hidden');
+        }
+        if (goBackToHomeButtonContainer) {
+            goBackToHomeButtonContainer.classList.remove('hidden'); // Mostra o container do botão "Entrar no Jogo"
+            // Atualiza o texto da mensagem do prompt
+            goBackToHomeButtonContainer.querySelector('p').textContent = pageTranslations[currentLanguage].session_id_prompt;
+        }
+
+
+        // Atualiza a mensagem da caixa de mensagens para instruir o usuário
+        showMessage(`${pageTranslations[currentLanguage].session_created_message}${sessionId}`, 'success');
+        // A mensagem de "Insira este ID..." será exibida pelo go-to-game-container
+
+    } catch (e) {
+        console.error("Erro ao criar documento:", e);
+        showMessage(`${pageTranslations[currentLanguage].error_creating_session} ${e.message}`, 'error');
     }
 }
 
-// Adiciona todos os listeners de eventos aos elementos da página
+// Função para manipular o acesso a uma sessão existente
+async function accessExistingSession() {
+    hideMessage(); // Esconde qualquer mensagem anterior
+    const sessionId = sessionIdInput.value.trim();
+    const username = existingGameUsernameInput.value.trim();
+
+    if (!sessionId) {
+        showMessage(pageTranslations[currentLanguage].error_invalid_session_id, 'error');
+        return;
+    }
+    if (!username) {
+        showMessage(pageTranslations[currentLanguage].error_empty_username, 'error');
+        return;
+    }
+
+    showMessage(`${pageTranslations[currentLanguage].joining_session_message} ${sessionId}...`, 'info');
+
+    // Verifica se as instâncias do Firebase estão prontas
+    if (!window.db || !window.auth) {
+        showMessage(pageTranslations[currentLanguage].error_firebase_init, 'error');
+        console.error("Firebase Firestore ou Auth não estão inicializados.");
+        return;
+    }
+
+    try {
+        const userId = window.auth.currentUser?.uid || crypto.randomUUID();
+        const sessionDocRef = window.firestore.doc(window.db, "artifacts", window.appId, "public", "data", "sessions", sessionId);
+        const sessionDoc = await window.firestore.getDoc(sessionDocRef);
+
+        if (!sessionDoc.exists()) {
+            showMessage(pageTranslations[currentLanguage].session_not_found_error, 'error');
+            return;
+        }
+
+        // Adiciona ou atualiza o jogador na subcoleção 'players' da sessão
+        const playerDocRef = window.firestore.doc(sessionDocRef, "players", userId);
+        await window.firestore.setDoc(playerDocRef, {
+            username: username,
+            score: 0, // Reinicia ou mantém o score
+            lastActivity: window.firestore.serverTimestamp()
+        }, { merge: true }); // Usa merge para não sobrescrever outros dados do jogador se existirem
+
+        // Armazena o ID da sessão e o nome de usuário no localStorage para game.html
+        localStorage.setItem('pm_game_session_id', sessionId);
+        localStorage.setItem('pm_game_username', username);
+
+        // Determina o idioma da sessão para passar para a página do jogo
+        const sessionData = sessionDoc.data();
+        const sessionLanguage = sessionData.language || AppConfig.defaultLanguage; // Usa o idioma da sessão ou padrão
+
+        // Redireciona para a página do jogo
+        window.location.href = `game.html?session=${sessionId}&lang=${sessionLanguage}`;
+
+    } catch (e) {
+        console.error("Erro ao verificar ou acessar sessão:", e);
+        showMessage(`${pageTranslations[currentLanguage].error_checking_session} ${e.message}`, 'error');
+    }
+}
+
+// Função para adicionar os event listeners aos botões
 function addEventListeners() {
+    // Garante que os elementos existem antes de adicionar listeners
     newGameButton = document.getElementById('newGameButton');
     accessGameButton = document.getElementById('accessGameButton');
     sessionIdInput = document.getElementById('sessionIdInput');
+    newGameUsernameInput = document.getElementById('newGameUsernameInput');
     existingGameUsernameInput = document.getElementById('existingGameUsernameInput');
-    sessionInfo = document.getElementById('sessionInfo');
-    const goToGameButton = document.getElementById('goToGameButton');
+    messageBox = document.getElementById('messageBox');
+    sessionInfo = document.getElementById('sessionInfo'); // Certifique-se de que este elemento existe
+    goToGameButton = document.getElementById('goToGameButton');
+    goBackToHomeButtonContainer = document.getElementById('go-to-game-container');
+    mainContentContainer = document.getElementById('main-content-container');
+    languageSelectorButtonsContainer = document.getElementById('language-selector-buttons');
+    newGameCard = document.getElementById('newGameCard'); // Obtém referência ao novo card
+    accessGameCard = document.getElementById('accessGameCard'); // Obtém referência ao novo card
 
     if (newGameButton) {
-        newGameButton.addEventListener('click', async () => {
-            showMessage(pageTranslations.creating_session_message || 'Criando nova sessão...', 'info');
-            newGameButton.disabled = true;
-            accessGameButton.disabled = true;
-            console.log("New Game Button: Iniciando criação de nova sessão.");
-
-            try {
-                // Certifica-se de que o Firebase está pronto antes de usar
-                await Firebase.firebaseInitializedPromise; 
-                
-                if (!Firebase.db || !Firebase.collection || !Firebase.addDoc) {
-                    throw new Error("Firebase Firestore não está totalmente disponível.");
-                }
-
-                // Garante que o usuário esteja autenticado e tenha um UID
-                if (!Firebase.currentUserId || Firebase.currentUserId === 'anonymous-user') {
-                    showMessage("Erro: Usuário não autenticado. Tente novamente.", 'error');
-                    newGameButton.disabled = false;
-                    accessGameButton.disabled = false;
-                    return;
-                }
-
-                const sessionsCollectionRef = Firebase.collection(Firebase.db, `artifacts/${Firebase.APP_ID}/public/data/sessions`);
-
-                const newSessionRef = await Firebase.addDoc(sessionsCollectionRef, { 
-                    createdAt: Firebase.serverTimestamp(),
-                    hostId: Firebase.currentUserId,
-                    currentPlayers: [{ id: Firebase.currentUserId, name: existingGameUsernameInput.value.trim() || `Host_${Firebase.currentUserId.substring(0,4)}`, isHost: true }], 
-                    gameLanguage: currentLanguage, 
-                    status: 'waiting', 
-                    currentQuestion: null
-                });
-
-                const newSessionDocId = newSessionRef.id; // O ID gerado pelo Firestore
-                const sessionShortId = newSessionDocId.substring(0, 4).toUpperCase() + currentLanguage.substring(0,2).toUpperCase(); 
-
-                await Firebase.updateDoc(Firebase.doc(Firebase.db, `artifacts/${Firebase.APP_ID}/public/data/sessions`, newSessionDocId), {
-                    shortId: sessionShortId // Salva o shortId no documento
-                });
-
-                if (sessionInfo) {
-                    document.getElementById('displaySessionId').textContent = sessionShortId;
-                    sessionInfo.classList.remove('hidden');
-                    showMessage(pageTranslations.session_created_message + sessionShortId, 'success');
-                    console.log(`Sessão criada no Firestore com ID: ${newSessionDocId} e Short ID: ${sessionShortId}`);
-                }
-                newGameButton.disabled = false;
-                accessGameButton.disabled = false;
-
-                goToGameButton.onclick = () => {
-                    window.location.href = `game.html?session=${newSessionDocId}&lang=${currentLanguage}`; // Passa o ID longo e o idioma
-                };
-
-            } catch (error) {
-                console.error("Erro ao criar sessão no Firestore:", error);
-                showMessage(pageTranslations.error_creating_session + `: ${error.message}`, 'error');
-                newGameButton.disabled = false;
-                accessGameButton.disabled = false;
-            }
-        });
+        newGameButton.addEventListener('click', createNewSession);
     } else {
-        console.error("Botão 'newGameButton' não encontrado.");
+        console.warn("Elemento #newGameButton não encontrado.");
     }
 
     if (accessGameButton) {
-        accessGameButton.addEventListener('click', async () => {
-            showMessage(pageTranslations.checking_session_message || 'Verificando sessão...', 'info');
-            newGameButton.disabled = true;
-            accessGameButton.disabled = true;
-            const enteredShortSessionId = sessionIdInput.value.trim().toUpperCase(); 
+        accessGameButton.addEventListener('click', accessExistingSession);
+    } else {
+        console.warn("Elemento #accessGameButton não encontrado.");
+    }
 
-            if (!enteredShortSessionId) {
-                showMessage(pageTranslations.error_invalid_session_id || "Por favor, insira um ID de sessão.", 'error');
-                newGameButton.disabled = false;
-                accessGameButton.disabled = false;
-                return;
-            }
-
-            const username = existingGameUsernameInput.value.trim(); 
-            if (!username) {
-                showMessage(pageTranslations.error_empty_username || "Por favor, insira seu nome de usuário.", 'error');
-                newGameButton.disabled = false;
-                accessGameButton.disabled = false;
-                return;
-            }
-
-            console.log(`Access Game Button: Tentando acessar sessão com short ID: ${enteredShortSessionId}`);
-
-            try {
-                await Firebase.firebaseInitializedPromise; // Certifica-se de que o Firebase está pronto
-                
-                if (!Firebase.db || !Firebase.query || !Firebase.collection || !Firebase.where || !Firebase.getDocs) {
-                    throw new Error("Firebase Firestore não está totalmente disponível.");
-                }
-
-                // Garante que o usuário esteja autenticado e tenha um UID
-                if (!Firebase.currentUserId || Firebase.currentUserId === 'anonymous-user') {
-                    showMessage("Erro: Usuário não autenticado. Tente novamente.", 'error');
-                    newGameButton.disabled = false;
-                    accessGameButton.disabled = false;
-                    return;
-                }
-
-                const sessionsCollectionRef = Firebase.collection(Firebase.db, `artifacts/${Firebase.APP_ID}/public/data/sessions`);
-                const q = Firebase.query(sessionsCollectionRef, Firebase.where('shortId', '==', enteredShortSessionId));
-                const querySnapshot = await Firebase.getDocs(q);
-
-                let sessionDoc = null;
-                let sessionId = null;
-                let sessionLanguage = AppConfig.defaultLanguage; 
-
-                if (!querySnapshot.empty) {
-                    sessionDoc = querySnapshot.docs[0];
-                    sessionId = sessionDoc.id;
-                    const sessionData = sessionDoc.data();
-                    sessionLanguage = sessionData.gameLanguage || AppConfig.defaultLanguage;
-
-                    // Adicionar/Atualizar jogador na sessão
-                    const playerDocRef = Firebase.doc(Firebase.db, `artifacts/${Firebase.APP_ID}/public/data/sessions/${sessionId}/players`, Firebase.currentUserId);
-                    await Firebase.setDoc(playerDocRef, {
-                        uid: Firebase.currentUserId,
-                        name: username,
-                        score: sessionData.currentPlayers?.find(p => p.id === Firebase.currentUserId)?.score || 0, // Mantém a pontuação se já existia
-                        lastActive: Firebase.serverTimestamp(),
-                        status: "connected"
-                    }, { merge: true });
-
-                    // Adiciona o currentUserId ao array currentPlayers na sessão principal se ainda não estiver lá
-                    await Firebase.updateDoc(Firebase.doc(Firebase.db, `artifacts/${Firebase.APP_ID}/public/data/sessions`, sessionId), {
-                        currentPlayers: Firebase.arrayUnion(Firebase.currentUserId)
-                    });
-
-                    showMessage(pageTranslations.session_found_message || 'Sessão encontrada!', 'success');
-                    console.log(`Entrando na sessão ${sessionId}.`);
-                    window.location.href = `game.html?session=${sessionId}&lang=${sessionLanguage}`;
-                } else {
-                    showMessage(pageTranslations.session_not_found_error || `Sessão \"${enteredShortSessionId}\" não encontrada.`, 'error');
-                    newGameButton.disabled = false;
-                    accessGameButton.disabled = false;
-                }
-            } catch (error) {
-                console.error("Erro ao verificar sessão no Firestore:", error);
-                showMessage(pageTranslations.error_checking_session + `: ${error.message}`, 'error');
-                newGameButton.disabled = false;
-                accessGameButton.disabled = false;
+    if (goToGameButton) {
+        goToGameButton.addEventListener('click', () => {
+            const sessionId = localStorage.getItem('pm_game_session_id');
+            const sessionLanguage = localStorage.getItem('pm_game_language') || currentLanguage; // Usa o idioma salvo ou o atual
+            if (sessionId) {
+                window.location.href = `game.html?session=${sessionId}&lang=${sessionLanguage}`;
+            } else {
+                showMessage(pageTranslations[currentLanguage].error_no_session_id, 'error');
             }
         });
     } else {
-        console.error("Botão 'accessGameButton' não encontrado.");
+        console.warn("Elemento #goToGameButton não encontrado.");
     }
 }
 
-// Inicializa a lógica da página após o carregamento completo do DOM
+// Função de inicialização da lógica da página
 async function initPageLogic() {
     console.log("initPageLogic: Iniciando...");
 
-    // Obter referências aos elementos DOM
-    mainContentContainer = document.getElementById('main-content-container');
+    // Tenta carregar o idioma salvo no localStorage, caso contrário, usa o padrão
+    const savedLanguage = localStorage.getItem('pm_game_language');
+    if (savedLanguage && AppConfig.supportedLanguages.some(lang => lang.code === savedLanguage)) {
+        currentLanguage = savedLanguage;
+    } else {
+        currentLanguage = AppConfig.defaultLanguage;
+        localStorage.setItem('pm_game_language', currentLanguage);
+    }
+
+    // Garante que todos os elementos DOM necessários estão disponíveis
+    // Re-obtem as referências caso o initPageLogic seja chamado novamente
     newGameButton = document.getElementById('newGameButton');
     accessGameButton = document.getElementById('accessGameButton');
     sessionIdInput = document.getElementById('sessionIdInput');
+    newGameUsernameInput = document.getElementById('newGameUsernameInput');
     existingGameUsernameInput = document.getElementById('existingGameUsernameInput');
     messageBox = document.getElementById('messageBox');
     sessionInfo = document.getElementById('sessionInfo');
-    languageSelectorButtonsContainer = document.getElementById('languageSelectorButtons');
+    goToGameButton = document.getElementById('goToGameButton');
+    goBackToHomeButtonContainer = document.getElementById('go-to-game-container');
+    mainContentContainer = document.getElementById('main-content-container');
+    languageSelectorButtonsContainer = document.getElementById('language-selector-buttons');
+    newGameCard = document.getElementById('newGameCard');
+    accessGameCard = document.getElementById('accessGameCard');
 
-    if (!mainContentContainer || !newGameButton || !accessGameButton || !sessionIdInput || !existingGameUsernameInput || !messageBox || !sessionInfo || !languageSelectorButtonsContainer) {
-        console.error("initPageLogic: Um ou mais elementos DOM essenciais não foram encontrados.");
-        // Exibir um erro visível ao usuário se elementos críticos estiverem faltando
-        if (mainContentContainer) {
-            mainContentContainer.innerHTML = `<p class="text-red-600 text-center">Erro: A página não pôde carregar completamente. Elementos essenciais faltando.</p>`;
-            mainContentContainer.style.opacity = '1';
-            mainContentContainer.style.visibility = 'visible';
-        }
-        return; 
+
+    // Validação de elementos DOM para depuração
+    if (!messageBox) {
+        console.error("initPageLogic: Elemento #messageBox não encontrado no DOM! Mensagens ao usuário não serão exibidas.");
+    }
+    if (!sessionInfo) {
+        console.warn("initPageLogic: Elemento #sessionInfo não encontrado no DOM. As informações de sessão não serão exibidas.");
+    }
+    if (!goToGameButton) {
+        console.warn("initPageLogic: Elemento #goToGameButton não encontrado no DOM. O botão 'Entrar no Jogo' não funcionará.");
+    }
+    if (!goBackToHomeButtonContainer) {
+        console.warn("initPageLogic: Elemento #go-to-game-container não encontrado no DOM. O container do botão 'Entrar no Jogo' não será gerenciado.");
+    }
+    if (!mainContentContainer) {
+        console.warn("initPageLogic: Elemento #main-content-container não encontrado no DOM. O conteúdo principal pode ter FOUC.");
+    }
+    if (!languageSelectorButtonsContainer) {
+        console.warn("initPageLogic: Elemento #language-selector-buttons não encontrado no DOM. O seletor de idioma não funcionará.");
+    }
+    // Verificado apenas existingGameUsernameInput, já que newGameUsernameInput foi removido
+    if (!existingGameUsernameInput) {
+        console.error("initPageLogic: O elemento de input 'existingGameUsernameInput' não foi encontrado no DOM! A entrada de nome de usuário para jogos existentes pode não funcionar.");
     }
 
     // Carregar traduções e configurar seletor de idioma
@@ -307,17 +369,25 @@ async function initPageLogic() {
     addEventListeners(); // Adiciona os listeners para os botões e inputs
 
     // Esconde o overlay de carregamento APÓS tudo estar pronto
+    console.log("initPageLogic: Chamando hideLoadingOverlay()...");
     hideLoadingOverlay();
 
     // Torna o conteúdo principal visível
-    mainContentContainer.style.opacity = '1';
-    mainContentContainer.style.visibility = 'visible';
+    if (mainContentContainer) {
+        console.log("initPageLogic: Definindo mainContentContainer para opacidade 1 e visível.");
+        mainContentContainer.style.opacity = '1';
+        mainContentContainer.style.visibility = 'visible';
+    }
 
-    console.log("initPageLogic: Finalizado. Conteúdo principal visível.");
+    console.log("initPageLogic: Finalizado. Conteúdo principal visível (se mainContentContainer existir).");
 }
 
-// Listener principal DOMContentLoaded
+
+// Listener principal para iniciar a lógica da página APÓS o DOM e o Firebase estarem prontos.
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log("DOMContentLoaded disparado. Iniciando inicialização da página...");
-    await initPageLogic(); // Começa a inicialização da página
+    console.log("DOMContentLoaded disparado em index.js.");
+    // Aguarda a inicialização do Firebase antes de iniciar a lógica da página
+    await window.firebaseInitializedPromise;
+    console.log("Firebase inicializado e autenticado. Iniciando a lógica da página inicial...");
+    initPageLogic();
 });
