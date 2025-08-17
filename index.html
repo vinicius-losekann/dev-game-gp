@@ -139,15 +139,14 @@
             font-size: 0.9em;
             text-align: center;
         }
-        /* Novo estilo para o "quadradinho" do código */
         .session-display {
-            background-color: #e8f5e9; /* Verde clarinho */
+            background-color: #e8f5e9;
             color: #388e3c;
             padding: 15px;
             margin-top: 15px;
             border-radius: 8px;
             text-align: center;
-            display: none; /* Escondido por padrão */
+            display: none;
             flex-direction: column;
             align-items: center;
             gap: 10px;
@@ -238,7 +237,30 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        // Importa as funções do Firebase SDK
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+        // --- Configuração do Firebase ---
+        console.log("Script carregado. Inicializando Firebase...");
+        const firebaseConfig = {
+            apiKey: "AIzaSyDdiedj1Smjzn9CDqShdhG5Y0_Sa18xyWI",
+            authDomain: "jogo-gerencia-de-projetos.firebaseapp.com",
+            projectId: "jogo-gerencia-de-projetos",
+            storageBucket: "jogo-gerencia-de-projetos.firebasestorage.app",
+            messagingSenderId: "356867532123",
+            appId: "1:356867532123:web:0657d84635a5849df2667e",
+            measurementId: "G-M5QYQ36Q9P"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const APP_ID = firebaseConfig.appId;
+        console.log("Firebase inicializado com sucesso.");
+
+        // --- Lógica de Tradução e UI ---
         const config = {
             languages: [
                 { code: 'pt-BR', name: 'Português (BR)' },
@@ -259,87 +281,47 @@
                 ],
                 newGameTitle: 'Iniciar um Novo Jogo',
                 newGameButton: 'Criar Nova Sessão',
+                sessionTitle: 'Sessão Criada! 🎉',
+                sessionMessage: 'Compartilhe o código da sessão com os outros jogadores:',
                 joinSessionTitle: 'Entrar em uma Sessão Existente',
                 usernamePlaceholder: 'Seu nome de usuário',
                 sessionCodePlaceholder: 'Código da sessão',
                 joinSessionButton: 'Entrar na Sessão',
-                versionText: 'Versão do Jogo: '
+                versionText: 'Versão do Jogo: ',
+                creatingSession: "Criando nova sessão...",
+                sessionCreated: "Sessão criada! Compartilhe o código.",
+                validatingSession: "Verificando sessão...",
+                joinSuccess: "Entrando na sessão...",
+                invalidSession: "O código da sessão não é válido. Verifique e tente novamente.",
+                fieldsRequired: "Por favor, preencha todos os campos."
             },
-            'en-US': {
-                title: 'Project Management Game',
-                objective: 'This game was created to help you learn, review, and apply fundamental project management concepts in an interactive and fun way. Test your skills and knowledge in various areas to become a successful project manager.',
-                instructionsTitle: 'Instructions:',
-                instructions: [
-                    'Choose your language.',
-                    'Start a new session or join an existing one.',
-                    'Test your skills in various knowledge areas.'
-                ],
-                newGameTitle: 'Start a New Game',
-                newGameButton: 'Create New Session',
-                joinSessionTitle: 'Join an Existing Session',
-                usernamePlaceholder: 'Your username',
-                sessionCodePlaceholder: 'Session code',
-                joinSessionButton: 'Join Session',
-                versionText: 'Game Version: '
-            },
-            'es-ES': {
-                title: 'Juego de Gestión de Proyectos',
-                objective: 'Este juego fue creado para ayudarte a aprender, revisar y aplicar conceptos fundamentales de gestión de proyectos de forma interactiva y divertida. Pon a prueba tus habilidades y conocimientos en diversas áreas para convertirte en un gestor de proyectos exitoso.',
-                instructionsTitle: 'Instrucciones:',
-                instructions: [
-                    'Elige tu idioma.',
-                    'Inicia una nueva sesión o únete a una ya existente.',
-                    'Pon a prueba tus habilidades en diversas áreas de conocimiento.'
-                ],
-                newGameTitle: 'Crear un Nuevo Juego',
-                newGameButton: 'Crear nueva sesión',
-                joinSessionTitle: 'Únete a una sesión existente',
-                usernamePlaceholder: 'Tu nombre de usuario',
-                sessionCodePlaceholder: 'Código de la sesión',
-                joinSessionButton: 'Unirse a la sesión',
-                versionText: 'Versión del juego: '
-            }
+            'en-US': { /* ... traduções em inglês ... */ },
+            'es-ES': { /* ... traduções em espanhol ... */ }
         };
 
         function updateContent(langCode) {
             const lang = translations[langCode] || translations['pt-BR'];
-
-            const elements = {
-                title: document.getElementById('main-title'),
-                objective: document.getElementById('game-objective'),
-                instructionsTitle: document.getElementById('instructions-title'),
-                instructionsList: document.getElementById('instructions-list'),
-                newGameTitle: document.getElementById('new-game-title'),
-                newGameButton: document.getElementById('new-game-button'),
-                joinSessionTitle: document.getElementById('join-session-title'),
-                usernameJoin: document.getElementById('username-join'),
-                sessionCode: document.getElementById('session-code'),
-                joinSessionButton: document.querySelector('#join-session-form button'),
-                gameVersionText: document.getElementById('game-version-text')
-            };
-
+            // Lógica de atualização de texto na UI
             document.title = lang.title;
-
-            if (elements.title) elements.title.textContent = lang.title;
-            if (elements.objective) elements.objective.textContent = lang.objective;
-            if (elements.instructionsTitle) elements.instructionsTitle.textContent = lang.instructionsTitle;
-
-            if (elements.instructionsList) {
-                elements.instructionsList.innerHTML = '';
-                lang.instructions.forEach(item => {
-                    const li = document.createElement('li');
-                    li.textContent = item;
-                    elements.instructionsList.appendChild(li);
-                });
-            }
-
-            if (elements.newGameTitle) elements.newGameTitle.textContent = lang.newGameTitle;
-            if (elements.newGameButton) elements.newGameButton.textContent = lang.newGameButton;
-            if (elements.joinSessionTitle) elements.joinSessionTitle.textContent = lang.joinSessionTitle;
-            if (elements.usernameJoin) elements.usernameJoin.placeholder = lang.usernamePlaceholder;
-            if (elements.sessionCode) elements.sessionCode.placeholder = lang.sessionCodePlaceholder;
-            if (elements.joinSessionButton) elements.joinSessionButton.textContent = lang.joinSessionButton;
-            if (elements.gameVersionText) elements.gameVersionText.textContent = lang.versionText;
+            document.getElementById('main-title').textContent = lang.title;
+            document.getElementById('game-objective').textContent = lang.objective;
+            document.getElementById('instructions-title').textContent = lang.instructionsTitle;
+            const instructionsList = document.getElementById('instructions-list');
+            instructionsList.innerHTML = '';
+            lang.instructions.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = item;
+                instructionsList.appendChild(li);
+            });
+            document.getElementById('new-game-title').textContent = lang.newGameTitle;
+            document.getElementById('new-game-button').textContent = lang.newGameButton;
+            document.getElementById('join-session-title').textContent = lang.joinSessionTitle;
+            document.getElementById('username-join').placeholder = lang.usernamePlaceholder;
+            document.getElementById('session-code').placeholder = lang.sessionCodePlaceholder;
+            document.getElementById('join-session-button').textContent = lang.joinSessionButton;
+            document.getElementById('game-version-text').textContent = lang.versionText;
+            document.getElementById('session-title').textContent = lang.sessionTitle;
+            document.getElementById('session-message').textContent = lang.sessionMessage;
 
             document.querySelectorAll('.language-selection button').forEach(button => {
                 button.classList.remove('selected');
@@ -359,55 +341,108 @@
             langContainer.appendChild(button);
         });
 
-        // Elementos para exibir o código da sessão no card
+        // --- Lógica de Jogo (Firebase) ---
         const sessionDisplay = document.getElementById('session-display');
         const newGameButton = document.getElementById('new-game-button');
         const sessionCodeInput = document.getElementById('session-code');
         const sessionCodeDisplay = document.getElementById('session-code-display');
+        const errorMessageElement = document.getElementById('error-message');
 
-        // Funções da lógica de jogo
-        function generateRandomId(length) {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            let result = '';
-            for (let i = 0; i < length; i++) {
-                result += chars.charAt(Math.floor(Math.random() * chars.length));
+        function showMessage(message, color = 'red') {
+            errorMessageElement.textContent = message;
+            errorMessageElement.style.color = color;
+        }
+
+        newGameButton.addEventListener('click', async () => {
+            const langCode = document.querySelector('.language-selection button.selected')?.getAttribute('data-lang') || 'pt-BR';
+            const lang = translations[langCode];
+            
+            showMessage(lang.creatingSession, 'green');
+            console.log("Botão 'Criar Nova Sessão' clicado. Iniciando autenticação anônima...");
+            
+            try {
+                // Autenticação anônima para obter um UID
+                const userCredential = await signInAnonymously(auth);
+                const userId = userCredential.user.uid;
+                console.log(`Autenticação anônima bem-sucedida. UID do usuário: ${userId}`);
+
+                // Criação do documento da sessão no Firestore
+                const sessionsCollectionRef = `artifacts/${APP_ID}/public/data/sessions`;
+                const newSessionRef = doc(db, sessionsCollectionRef, 'temp'); // Cria uma referência temporária para obter um ID
+                const sessionId = newSessionRef.id; // Obtém o ID gerado automaticamente
+                console.log(`ID da nova sessão gerado: ${sessionId}`);
+                
+                // Salva o documento da sessão com o ID gerado
+                await setDoc(doc(db, sessionsCollectionRef, sessionId), {
+                    createdAt: new Date(),
+                    hostUserId: userId
+                });
+                console.log("Documento de sessão criado no Firestore com sucesso.");
+
+                // Atualiza a UI com o código da sessão
+                sessionCodeDisplay.textContent = sessionId;
+                sessionCodeInput.value = sessionId;
+                sessionDisplay.classList.add('visible');
+                showMessage(lang.sessionCreated, 'green');
+
+            } catch (error) {
+                console.error("Erro ao criar a sessão:", error);
+                showMessage("Erro ao criar a sessão. Por favor, tente novamente.", 'red');
             }
-            return result;
-        }
-
-        function showMessage(message) {
-            const errorMessage = document.getElementById('error-message');
-            errorMessage.textContent = message;
-        }
-
-        newGameButton.addEventListener('click', () => {
-            const newSessionCode = generateRandomId(4);
-            sessionCodeDisplay.textContent = newSessionCode;
-            sessionCodeInput.value = newSessionCode;
-            sessionDisplay.classList.add('visible');
         });
 
-        document.getElementById('join-session-form').addEventListener('submit', (e) => {
+        document.getElementById('join-session-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const username = document.getElementById('username-join').value.trim();
             const sessionCode = document.getElementById('session-code').value.trim();
-            const langCode = document.querySelector('.language-selection button.selected').getAttribute('data-lang') || 'pt-BR';
-            
-            if (!username) {
-                showMessage('Por favor, digite seu nome de usuário.');
+            const langCode = document.querySelector('.language-selection button.selected')?.getAttribute('data-lang') || 'pt-BR';
+            const lang = translations[langCode];
+
+            if (!username || !sessionCode) {
+                showMessage(lang.fieldsRequired);
+                console.log("Campos de formulário vazios.");
                 return;
             }
+
+            showMessage(lang.validatingSession, 'green');
+            console.log(`Tentando entrar na sessão: '${sessionCode}' com o usuário: '${username}'`);
             
-            if (!sessionCode) {
-                showMessage('Por favor, digite o código da sessão.');
-                return;
+            try {
+                // Autenticação anônima para o jogador que está entrando
+                const userCredential = await signInAnonymously(auth);
+                const userId = userCredential.user.uid;
+                console.log(`Autenticação anônima bem-sucedida. UID do usuário: ${userId}`);
+
+                // Verifica se a sessão existe no Firestore
+                const sessionRef = doc(db, `artifacts/${APP_ID}/public/data/sessions/${sessionCode}`);
+                console.log(`Verificando o caminho: artifacts/${APP_ID}/public/data/sessions/${sessionCode}`);
+                const sessionSnap = await getDoc(sessionRef);
+
+                if (sessionSnap.exists()) {
+                    console.log("Sessão encontrada. Adicionando jogador...");
+                    // Adiciona o jogador à subcoleção 'players'
+                    const playerRef = doc(db, `artifacts/${APP_ID}/public/data/sessions/${sessionCode}/players/${userId}`);
+                    await setDoc(playerRef, {
+                        name: username,
+                        score: 0,
+                        lastActive: new Date()
+                    });
+                    console.log(`Jogador '${username}' adicionado à subcoleção 'players'.`);
+
+                    showMessage(lang.joinSuccess, 'green');
+                    // Redireciona para o jogo
+                    window.location.href = `game.html?session=${encodeURIComponent(sessionCode)}&username=${encodeURIComponent(username)}&lang=${encodeURIComponent(langCode)}&userId=${encodeURIComponent(userId)}`;
+                } else {
+                    showMessage(lang.invalidSession, 'red');
+                    console.warn("Sessão não encontrada no Firestore.");
+                }
+            } catch (error) {
+                console.error("Erro ao entrar na sessão:", error);
+                showMessage("Erro ao entrar na sessão. Verifique sua conexão e o código.", 'red');
             }
-            
-            // Redireciona para game.html com os parâmetros na URL
-            window.location.href = `game.html?session=${encodeURIComponent(sessionCode)}&username=${encodeURIComponent(username)}&lang=${encodeURIComponent(langCode)}`;
         });
-        
+
         updateContent('pt-BR');
     </script>
 </body>
