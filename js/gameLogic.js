@@ -15,7 +15,8 @@ const questionAreaElement = document.getElementById('questionArea');
 const currentQuestionDisplayElement = document.getElementById('currentQuestionDisplay');
 const optionsContainerElement = document.getElementById('optionsContainer');
 const answerButton = document.getElementById('answerButton');
-const nextCardButton = document = document.getElementById('nextCardButton');
+// CORREÇÃO: AQUI ESTAVA O ERRO! Removido a atribuição extra ao 'document'.
+const nextCardButton = document.getElementById('nextCardButton');
 const feedbackContainer = document.getElementById('feedbackContainer');
 const backToHomeButton = document.getElementById('backToHomeButton');
 const randomCardButton = document.getElementById('randomCardButton');
