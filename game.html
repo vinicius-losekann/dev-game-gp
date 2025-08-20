@@ -24,21 +24,82 @@
             padding: 40px;
             border-radius: 10px;
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-            max-width: 800px;
+            max-width: 600px; /* Largura alterada para 600px */
             width: 100%;
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .main-content {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .game-area {
+            flex: 2;
+            min-width: 400px;
+        }
+        .players-container {
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            background-color: #f9f9f9;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+        }
+        .players-container h3 {
+            font-family: 'Poppins', sans-serif;
+            color: #1976d2;
+            margin: 0;
+            font-size: 1.2em;
+            text-align: center;
+        }
+        .player-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .player-item {
+            padding: 8px;
+            border-radius: 8px;
+            background-color: #e8f0f2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 500;
+            font-size: 0.9em;
+        }
+        .player-item span.score {
+            font-family: 'Poppins', sans-serif;
+            color: #2e7d32;
+            font-weight: 600;
         }
         .header {
             margin-bottom: 20px;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
+            flex-direction: column; /* Deixa o layout em coluna */
             gap: 20px;
-            text-align: left;
+            width: 100%;
+        }
+        .header-bottom {
+            display: flex; /* Novo container para a parte de baixo do cabeçalho */
+            justify-content: space-between;
+            align-items: flex-start;
+            width: 100%;
+            flex-wrap: wrap;
         }
         .user-info {
-            flex-grow: 1;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 5px; /* Adicionado para alinhar os elementos */
         }
         .user-info h2 {
             font-family: 'Poppins', sans-serif;
@@ -57,7 +118,8 @@
             text-align: right;
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 5px; /* Adicionado para alinhar os elementos */
+            align-items: flex-end; /* Alinhamento para a direita */
         }
         .game-stats p {
             margin: 0;
@@ -65,7 +127,7 @@
             color: #555;
         }
         .game-stats .exit-button {
-            background-color: #607d8b; /* Nova cor cinza/azul */
+            background-color: #607d8b;
             color: #fff;
             padding: 8px 15px;
             border: none;
@@ -73,21 +135,21 @@
             cursor: pointer;
             font-size: 0.9em;
             transition: background-color 0.3s;
-            margin-bottom: 10px; /* Adicionado para separar da pontuação */
+            margin-bottom: 10px;
         }
         .game-stats .exit-button:hover {
             background-color: #455a64;
         }
-        
         .game-area {
             margin-top: 30px;
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 20px;
+            width: 100%;
         }
         .game-card {
-            background-color: #f9f9f9;
+            background-color: #fff;
             padding: 30px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
@@ -143,7 +205,6 @@
         #selection-buttons .btn-riscos { background-color: #455a64; }
         #selection-buttons .btn-aquisicoes { background-color: #5d4037; }
         #selection-buttons .btn-stakeholders { background-color: #d84315; }
-
         /* Estilo das alternativas de resposta */
         .option-item {
             display: flex;
@@ -193,7 +254,6 @@
             background-color: #c62828;
             border-color: #c62828;
         }
-
         #result-message {
             margin-top: 15px;
             font-size: 1.1em;
@@ -201,7 +261,6 @@
             display: none;
             text-align: center;
         }
-
         #explanation {
             margin-top: 20px;
             padding: 15px;
@@ -219,7 +278,6 @@
         .incorrect {
             color: #c62828;
         }
-
         .action-buttons {
             display: flex;
             justify-content: center;
@@ -239,20 +297,33 @@
         .action-buttons button:hover {
             background-color: #388e3c;
         }
-
         .footer {
             margin-top: 40px;
             color: #999;
             font-size: 0.9em;
         }
-
+        @media (max-width: 1100px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .header-bottom {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 20px;
+            }
+            .game-stats {
+                text-align: left;
+            }
+        }
         @media (max-width: 768px) {
             .container {
                 padding: 20px;
             }
-            .header {
+            .header-bottom {
                 flex-direction: column;
                 align-items: flex-start;
+                gap: 20px;
             }
             .game-stats {
                 text-align: left;
@@ -264,50 +335,71 @@
     </style>
 </head>
 <body>
-
     <div class="container">
         <div class="header">
-            <div class="user-info">
-                <h2>Jogador: <span id="player-name"></span></h2>
-                <p>Sessão: <span id="session-code"></span></p>
-                <p>Idioma: <span id="language-code"></span></p>
+            <div class="players-container">
+                <h3>Jogadores na Sessão</h3>
+                <ul id="player-list" class="player-list">
+                </ul>
             </div>
-            <div class="game-stats">
-                <button id="exit-button" class="exit-button">Sair do Jogo</button>
-                <p>Pontuação: <span id="score">0</span></p>
-                <p id="question-counter" style="display: none;">Pergunta <span id="current-question">1</span> de <span id="total-questions">10</span></p>
-            </div>
-        </div>
-
-        <div class="game-area">
-            <div class="game-card">
-                <h2 id="main-title">Selecione uma Área de Conhecimento</h2>
-                <p id="instruction-text">Clique em um dos botões abaixo para iniciar o desafio sobre a área selecionada.</p>
-                <div id="selection-buttons" class="options">
+            <div class="header-bottom">
+                <div class="user-info">
+                    <h2>Jogador: <span id="player-name"></span></h2>
+                    <p>Sessão: <span id="session-code"></span></p>
+                    <p>Idioma: <span id="language-code"></span></p>
                 </div>
-                <p id="question-text" class="question-text" style="display: none;"></p>
-                <div id="options-container" class="options" style="display: none;">
-                </div>
-                <p id="result-message"></p>
-                <div id="explanation" style="display: none;"></div>
-                <div id="game-controls" class="action-buttons" style="display: none;">
-                    <button id="back-button">Voltar para as Áreas</button>
-                    <button id="next-question-button">Próxima Pergunta</button>
+                <div class="game-stats">
+                    <button id="exit-button" class="exit-button">Sair do Jogo</button>
+                    <p>Pontuação: <span id="score">0</span></p>
+                    <p id="question-counter" style="display: none;">Pergunta <span id="current-question">1</span> de <span id="total-questions">10</span></p>
                 </div>
             </div>
         </div>
-        
+        <div class="main-content">
+            <div class="game-area">
+                <div class="game-card">
+                    <h2 id="main-title">Selecione uma Área de Conhecimento</h2>
+                    <p id="instruction-text">Clique em um dos botões abaixo para iniciar o desafio sobre a área selecionada.</p>
+                    <div id="selection-buttons" class="options">
+                    </div>
+                    <p id="question-text" class="question-text" style="display: none;"></p>
+                    <div id="options-container" class="options" style="display: none;">
+                    </div>
+                    <p id="result-message"></p>
+                    <div id="explanation" style="display: none;"></div>
+                    <div id="game-controls" class="action-buttons" style="display: none;">
+                        <button id="back-button">Voltar para as Áreas</button>
+                        <button id="next-question-button">Próxima Pergunta</button>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="footer">
             <p>Jogo de Gerência de Projetos v1.0.0</p>
         </div>
     </div>
-
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, doc, getDoc, collection, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        // --- Configuração e Inicialização do Firebase ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyDdiedj1Smjzn9CDqShdhG5Y0_Sa18xyWI",
+            authDomain: "jogo-gerencia-de-projetos.firebaseapp.com",
+            projectId: "jogo-gerencia-de-projetos",
+            storageBucket: "jogo-gerencia-de-projetos.firebasestorage.app",
+            messagingSenderId: "356867532123",
+            appId: "1:356867532123:web:0657d84635a58499df2667e",
+            measurementId: "G-M5QYQ36Q9P"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
         const urlParams = new URLSearchParams(window.location.search);
         const playerName = urlParams.get('username') || 'Anônimo';
         const sessionCode = urlParams.get('session') || 'N/A';
-        const langCode = urlParams.get('lang') || 'pt-BR'; // Busca o idioma da URL
-
+        const langCode = urlParams.get('lang') || 'pt-BR';
+        const userId = urlParams.get('userId') || null;
         const gameData = {
             "Integração": [
                 {
@@ -390,7 +482,6 @@
                 }
             ]
         };
-
         const areaColors = {
             "Integração": "btn-integ",
             "Escopo": "btn-escopo",
@@ -403,17 +494,14 @@
             "Aquisições": "btn-aquisicoes",
             "Stakeholders": "btn-stakeholders"
         };
-        
         const areas = Object.keys(gameData);
         let selectedArea = '';
         let currentQuestionIndex = 0;
         let score = 0;
-
         document.getElementById('player-name').textContent = playerName;
         document.getElementById('session-code').textContent = sessionCode;
         document.getElementById('language-code').textContent = langCode.toUpperCase();
         document.getElementById('score').textContent = score;
-
         const mainTitleElement = document.getElementById('main-title');
         const instructionTextElement = document.getElementById('instruction-text');
         const selectionButtonsContainer = document.getElementById('selection-buttons');
@@ -429,7 +517,7 @@
         const backButton = document.getElementById('back-button');
         const gameControls = document.getElementById('game-controls');
         const exitButton = document.getElementById('exit-button');
-
+        const playerListElement = document.getElementById('player-list');
         function showAreaSelection() {
             mainTitleElement.textContent = 'Selecione uma Área de Conhecimento';
             instructionTextElement.style.display = 'block';
@@ -444,12 +532,10 @@
             score = 0;
             scoreElement.textContent = score;
         }
-
         function loadQuestion() {
             const questions = gameData[selectedArea];
             if (currentQuestionIndex < questions.length) {
                 const currentQuestion = questions[currentQuestionIndex];
-                
                 mainTitleElement.textContent = `${selectedArea}`;
                 instructionTextElement.style.display = 'none';
                 selectionButtonsContainer.style.display = 'none';
@@ -460,10 +546,8 @@
                 explanationElement.style.display = 'none';
                 gameControls.style.display = 'flex';
                 nextQuestionButton.style.display = 'none';
-
                 questionTextElement.textContent = currentQuestion.question;
                 optionsContainer.innerHTML = '';
-
                 currentQuestion.options.forEach(option => {
                     const optionDiv = document.createElement('div');
                     optionDiv.textContent = option;
@@ -471,7 +555,6 @@
                     optionDiv.addEventListener('click', () => checkAnswer(option, currentQuestion.answer, currentQuestion.explanation, optionDiv));
                     optionsContainer.appendChild(optionDiv);
                 });
-                
                 currentQuestionElement.textContent = currentQuestionIndex + 1;
                 totalQuestionsElement.textContent = questions.length;
                 document.querySelector('.game-card').style.justifyContent = 'flex-start';
@@ -479,13 +562,11 @@
                 endGame();
             }
         }
-
         function checkAnswer(selectedOption, correctAnswer, explanation, clickedElement) {
             const allOptions = optionsContainer.querySelectorAll('.option-item');
             allOptions.forEach(option => {
                 option.classList.add('disabled');
             });
-            
             if (selectedOption === correctAnswer) {
                 score++;
                 scoreElement.textContent = score;
@@ -503,13 +584,11 @@
                     correctOption.classList.add('correct-answer');
                 }
             }
-            
             resultMessageElement.style.display = 'block';
             explanationElement.innerHTML = `<strong>Explicação:</strong> ${explanation}`;
             explanationElement.style.display = 'block';
             nextQuestionButton.style.display = 'block';
         }
-
         function endGame() {
             mainTitleElement.textContent = 'Fim do Desafio!';
             questionTextElement.textContent = 'Você completou as perguntas desta área.';
@@ -521,21 +600,47 @@
             resultMessageElement.textContent = `Sua pontuação final é ${score} de ${gameData[selectedArea].length}.`;
             resultMessageElement.classList.remove('correct', 'incorrect');
         }
-
+        function setupPlayersListener() {
+            if (sessionCode === 'N/A') return;
+            const playersRef = collection(db, `sessions/${sessionCode}/players`);
+            onSnapshot(playersRef, (querySnapshot) => {
+                const players = [];
+                querySnapshot.forEach(doc => {
+                    players.push(doc.data());
+                });
+                players.sort((a, b) => b.score - a.score);
+                playerListElement.innerHTML = '';
+                players.forEach(player => {
+                    const playerItem = document.createElement('li');
+                    playerItem.classList.add('player-item');
+                    playerItem.innerHTML = `<span>${player.name}</span><span class="score">${player.score}</span>`;
+                    if (player.name === playerName) {
+                        playerItem.style.fontWeight = 'bold';
+                        playerItem.style.border = '2px solid #2e7d32';
+                    }
+                    playerListElement.appendChild(playerItem);
+                });
+            });
+        }
         nextQuestionButton.addEventListener('click', () => {
             currentQuestionIndex++;
             loadQuestion();
         });
-
         backButton.addEventListener('click', () => {
             showAreaSelection();
         });
-
-        exitButton.addEventListener('click', () => {
+        exitButton.addEventListener('click', async () => {
+            if (userId && sessionCode !== 'N/A') {
+                try {
+                    const playerRef = doc(db, `sessions/${sessionCode}/players/${userId}`);
+                    await deleteDoc(playerRef);
+                    console.log(`Jogador ${playerName} (ID: ${userId}) removido da sessão ${sessionCode}.`);
+                } catch (error) {
+                    console.error("Erro ao remover o jogador do Firestore:", error);
+                }
+            }
             window.location.href = 'index.html';
         });
-
-        // Cria os botões de seleção de área
         areas.forEach(area => {
             const button = document.createElement('button');
             button.textContent = area;
@@ -547,8 +652,8 @@
             });
             selectionButtonsContainer.appendChild(button);
         });
-        
         showAreaSelection();
+        setupPlayersListener();
     </script>
 </body>
 </html>
