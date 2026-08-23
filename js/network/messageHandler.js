@@ -1,8 +1,386 @@
-/*
-  ARQUIVO: js/network/messageHandler.js
-  ARQUIVO LEGADO DE BASE: [source: 4] (network.js) - Blocos de switch/case que tratam cada tipo de mensagem P2P.
-  
-  RESPONSABILIDADE:
-  - Roteador de mensagens P2P.
-  - Recebe pacotes brutos do PeerService e os converte em eventos do EventBus (e vice-versa).
-*/
+// ============================================
+// PM: The KPI Master - Network: Message Handler
+// ============================================
+// Roteia as mensagens recebidas para as funções apropriadas e mantém
+// a lista de jogadores sincronizada (lado host). Não lida com PeerJS
+// em si (isso é peerService.js) nem com migração de host (isso é
+// hostMigration.js).
+// Fase 4.2 do roadmap.
+// ============================================
+
+/**
+ * Roteia as mensagens recebidas para as funções apropriadas.
+ */
+function handleMessage(msg, fromPeerId) {
+    console.log('📨 Mensagem recebida:', msg.type);
+    const state = Game.state;
+
+    switch (msg.type) {
+
+        // --- LOBBY ---
+        case 'player-join':
+            if (state.isHost) addPlayer(msg, fromPeerId);
+            break;
+
+        case 'join-rejected':
+            Game.network.cleanup();
+            const motivo = msg.reason === 'room-full'
+                ? '⚠️ Sala cheia (máximo de ' + CONFIG.JOGO.MAX_PLAYERS + ' jogadores).'
+                : '⚠️ Esse nome já está em uso nesta sala. Escolha outro nome e entre novamente.';
+            alert(motivo);
+            window.location.href = 'index.html';
+            break;
+
+        case 'player-list':
+            state.players = msg.players;
+            Game.ui.updatePlayersList();
+            break;
+
+        case 'state-sync':
+            restoreState(msg.fullState);
+            break;
+
+        // --- SESSÃO ---
+        case 'session-ended':
+            Game.ui.closeAllModals();
+            alert('⛔ O host encerrou a sessão.');
+            Game.network.cleanup();
+            window.location.href = 'index.html';
+            break;
+
+        case 'host-changed':
+            state.hostPeerId = msg.newHostPeerId;
+            if (msg.hostVersion !== undefined) state.hostVersion = msg.hostVersion;
+            if (msg.players) state.players = msg.players;
+            if (!state.isHost) Game.network.reconnectToNewHost(msg.newHostPeerId);
+            if (state.gameStarted && !state.gameOver) {
+                Game.ui.showScreen('game');
+                Game.ui.updatePlayersOnlineList();
+                Game.ui.updateRankingList();
+                Game.ui.updateTimerDisplay();
+                if (state.currentRound) {
+                    const isParticipant =
+                        state.playerName === state.currentRound.perguntador ||
+                        state.playerName === state.currentRound.respondedor;
+                    if (isParticipant) {
+                        Game.ui.displayRoundStart();
+                        if (state.currentRound.pergunta) {
+                            Game.ui.displayQuestion(state.currentRound.pergunta);
+                        }
+                    } else {
+                        Game.ui.displaySpectatorView(state.currentRound.perguntador, state.currentRound.respondedor);
+                    }
+                }
+            }
+            Game.saveState();
+            break;
+
+        // --- PARTIDA ---
+        case 'game-start':
+            state.timer = msg.timer;
+            Game.core.startGame();
+            break;
+
+        case 'leave-match-request':
+            if (state.isHost) Game.core.handleLeaveMatchRequest(msg);
+            break;
+
+        case 'match-ended':
+            Game.core.handleMatchEnded(msg);
+            break;
+
+        case 'game-over':
+            Game.core.endGame(msg.ranking);
+            break;
+
+        // --- RODADA ---
+        case 'round-start':
+            state.currentRound = {
+                evento: msg.evento,
+                perguntador: msg.perguntador,
+                respondedor: msg.respondedor,
+                pergunta: null,
+                respondeu: false
+            };
+            if (state.playerName === msg.perguntador || state.playerName === msg.respondedor) {
+                Game.ui.displayRoundStart();
+            } else {
+                Game.ui.displaySpectatorView(msg.perguntador, msg.respondedor);
+            }
+            break;
+
+        case 'question':
+            if (!state.isHost) {
+                state.currentRound.pergunta = msg;
+            }
+            state.currentRound.respondeu = false;
+            Game.ui.displayQuestion(msg);
+            break;
+
+        case 'answer':
+            if (state.isHost &&
+                state.currentRound &&
+                !state.currentRound.respondeu &&
+                msg.playerName === state.currentRound.respondedor) {
+                Game.core.handleAnswer(msg);
+            }
+            break;
+
+        case 'kpi-update':
+            Game.core.updatePlayerKPI(msg);
+            break;
+
+        case 'timer-update':
+            state.timer = msg.remaining;
+            Game.ui.updateTimerDisplay();
+            break;
+
+        // --- EVENTO ---
+        case 'show-evento':
+            if (msg.players) {
+                state.players = msg.players;
+            }
+            Game.ui.showEventoModal(msg.evento);
+            Game.ui.updatePlayersOnlineList();
+            Game.ui.updateRankingList();
+            const me = Game.getPlayerByName(state.playerName);
+            if (me) {
+                document.getElementById('myRecursos').textContent = me.recursos;
+                document.getElementById('myKPI').textContent = me.kpi;
+            }
+            break;
+
+        // --- ASSESSORIA ---
+        case 'assessoria-request':
+            if (state.isHost) Game.core.handleAssessoriaRequest(msg);
+            break;
+
+        case 'assessoria-started':
+            Game.ui.showAssessoriaStarted(msg);
+            break;
+
+        case 'assessoria-question':
+            Game.ui.showAssessoriaQuestionModal(msg);
+            break;
+
+        case 'assessoria-answer':
+            if (state.isHost) Game.core.handleAssessoriaAnswer(msg);
+            break;
+
+        case 'assessoria-result':
+            Game.ui.showAssessoriaResult(msg);
+            break;
+
+        // --- VENDA ---
+        case 'venda-offer-request':
+            if (state.isHost) Game.core.handleVendaOfertaRequest(msg);
+            break;
+
+        case 'venda-offer':
+            Game.ui.showVendaOfertaModal(msg);
+            break;
+
+        case 'venda-offer-response':
+            if (state.isHost) Game.core.handleVendaOfertaResponse(msg);
+            break;
+
+        case 'venda-rejected':
+            alert('⚠️ ' + msg.motivo);
+            Game.ui.fecharVendaModal();
+            break;
+
+        case 'venda-confirmed':
+            const vendedor = Game.getPlayerByName(msg.vendedor);
+            const comprador = Game.getPlayerByName(msg.comprador);
+            if (vendedor) {
+                vendedor.kpi = msg.vendedorKPI;
+                vendedor.recursos = msg.vendedorRecursos;
+            }
+            if (comprador) {
+                comprador.kpi = msg.compradorKPI;
+                comprador.recursos = msg.compradorRecursos;
+            }
+            Game.ui.updatePlayersOnlineList();
+            Game.ui.updateRankingList();
+            const me2 = Game.getPlayerByName(state.playerName);
+            if (me2) {
+                document.getElementById('myRecursos').textContent = me2.recursos;
+                document.getElementById('myKPI').textContent = me2.kpi;
+            }
+            if (state.playerName === msg.vendedor) {
+                Game.ui.fecharVendaModal();
+            }
+            console.log('💰 Venda confirmada:', msg.vendedor, '→', msg.comprador);
+            break;
+    }
+}
+
+// ============================================
+// GERENCIAR JOGADORES (HOST)
+// ============================================
+
+/**
+ * Adiciona um jogador à sala (host). Verifica duplicidade de nome e limite.
+ */
+function addPlayer(msg, fromPeerId) {
+    const state = Game.state;
+    const cs = Game.network.connectionState;
+
+    if (state.players.length >= CONFIG.JOGO.MAX_PLAYERS) {
+        const c = cs.getConnection(fromPeerId);
+        if (c && c.open) {
+            c.send({ type: 'join-rejected', reason: 'room-full' });
+        }
+        setTimeout(() => { if (c) c.close(); }, 300);
+        return;
+    }
+
+    const existingIdx = state.players.findIndex(p => p.name === msg.playerName);
+    if (existingIdx >= 0) {
+        const existingPlayer = state.players[existingIdx];
+        const oldConn = cs.getConnection(existingPlayer.peerId);
+        const oldPeerStillConnected = oldConn && oldConn.open && existingPlayer.peerId !== fromPeerId;
+
+        if (oldPeerStillConnected) {
+            const c = cs.getConnection(fromPeerId);
+            if (c && c.open) {
+                c.send({ type: 'join-rejected', reason: 'name-taken' });
+            }
+            setTimeout(() => { if (c) c.close(); }, 300);
+            return;
+        }
+
+        state.players[existingIdx].peerId = fromPeerId;
+        console.log('🔄 Reconectado:', msg.playerName);
+    } else {
+        state.players.push({
+            name: msg.playerName,
+            peerId: fromPeerId,
+            kpi: 0,
+            phase: CONFIG.FASES[0].id,
+            activities: 0,
+            isHost: false,
+            waitingInLobby: false,
+            recursos: CONFIG.RECURSOS_INICIAIS
+        });
+
+        if (state.players.length === 2 && !state.backupPeerId) {
+            state.backupPeerId = fromPeerId;
+        }
+    }
+
+    Game.network.broadcastAll({ type: 'player-list', players: state.players });
+    Game.ui.updatePlayersList();
+    Game.ui.checkStartCondition();
+
+    const conn = cs.getConnection(fromPeerId);
+    if (conn && conn.open) {
+        let currentRoundForSync = state.currentRound;
+        if (currentRoundForSync && currentRoundForSync.pergunta) {
+            const isPerguntadorDaRodada = msg.playerName === currentRoundForSync.perguntador;
+            if (!isPerguntadorDaRodada) {
+                currentRoundForSync = {
+                    ...currentRoundForSync,
+                    pergunta: { ...currentRoundForSync.pergunta, correta: undefined }
+                };
+            }
+        }
+
+        conn.send({
+            type: 'state-sync',
+            fullState: {
+                players: state.players,
+                baralhos: state.baralhos,
+                timer: state.timer,
+                currentRound: currentRoundForSync,
+                gameStarted: state.gameStarted,
+                hostVersion: state.hostVersion
+            }
+        });
+    }
+
+    Game.saveState();
+}
+
+/**
+ * Remove um jogador da sala (host) e aborta a rodada se ele for participante.
+ */
+function removePlayerByPeerId(peerId) {
+    const state = Game.state;
+    const removedPlayer = state.players.find(p => p.peerId === peerId);
+    state.players = state.players.filter(p => p.peerId !== peerId);
+
+    if (state.backupPeerId === peerId && state.players.length > 1) {
+        state.backupPeerId = state.players[1]?.peerId;
+    }
+
+    Game.network.broadcastAll({ type: 'player-list', players: state.players });
+    Game.ui.updatePlayersList();
+    Game.ui.checkStartCondition();
+
+    if (removedPlayer && state.gameStarted && !state.gameOver) {
+        Game.core.abortRoundIfParticipant(removedPlayer.name);
+    }
+
+    Game.saveState();
+}
+
+// ============================================
+// SINCRONIZAÇÃO DE ESTADO
+// ============================================
+
+/**
+ * Restaura o estado completo vindo do host (usado após reconexão).
+ */
+function restoreState(fullState) {
+    const state = Game.state;
+    state.players = fullState.players;
+    state.baralhos = fullState.baralhos;
+    state.timer = fullState.timer;
+    state.currentRound = fullState.currentRound;
+    state.gameStarted = fullState.gameStarted;
+    if (fullState.hostVersion !== undefined) state.hostVersion = fullState.hostVersion;
+
+    if (state.gameStarted) {
+        Game.ui.showScreen('game');
+        Game.ui.updateTimerDisplay();
+        Game.ui.updatePlayersOnlineList();
+        Game.ui.updateRankingList();
+
+        const me = Game.getPlayerByName(state.playerName);
+        Game.ui.renderProfileCard(me);
+
+        if (state.currentRound) {
+            const isParticipant =
+                state.playerName === state.currentRound.perguntador ||
+                state.playerName === state.currentRound.respondedor;
+            if (isParticipant) {
+                Game.ui.displayRoundStart();
+                if (state.currentRound.pergunta) {
+                    Game.ui.displayQuestion(state.currentRound.pergunta);
+                }
+            } else {
+                Game.ui.displaySpectatorView(state.currentRound.perguntador, state.currentRound.respondedor);
+            }
+        }
+    } else {
+        Game.ui.showScreen('lobby');
+        Game.ui.showLobbyNormal();
+    }
+
+    Game.ui.updatePlayersList();
+    Game.ui.updateTimerDisplay();
+    Game.saveState();
+}
+
+// ============================================
+// EXPORTAÇÃO
+// ============================================
+window.Game = window.Game || {};
+window.Game.network = window.Game.network || {};
+Object.assign(window.Game.network, {
+    handleMessage,
+    addPlayer,
+    removePlayerByPeerId,
+    restoreState
+});

@@ -2,7 +2,13 @@
   "areas": {
     "governanca": {
       "nome": "Governança",
-      "grupos": ["iniciacao", "planejamento", "execucao", "monitoramento_controle", "encerramento"],
+      "grupos": [
+        "iniciacao",
+        "planejamento",
+        "execucao",
+        "monitoramento_controle",
+        "encerramento"
+      ],
       "perguntas": [
         {
           "id": "gov_1",
@@ -184,7 +190,10 @@
     },
     "escopo": {
       "nome": "Escopo",
-      "grupos": ["planejamento", "monitoramento_controle"],
+      "grupos": [
+        "planejamento",
+        "monitoramento_controle"
+      ],
       "perguntas": [
         {
           "id": "esc_1",
@@ -300,7 +309,10 @@
     },
     "cronograma": {
       "nome": "Cronograma",
-      "grupos": ["planejamento", "monitoramento_controle"],
+      "grupos": [
+        "planejamento",
+        "monitoramento_controle"
+      ],
       "perguntas": [
         {
           "id": "cro_1",
@@ -416,7 +428,10 @@
     },
     "financas": {
       "nome": "Finanças",
-      "grupos": ["planejamento", "monitoramento_controle"],
+      "grupos": [
+        "planejamento",
+        "monitoramento_controle"
+      ],
       "perguntas": [
         {
           "id": "fin_1",
@@ -532,7 +547,12 @@
     },
     "partes_interessadas": {
       "nome": "Partes Interessadas",
-      "grupos": ["iniciacao", "planejamento", "execucao", "monitoramento_controle"],
+      "grupos": [
+        "iniciacao",
+        "planejamento",
+        "execucao",
+        "monitoramento_controle"
+      ],
       "perguntas": [
         {
           "id": "par_1",
@@ -648,7 +668,11 @@
     },
     "recursos": {
       "nome": "Recursos",
-      "grupos": ["planejamento", "execucao", "monitoramento_controle"],
+      "grupos": [
+        "planejamento",
+        "execucao",
+        "monitoramento_controle"
+      ],
       "perguntas": [
         {
           "id": "rec_1",
@@ -764,7 +788,11 @@
     },
     "riscos": {
       "nome": "Riscos",
-      "grupos": ["planejamento", "execucao", "monitoramento_controle"],
+      "grupos": [
+        "planejamento",
+        "execucao",
+        "monitoramento_controle"
+      ],
       "perguntas": [
         {
           "id": "ris_1",
@@ -878,43 +906,5 @@
         }
       ]
     }
-  },
-  "eventos": [
-    {
-      "id": "e1",
-      "titulo": "Apoio da Alta Gestão",
-      "descricao": "Mais verba aprovada! Todos ganham +1 recurso.",
-      "recursos_todos": 1
-    },
-    {
-      "id": "e2",
-      "titulo": "Corte de Orçamento",
-      "descricao": "Verba reduzida! Todos perdem 1 recurso.",
-      "recursos_todos": -1
-    },
-    {
-      "id": "e3",
-      "titulo": "Patrocinador Generoso",
-      "descricao": "Patrocinador injetou capital! Quem tem menos recursos ganha +1.",
-      "recursos_menos": 1
-    },
-    {
-      "id": "e4",
-      "titulo": "Reserva de Contingência",
-      "descricao": "Reserva de contingência ativada! O Respondedor não gasta recurso nesta rodada, acertando ou errando.",
-      "reserva_contingencia": true
-    },
-    {
-      "id": "e5",
-      "titulo": "Reestruturação",
-      "descricao": "Equipe reorganizada! Quem tem mais dá 1 recurso para quem tem menos.",
-      "troca_recursos": true
-    },
-    {
-      "id": "e6",
-      "titulo": "Operação Normal",
-      "descricao": "Nenhum evento especial nesta rodada. O trabalho segue conforme planejado.",
-      "neutro": true
-    }
-  ]
+  }
 }

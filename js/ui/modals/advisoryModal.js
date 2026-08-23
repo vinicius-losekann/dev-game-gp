@@ -1,10 +1,160 @@
-/*
-  FILE: js/ui/modals/advisoryModal.js
-  ARQUIVO LEGADO DE BASE: game-ui_2.js (funções showAssessoriaSelectModal, escolherAssessor, showAssessoriaQuestionModal, responderAssessoria, showAssessoriaResult, showAssessoriaBonusModal)[cite: 3].
-  
-  RESPONSABILIDADE:
-  - Modal sobreposto: Controla o fluxo de Assessoria:
-    1. Interface do Respondedor: Seleção do colega assessor[cite: 3].
-    2. Interface do Assessor: Exibe a pergunta e timer para envio da alternativa recomendada[cite: 3].
-    3. Retorno visual para o Respondedor com a sugestão enviada[cite: 3].
-*/
+// ============================================
+// PM: The KPI Master - UI Modal: Assessoria
+// ============================================
+// Cobre a seleção do assessor, a pergunta enviada ao assessor e a
+// exibição do resultado (sugestão, recusa ou timeout).
+// Fase 5.12 do roadmap.
+// ============================================
+
+let assessoriaCountdownInterval = null;
+
+function showAssessoriaSelectModal() {
+    const state = Game.state;
+    const round = state.currentRound;
+    if (!round) return;
+
+    const candidatos = Game.getActivePlayers().filter(p =>
+        p.name !== round.perguntador && p.name !== state.playerName
+    );
+
+    if (candidatos.length === 0) {
+        alert('⚠️ Nenhum jogador disponível para assessoria.');
+        return;
+    }
+
+    document.getElementById('assessoriaJogadoresList').innerHTML = candidatos.map(p => `
+        <button class="btn btn-glass" onclick="Game.ui.escolherAssessor('${p.name}')"
+                style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px;">
+            <span>${p.name}</span>
+            <span style="font-size:0.8rem; color:#a0a0b8;">${Game.getFaseById(p.phase).emoji}</span>
+        </button>
+    `).join('');
+
+    document.getElementById('modalAssessoriaSelect').style.display = 'flex';
+}
+
+function escolherAssessor(assessorName) {
+    document.getElementById('modalAssessoriaSelect').style.display = 'none';
+    const ok = Game.core.requestAssessoria(assessorName);
+    if (ok) {
+        document.getElementById('btnPedirAssessoria').disabled = true;
+        document.getElementById('assessoriaStatus').textContent = `📞 Aguardando resposta de ${assessorName}...`;
+        document.querySelectorAll('.alternative-btn').forEach(b => b.disabled = true);
+
+        if (Game.state.currentRound) {
+            Game.state.currentRound.assessoria = {
+                assessorName,
+                status: 'pending',
+                sugestao: null
+            };
+        }
+    }
+}
+
+function showAssessoriaStarted(msg) {
+    const state = Game.state;
+    if (state.playerName === state.currentRound?.respondedor) {
+        document.getElementById('btnPedirAssessoria').disabled = true;
+        document.getElementById('assessoriaStatus').textContent = `📞 Aguardando resposta de ${msg.assessorName}...`;
+
+        if (state.currentRound) {
+            state.currentRound.assessoria = {
+                assessorName: msg.assessorName,
+                status: 'pending',
+                sugestao: null
+            };
+        }
+    }
+}
+
+function showAssessoriaQuestionModal(msg) {
+    document.getElementById('assessoriaQuestionText').textContent = msg.pergunta;
+    document.getElementById('assessoriaAlternativesList').innerHTML = msg.alternativas.map(alt => {
+        const letra = alt.charAt(0).toLowerCase();
+        return `<button class="btn btn-glass" onclick="Game.ui.responderAssessoria('${letra}', false)"
+                    style="text-align:left; padding:10px 14px;">${alt}</button>`;
+    }).join('');
+
+    let seconds = Math.floor(CONFIG.JOGO.ASSESSORIA_TIMEOUT / 1000);
+    document.getElementById('assessoriaTimerText').textContent = `⏱️ ${seconds}s`;
+
+    clearInterval(assessoriaCountdownInterval);
+    assessoriaCountdownInterval = setInterval(() => {
+        seconds--;
+        document.getElementById('assessoriaTimerText').textContent = `⏱️ ${Math.max(seconds, 0)}s`;
+        if (seconds <= 0) {
+            clearInterval(assessoriaCountdownInterval);
+            document.getElementById('modalAssessoriaQuestion').style.display = 'none';
+        }
+    }, 1000);
+
+    document.getElementById('modalAssessoriaQuestion').style.display = 'flex';
+}
+
+function responderAssessoria(alternativa, recusado) {
+    clearInterval(assessoriaCountdownInterval);
+    document.getElementById('modalAssessoriaQuestion').style.display = 'none';
+
+    const state = Game.state;
+    const msg = { type: 'assessoria-answer', alternativa, recusado: !!recusado };
+
+    if (state.isHost) {
+        Game.core.handleAssessoriaAnswer(msg);
+    } else {
+        Game.network.sendToHost(msg);
+    }
+}
+
+function showAssessoriaResult(msg) {
+    const state = Game.state;
+    if (state.playerName !== state.currentRound?.respondedor) return;
+
+    const statusEl = document.getElementById('assessoriaStatus');
+    if (!statusEl) return;
+
+    if (state.currentRound?.assessoria) {
+        state.currentRound.assessoria.status = msg.recusado ? 'declined' : 'accepted';
+        state.currentRound.assessoria.sugestao = msg.recusado ? null : msg.sugestao;
+    }
+
+    if (msg.recusado) {
+        if (msg.invalido && msg.motivo === 'fase-encerramento') {
+            statusEl.textContent = '⚠️ Jogadores na fase de Encerramento não podem pedir assessoria.';
+        } else if (msg.invalido) {
+            statusEl.textContent = `⚠️ Não foi possível chamar ${msg.assessorName}. Escolha uma alternativa.`;
+        } else if (msg.timeout) {
+            statusEl.textContent = `⌛ ${msg.assessorName} não respondeu a tempo.`;
+        } else {
+            statusEl.textContent = `❌ ${msg.assessorName} recusou o pedido de assessoria.`;
+        }
+    } else {
+        statusEl.textContent = `🧭 ${msg.assessorName} sugere: ${msg.sugestao.toUpperCase()}`;
+    }
+
+    if (!state.currentRound.respondeu) {
+        document.querySelectorAll('.alternative-btn').forEach(b => b.disabled = false);
+    }
+
+    if (msg.invalido && msg.motivo !== 'fase-encerramento') {
+        const btnPedir = document.getElementById('btnPedirAssessoria');
+        if (btnPedir && !state.currentRound.respondeu) btnPedir.disabled = false;
+
+        if (state.currentRound) {
+            state.currentRound.assessoria = null;
+        }
+    }
+}
+
+// ============================================
+// EXPORTAÇÃO
+// ============================================
+window.Game = window.Game || {};
+window.Game.ui = window.Game.ui || {};
+Object.assign(window.Game.ui, {
+    showAssessoriaSelectModal,
+    escolherAssessor,
+    showAssessoriaStarted,
+    showAssessoriaQuestionModal,
+    responderAssessoria,
+    showAssessoriaResult
+});

@@ -4,6 +4,17 @@
 // Exclusivo para desenvolvimento. Use no console (F12) para simular
 // jogadores, partidas e testar funcionalidades.
 // Comente a linha de inclusão em game.html para produção.
+// Fase 7.3 do roadmap — substitui js/game-debug.js.
+//
+// 🐛 REGRESSÃO-002 (ver ISSUES.md): assim como a REGRESSÃO-001
+// (resetAllBaralhos, encontrada na Fase 5), este arquivo chamava
+// Game.core.sortearPergunta(), Game.core.sortearEvento() e
+// Game.core.aplicarEfeitosEvento() — wrappers que existiam no
+// game-core.js original mas foram removidos na Fase 3 (o
+// turnEngine.js passou a chamar os domain/*.js diretamente, sem
+// recriar esses wrappers). Como game-debug.js só foi migrado agora,
+// o gap não tinha sido pego ainda. Corrigido chamando
+// Game.domain.deck.sortearPergunta(...) e Game.domain.event.* direto.
 // ============================================
 
 window.Game = window.Game || {};
@@ -90,7 +101,7 @@ window.Game.debug = {
         const perguntasSorteadas = [];
 
         for (let i = 0; i < times; i++) {
-            const p = Game.core.sortearPergunta(fase);
+            const p = Game.domain.deck.sortearPergunta(state.baralhos, state.questionsData, fase);
             if (p) {
                 contagem[p.area_key] = (contagem[p.area_key] || 0) + 1;
                 perguntasSorteadas.push(p.id);
@@ -126,7 +137,7 @@ window.Game.debug = {
         for (let i = 0; i < count; i++) {
             if (player.recursos <= 0) { console.log(`   ⚠️ Sem recursos! Pulando...`); continue; }
 
-            const pergunta = Game.core.sortearPergunta(player.phase);
+            const pergunta = Game.domain.deck.sortearPergunta(state.baralhos, state.questionsData, player.phase);
             if (!pergunta) break;
 
             const acertou = Math.random() < 0.5;
@@ -312,8 +323,8 @@ window.Game.debug = {
                 break;
             }
 
-            const evento = Game.core.sortearEvento();
-            Game.core.aplicarEfeitosEvento(evento);
+            const evento = Game.domain.event.sortearEvento(Game.state.questionsData?.eventos || []);
+            Game.domain.event.aplicarEfeitosEvento(evento, jogadores);
 
             // Chance de venda automática
             if (Math.random() < 0.15 && rodada > 3) {
@@ -349,7 +360,7 @@ window.Game.debug = {
 
                 alguemRespondeu = true;
                 const faseAtual = Game.getFaseById(jogador.phase);
-                const pergunta = Game.core.sortearPergunta(jogador.phase);
+                const pergunta = Game.domain.deck.sortearPergunta(Game.state.baralhos, Game.state.questionsData, jogador.phase);
                 if (!pergunta) { continue; }
 
                 const acertou = Math.random() < chanceAcerto;

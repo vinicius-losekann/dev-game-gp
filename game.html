@@ -361,17 +361,62 @@
     <!-- 2. Configuração -->
     <script src="config/game-config.js"></script>
 
-    <!-- 3. Módulos do jogo -->
-    <script src="js/game-state.js"></script>
-    <script src="js/game-network.js"></script>
-    <script src="js/game-core.js"></script>
-    <script src="js/game-ui.js"></script>
+    <!-- 2.5. EventBus (Fase 0 do roadmap — precisa vir antes dos módulos do jogo) -->
+    <script src="js/utils/eventBus.js"></script>
 
-    <!-- 4. Debug (comentar para produção) -->
-    <!-- <script src="js/game-debug.js"></script> -->
+    <!-- 2.6. i18n (Fase 6 do roadmap — infraestrutura apenas, UI ainda não religada, ver ARCHITECTURE.md NOTA-003) -->
+    <script src="js/utils/i18n.js"></script>
+    <script src="js/locales/pt-BR.js"></script>
+
+    <!-- 2.7. Logger e Persistência (Fase 7 do roadmap) -->
+    <script src="js/utils/logger.js"></script>
+    <script src="js/utils/persistence.js"></script>
+
+    <!-- 3. Módulos do jogo -->
+    <script src="js/state/selectors.js"></script>
+    <script src="js/state/mutations.js"></script>
+    <script src="js/state/store.js"></script>
+
+    <!-- 3.6. Rede (Fase 4 do roadmap — substitui js/game-network.js) -->
+    <script src="js/network/connectionState.js"></script>
+    <script src="js/network/peerService.js"></script>
+    <script src="js/network/messageHandler.js"></script>
+    <script src="js/network/hostMigration.js"></script>
+
+    <!-- 3.5. Regras puras de domínio (Fase 1 do roadmap — precisam vir antes de game-core.js) -->
+    <script src="js/domain/kpiRules.js"></script>
+    <script src="js/domain/eventRules.js"></script>
+    <script src="js/domain/deckRules.js"></script>
+    <script src="js/domain/rankingRules.js"></script>
+    <script src="js/domain/tradeRules.js"></script>
+    <script src="js/domain/advisoryRules.js"></script>
+
+    <!-- 3.7. Orquestração (Fase 3 do roadmap — substitui js/game-core.js) -->
+    <script src="js/engine/sessionEngine.js"></script>
+    <script src="js/engine/turnEngine.js"></script>
+    <script src="js/engine/answerEngine.js"></script>
+    <script src="js/engine/tradeEngine.js"></script>
+    <script src="js/engine/advisoryEngine.js"></script>
+
+    <!-- 3.8. Interface de usuário (Fase 5 do roadmap — substitui js/game-ui.js) -->
+    <script src="js/ui/screenManager.js"></script>
+    <script src="js/ui/components/lobbyComponent.js"></script>
+    <script src="js/ui/components/questionComponent.js"></script>
+    <script src="js/ui/components/profileComponent.js"></script>
+    <script src="js/ui/components/controlsComponent.js"></script>
+    <script src="js/ui/components/timerComponent.js"></script>
+    <script src="js/ui/components/rankingComponent.js"></script>
+    <script src="js/ui/modals/resultModal.js"></script>
+    <script src="js/ui/modals/eventModal.js"></script>
+    <script src="js/ui/modals/tradeModal.js"></script>
+    <script src="js/ui/modals/advisoryModal.js"></script>
+    <script src="js/ui/setup.js"></script>
+
+    <!-- 4. Debug (descomentar para desenvolvimento, comentar para produção) -->
+    <!-- <script src="js/dev/debugTools.js"></script> -->
 
     <!-- 5. Orquestrador (sempre por último) -->
-    <script src="js/game-main.js"></script>
+    <script src="js/main.js"></script>
 
 </body>
 </html>

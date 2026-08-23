@@ -1,7 +1,133 @@
-/*
-  FILE: js/ui/components/questionComponent.js
-  ARQUIVO LEGADO DE BASE: game-ui.js (funções displayRoundStart, displayQuestion, handleAlternativeClick, showResultModal)[cite: 3].
-  
-  RESPONSABILIDADE:
-  - Componente de Interface principal da partida: Renderiza o enunciado da pergunta, as alternativas (a, b, c, d), os papéis da rodada (Perguntador/Respondedor) e escuta o clique de resposta[cite: 3].
-*/
+// ============================================
+// PM: The KPI Master - UI Component: Pergunta
+// ============================================
+// Exibição da rodada, da pergunta (perguntador/respondedor/espectador)
+// e captura do clique na alternativa escolhida.
+// Fase 5.4 do roadmap.
+// ============================================
+
+function displayRoundStart() {
+    const round = Game.state.currentRound;
+    if (!round) return;
+    document.getElementById('questionArea').style.display = 'block';
+    document.getElementById('spectatorArea').style.display = 'none';
+    document.getElementById('perguntadorName').textContent = round.perguntador;
+    document.getElementById('respondedorName').textContent = round.respondedor;
+    if (round.evento) {
+        document.getElementById('eventCard').style.display = 'flex';
+        document.getElementById('eventTitle').textContent = round.evento.titulo;
+        document.getElementById('eventDesc').textContent = round.evento.descricao;
+    } else {
+        document.getElementById('eventCard').style.display = 'none';
+    }
+
+    // Reseta UI de assessoria
+    document.getElementById('modalAssessoriaSelect').style.display = 'none';
+    document.getElementById('modalAssessoriaQuestion').style.display = 'none';
+    const assessoriaArea = document.getElementById('assessoriaArea');
+    if (assessoriaArea) assessoriaArea.style.display = 'none';
+}
+
+function displayQuestion(q) {
+    const isPerg = Game.state.playerName === Game.state.currentRound?.perguntador;
+    const isResp = Game.state.playerName === Game.state.currentRound?.respondedor;
+    document.getElementById('questionText').textContent = q.pergunta;
+    document.getElementById('badgeArea').textContent = q.area;
+    document.getElementById('badgeGrupo').textContent = q.grupo;
+
+    if (isResp && q.isRespondedor !== false) {
+        document.getElementById('alternativesGrid').style.display = 'grid';
+        document.getElementById('allAlternativesArea').style.display = 'none';
+        document.getElementById('roleNotice').style.display = 'block';
+        document.getElementById('roleNotice').innerHTML = '🎯 <strong>Você está respondendo!</strong> Escolha uma alternativa.';
+        document.getElementById('roleNotice').className = 'role-notice role-respondedor';
+        document.getElementById('altA').textContent = q.alternativas[0];
+        document.getElementById('altB').textContent = q.alternativas[1];
+        document.getElementById('altC').textContent = q.alternativas[2];
+        document.getElementById('altD').textContent = q.alternativas[3];
+
+        const round = Game.state.currentRound;
+        const jaRespondeu = !!round?.respondeu;
+        const assessoriaPendente = round?.assessoria?.status === 'pending';
+        document.querySelectorAll('.alternative-btn').forEach(b => {
+            b.disabled = jaRespondeu || assessoriaPendente;
+            b.className = 'alternative-btn';
+        });
+
+        const me = Game.getPlayerByName(Game.state.playerName);
+        const emEncerramento = me && Game.getFaseIndex(me.phase) === CONFIG.FASES.length - 1;
+        const semAssessorDisponivel = Game.getActivePlayers().length < 3;
+        const assessoriaArea = document.getElementById('assessoriaArea');
+        if (assessoriaArea) {
+            if (emEncerramento || semAssessorDisponivel || jaRespondeu) {
+                assessoriaArea.style.display = round?.assessoria ? 'block' : 'none';
+            } else {
+                assessoriaArea.style.display = 'block';
+            }
+
+            if (round?.assessoria) {
+                document.getElementById('btnPedirAssessoria').disabled = true;
+                const st = round.assessoria;
+                const statusEl = document.getElementById('assessoriaStatus');
+                if (st.status === 'pending') {
+                    statusEl.textContent = `📞 Aguardando resposta de ${st.assessorName}...`;
+                } else if (st.status === 'accepted') {
+                    statusEl.textContent = `🧭 ${st.assessorName} sugere: ${st.sugestao.toUpperCase()}`;
+                } else if (st.status === 'declined') {
+                    statusEl.textContent = `❌ ${st.assessorName} recusou o pedido de assessoria.`;
+                }
+            } else if (!jaRespondeu) {
+                document.getElementById('btnPedirAssessoria').disabled = false;
+                document.getElementById('assessoriaStatus').textContent = '';
+            }
+        }
+    } else if (isPerg || q.isPerguntador) {
+        document.getElementById('alternativesGrid').style.display = 'none';
+        document.getElementById('allAlternativesArea').style.display = 'block';
+        document.getElementById('roleNotice').style.display = 'block';
+        document.getElementById('roleNotice').innerHTML = '👀 <strong>Você está perguntando!</strong> Tela somente leitura.';
+        document.getElementById('roleNotice').className = 'role-notice role-perguntador';
+        document.getElementById('allAlternativesList').innerHTML = q.alternativas.map(alt => {
+            const letter = alt.charAt(0).toLowerCase();
+            const isCorrect = letter === q.correta;
+            return `<div style="padding:12px 16px; background:${isCorrect ? 'rgba(0,255,136,0.12)' : 'rgba(255,255,255,0.03)'}; border:2px solid ${isCorrect ? 'rgba(0,255,136,0.4)' : 'rgba(255,255,255,0.08)'}; border-radius:10px; color:${isCorrect ? '#00ff88' : '#e0e0e0'}; font-size:0.9rem; ${isCorrect ? 'font-weight:600;' : ''}">${isCorrect ? '✅ ' : ''}${alt}</div>`;
+        }).join('');
+
+        const assessoriaAreaPerg = document.getElementById('assessoriaArea');
+        if (assessoriaAreaPerg) assessoriaAreaPerg.style.display = 'none';
+    }
+}
+
+function displaySpectatorView(perguntador, respondedor) {
+    document.getElementById('questionArea').style.display = 'none';
+    document.getElementById('spectatorArea').style.display = 'block';
+    document.getElementById('spectatorMessage').textContent = `⏳ ${perguntador} pergunta para ${respondedor}...`;
+    const assessoriaArea = document.getElementById('assessoriaArea');
+    if (assessoriaArea) assessoriaArea.style.display = 'none';
+}
+
+function handleAlternativeClick(alt, btn) {
+    const state = Game.state;
+    if (!state.currentRound || state.currentRound.respondeu) return;
+    if (state.playerName !== state.currentRound.respondedor) return;
+    document.querySelectorAll('.alternative-btn').forEach(b => b.disabled = true);
+    btn.classList.add('selected');
+    if (state.isHost) {
+        Game.core.handleAnswer({ alternativa: alt, playerName: state.playerName });
+    } else {
+        Game.network.sendToHost({ type: 'answer', alternativa: alt, playerName: state.playerName });
+    }
+    state.currentRound.respondeu = true;
+}
+
+// ============================================
+// EXPORTAÇÃO
+// ============================================
+window.Game = window.Game || {};
+window.Game.ui = window.Game.ui || {};
+Object.assign(window.Game.ui, {
+    displayRoundStart,
+    displayQuestion,
+    displaySpectatorView,
+    handleAlternativeClick
+});
